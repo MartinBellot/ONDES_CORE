@@ -1,38 +1,63 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Météo Ondes</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="background-glob"></div>
     <div class="container">
         <header>
-            <h1>Météo</h1>
-            <p id="location">Recherche position...</p>
+            <div class="header-top">
+                <span class="badge">LIVE</span>
+                <button id="theme-toggle" class="icon-btn">🌙</button>
+            </div>
+            <h1 id="city-name">Ma Position</h1>
+            <p id="location" class="subtitle">En attente du GPS...</p>
         </header>
 
         <main>
             <div class="weather-card">
-                <div class="icon" id="weather-icon">🤔</div>
-                <div class="temp" id="temperature">--°</div>
-                <div class="desc" id="description">En attente du GPS</div>
-            </div>
-
-            <div class="details grid">
-                <div class="detail-item">
-                    <span class="label">Vent</span>
-                    <span class="value" id="wind">-- km/h</span>
-                </div>
-                <div class="detail-item">
-                    <span class="label">Humidité</span>
-                    <span class="value" id="humidity">--%</span>
+                <div class="weather-main">
+                    <div class="icon-wrapper">
+                        <span class="icon" id="weather-icon">✨</span>
+                    </div>
+                    <div class="temp-wrapper">
+                        <span class="temp" id="temp-val">--</span>
+                        <span class="unit">°C</span>
+                    </div>
+                    <div class="desc" id="desc">Météo Ondes</div>
                 </div>
             </div>
 
-            <button onclick="refreshWeather()" class="refresh-btn">
-                🔄 Actualiser
+            <div class="details-grid">
+                <div class="detail-card">
+                    <span class="detail-icon">💨</span>
+                    <span class="detail-label">Vent</span>
+                    <span class="detail-value" id="wind">-- km/h</span>
+                </div>
+                <div class="detail-card">
+                    <span class="detail-icon">💧</span>
+                    <span class="detail-label">Humidité</span>
+                    <span class="detail-value" id="humidity">--%</span>
+                </div>
+                <div class="detail-card">
+                    <span class="detail-icon">🏔️</span>
+                    <span class="detail-label">Altitude</span>
+                    <span class="detail-value" id="altitude">-- m</span>
+                </div>
+                <div class="detail-card">
+                    <span class="detail-icon">🧭</span>
+                    <span class="detail-label">Précis.</span>
+                    <span class="detail-value" id="accuracy">-- m</span>
+                </div>
+            </div>
+
+            <button id="refresh-btn" class="action-btn">
+                <span class="btn-icon">📍</span> Actualiser ma position
             </button>
         </main>
     </div>

@@ -1,7 +1,7 @@
 {
     "id": "com.ondes.meteo",
-    "name": "Météo Ondes",
-    "version": "3.0.0",
+    "name": "Météo Ondes Next",
+    "version": "3.2.1",
     "icon": "icon.png",
-    "description": "Prévisions météo hyper-locales utilisant le GPS natif."
+    "description": "Prévisions météo hyper-locales réelles avec design moderne."
 }

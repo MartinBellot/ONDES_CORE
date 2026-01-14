@@ -1,104 +1,123 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('OndesReady', async () => {
     // Init UI
-    Ondes.UI.setAppBar(true, "Météo Locale");
+    if (window.Ondes) {
+        Ondes.UI.configureAppBar({ visible: true }); // Fullscreen style
+    }
     
+    // UI Refs
     const ui = {
+        city: document.getElementById('city-name'),
         location: document.getElementById('location'),
         temp: document.getElementById('temp-val'),
         desc: document.getElementById('desc'),
         humidity: document.getElementById('humidity'),
         wind: document.getElementById('wind'),
+        accuracy: document.querySelector('#accuracy') || createPlaceholder(),
+        altitude: document.querySelector('#altitude') || createPlaceholder(),
         icon: document.getElementById('weather-icon'),
-        btn: document.getElementById('refresh-btn')
+        btn: document.getElementById('refresh-btn'),
+        themeBtn: document.getElementById('theme-toggle')
     };
 
+    function createPlaceholder() { return { textContent: "" }; }
+
+    // Theme Management
+    let isDark = true;
+    const toggleTheme = () => {
+        isDark = !isDark;
+        document.body.classList.toggle('dark', isDark);
+        ui.themeBtn.textContent = isDark ? "🌙" : "☀️";
+        Ondes.Device.hapticFeedback('light');
+    };
+    ui.themeBtn.addEventListener('click', toggleTheme);
+    // Init theme based on system (or default dark as set in HTML)
+    ui.themeBtn.textContent = document.body.classList.contains('dark') ? "🌙" : "☀️";
+
+    
+    // Main Function
     const updateWeather = async () => {
         try {
             ui.btn.disabled = true;
-            ui.btn.textContent = "Localisation...";
+            ui.btn.style.opacity = "0.7";
+            ui.btn.innerHTML = '<span class="btn-icon">🛰️</span> Connexion satellite...';
             
-            // 1. Get GPS Position via Bridge
-            // The bridge returns { latitude: double, longitude: double }
+            // 1. Get Real GPS
             const position = await Ondes.Device.getGPSPosition();
-            console.log("Position received:", position);
-
-            ui.location.textContent = `Lat: ${position.latitude.toFixed(2)}, Lng: ${position.longitude.toFixed(2)}`;
-            ui.btn.textContent = "Chargement météo...";
-
-            // 2. Simulate API Call (using mock data for demo robustness)
-            // In a real app, you would fetch: 
-            // `https://api.weather.com/v1?lat=${position.latitude}&lon=${position.longitude}`
-            await new Promise(r => setTimeout(r, 800)); // Fake network delay
-            const data = generateMockWeather(position.latitude, position.longitude);
-
-            // 3. Update DOM
-            ui.temp.textContent = data.temp;
-            ui.desc.textContent = data.condition;
-            ui.humidity.textContent = data.humidity + "%";
-            ui.wind.textContent = data.wind + " km/h";
-            ui.icon.textContent = data.icon;
-
-            // Update background based on Mock Temp
-            updateTheme(data.temp);
-
-            // 4. Feedback
-            Ondes.Device.hapticFeedback('medium');
+            console.log("GPS:", position);
             
+            ui.location.textContent = `Lat: ${position.latitude.toFixed(4)}, Lng: ${position.longitude.toFixed(4)}`;
+            if (ui.accuracy) ui.accuracy.textContent = `±${Math.round(position.accuracy)}m`;
+            if (ui.altitude) ui.altitude.textContent = `${Math.round(position.altitude)}m`;
+
+            ui.btn.innerHTML = '<span class="btn-icon">☁️</span> Téléchargement météo...';
+
+            // 2. Call Open-Meteo API (Real Data)
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${position.latitude}&longitude=${position.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("API Error");
+            const data = await response.json();
+            
+            const current = data.current;
+            
+            // 3. Update UI
+            ui.temp.textContent = Math.round(current.temperature_2m);
+            ui.desc.textContent = getWeatherDesc(current.weather_code);
+            ui.icon.textContent = getWeatherIcon(current.weather_code);
+            ui.humidity.textContent = `${current.relative_humidity_2m}%`;
+            ui.wind.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+            
+            // Try Reverse Geocoding via external free API (Optional, minimal implementation)
+            ui.city.textContent = "Position actuelle"; 
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.latitude}&longitude=${position.longitude}&localityLanguage=fr`)
+                .then(r => r.json())
+                .then(geo => {
+                    if(geo.city || geo.locality) ui.city.textContent = geo.city || geo.locality;
+                })
+                .catch(() => {});
+
+            Ondes.Device.hapticFeedback('success');
+
         } catch (e) {
             console.error(e);
-            ui.location.textContent = "Erreur de localisation";
+            ui.desc.textContent = "Erreur réseau";
+            ui.location.textContent = e.message;
             Ondes.Device.hapticFeedback('error');
-            alert("Impossible de récupérer la position: " + e.message);
+            alert("Erreur: " + e.message);
         } finally {
             ui.btn.disabled = false;
-            ui.btn.textContent = "Actualiser ma position";
+            ui.btn.style.opacity = "1";
+            ui.btn.innerHTML = '<span class="btn-icon">📍</span> Actualiser ma position';
         }
     };
 
-    // Helper: Fake Weather Generator
-    function generateMockWeather(lat, lng) {
-        // Deterministic random based on minimal coord changes
-        const seed = Math.floor(Math.abs(lat + lng) * 100); 
-        const conditions = [
-            { text: "Ensoleillé", icon: "☀️" },
-            { text: "Nuageux", icon: "☁️" },
-            { text: "Pluvieux", icon: "🌧️" },
-            { text: "Orage", icon: "⚡" }
-        ];
-        
-        const condIndex = seed % conditions.length;
-        const temp = 15 + (seed % 15); // 15 to 30 degrees
-        
-        return {
-            temp: temp,
-            condition: conditions[condIndex].text,
-            icon: conditions[condIndex].icon,
-            humidity: 40 + (seed % 50),
-            wind: 5 + (seed % 60)
+    // WMO Weather Codes to Text/Icon
+    function getWeatherDesc(code) {
+        const codes = {
+            0: "Ciel dégagé",
+            1: "Principalement clair", 2: "Partiellement nuageux", 3: "Couvert",
+            45: "Brouillard", 48: "Brouillard givrant",
+            51: "Bruine légère", 53: "Bruine modérée", 55: "Bruine dense",
+            61: "Pluie faible", 63: "Pluie modérée", 65: "Pluie forte",
+            71: "Neige faible", 73: "Neige modérée", 75: "Neige forte",
+            95: "Orage", 96: "Orage avec grêle"
         };
+        return codes[code] || "Inconnu";
     }
 
-    function updateTheme(temp) {
-        let gradient;
-        if (temp > 25) {
-            // Hot
-            gradient = 'linear-gradient(180deg, #FF512F 0%, #DD2476 100%)';
-        } else if (temp < 10) {
-            // Cold
-            gradient = 'linear-gradient(180deg, #1A2980 0%, #26D0CE 100%)';
-        } else {
-            // Mild
-            gradient = 'linear-gradient(180deg, #4facfe 0%, #00f2fe 100%)';
-        }
-        document.body.style.background = gradient;
-        
-        // Update AppBar color via Bridge to match theme (Optional advanced feature)
-        // If we implemented setAppBarColor(hex)
+    function getWeatherIcon(code) {
+        if (code === 0) return "☀️";
+        if (code <= 3) return "⛅";
+        if (code <= 48) return "🌫️";
+        if (code <= 55) return "💧";
+        if (code <= 65) return "🌧️";
+        if (code <= 77) return "❄️";
+        if (code >= 95) return "⚡";
+        return "🌡️";
     }
 
-    // Bind Event
+    // Auto load on start
     ui.btn.addEventListener('click', updateWeather);
-
-    // Initial Load
+    // No timeout needed with OndesReady
     updateWeather();
 });
