@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ondes Full Demo</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="header-spacer"></div>
+
+    <div class="container">
+        
+        <!-- Section: App Info -->
+        <div class="card info-card">
+            <div class="card-header">
+                <i class="fas fa-microchip"></i>
+                <h2>Système (Ondes.App)</h2>
+            </div>
+            <div id="appInfo" class="loading">Chargement...</div>
+            <button onclick="closeApp()" class="danger-btn"><i class="fas fa-times-circle"></i> Fermer Mini-App</button>
+        </div>
+
+        <!-- Section: User -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-circle"></i>
+                <h2>Utilisateur (Ondes.User)</h2>
+            </div>
+            <div class="user-profile" id="userProfile">
+                <div class="skeleton-avatar"></div>
+                <div class="skeleton-text"></div>
+            </div>
+            <button onclick="getUserToken()"><i class="fas fa-key"></i> Obtenir Token Auth</button>
+            <p id="tokenDisplay" class="code-output"></p>
+        </div>
+
+        <!-- Section: UI -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-palette"></i>
+                <h2>Interface (Ondes.UI)</h2>
+            </div>
+            
+            <h3>Notifications (Toasts)</h3>
+            <div class="grid-2">
+                <button onclick="showToast('success')" class="success-btn">Succès</button>
+                <button onclick="showToast('error')" class="danger-btn">Erreur</button>
+                <button onclick="showToast('warning')" class="warning-btn">Attention</button>
+                <button onclick="showToast('info')" class="info-btn">Info</button>
+            </div>
+
+            <h3>Dialogue</h3>
+            <button onclick="showNativeAlert()"><i class="fas fa-comment-alt"></i> Ouvrir Popup Natif</button>
+
+            <h3>Navigation Bar</h3>
+            <div class="grid-2">
+                <button onclick="updateAppBar('Demo App', '#1a73e8', '#ffffff')">Bleu</button>
+                <button onclick="updateAppBar('Ondes Core', '#000000', '#ffffff')">Noir</button>
+                <button onclick="hideAppBar()">Cacher</button>
+                <button onclick="showAppBar()">Afficher</button>
+            </div>
+        </div>
+
+        <!-- Section: Device -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-mobile-alt"></i>
+                <h2>Matériel (Ondes.Device)</h2>
+            </div>
+
+            <h3>Haptique</h3>
+            <div class="grid-3">
+                <button onclick="haptic('light')">Light</button>
+                <button onclick="haptic('medium')">Medium</button>
+                <button onclick="haptic('heavy')">Heavy</button>
+            </div>
+            <div class="grid-3" style="margin-top:8px">
+                <button onclick="haptic('error')">Error</button>
+                <button onclick="haptic('warning')">Warn</button>
+                <button onclick="haptic('success')">Success</button>
+            </div>
+
+            <h3>Caméra & GPS</h3>
+            <button onclick="scanQR()" class="primary-btn huge-btn"><i class="fas fa-qrcode"></i> Scanner QR Code</button>
+            <p id="qrResult" class="code-output"></p>
+
+            <button onclick="getGPS()"><i class="fas fa-map-marker-alt"></i> Obtenir Position GPS</button>
+            <div id="gpsResult" class="code-output"></div>
+        </div>
+
+        <!-- Section: Storage -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-database"></i>
+                <h2>Stockage (Ondes.Storage)</h2>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="storageKey" placeholder="Clé">
+                <input type="text" id="storageValue" placeholder="Valeur">
+            </div>
+            
+            <div class="grid-2">
+                <button onclick="saveData()">Sauvegarder</button>
+                <button onclick="loadData()">Lire</button>
+                <button onclick="removeData()" class="danger-btn">Effacer</button>
+            </div>
+            <p id="storageOutput" class="code-output">En attente...</p>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

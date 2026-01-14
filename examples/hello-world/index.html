@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hello Ondes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <h1>👋 Bonjour !</h1>
+        <p>Ceci est une Mini-App Ondes Core.</p>
+        
+        <div class="card">
+            <h2>Actions</h2>
+            <button onclick="showNativeToast()">📢 Toast Natif</button>
+            <button onclick="showNativeAlert()">🚨 Alerte Native</button>
+        </div>
+
+        <div class="card" id="userInfo">
+            <h2>Profil</h2>
+            <button onclick="loadProfile()">👤 Charger Profil</button>
+            <div id="profileData" style="display:none; margin-top: 10px;">
+                <img id="avatar" src="" width="50" height="50" style="border-radius: 50%;">
+                <p id="username" style="font-weight: bold;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

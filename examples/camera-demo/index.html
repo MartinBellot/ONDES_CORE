@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Demo</title>
+    <style>
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .scan-box {
+            border: 2px dashed #0f0;
+            padding: 20px;
+            margin: 20px;
+            text-align: center;
+            border-radius: 10px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            font-family: monospace;
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scan-box">
+        <h2>Scanner QR Code</h2>
+        <p>Utilisez le scanner natif</p>
+        <button onclick="scan()">Lancer le Scan</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        async function scan() {
+            if (!window.Ondes) return alert("Ondes Core requis");
+            
+            try {
+                // Haptic feedback click
+                Ondes.Device.hapticFeedback('medium');
+                
+                const code = await Ondes.Device.scanQRCode();
+                
+                document.getElementById('result').innerText = "Résultat : " + code;
+                
+                // Haptic feedback success
+                Ondes.Device.hapticFeedback('success');
+                
+            } catch (e) {
+                Ondes.UI.showToast({
+                    message: "Scan annulé",
+                    type: "warning"
+                });
+            }
+        }
+    </script>
+</body>
+</html>

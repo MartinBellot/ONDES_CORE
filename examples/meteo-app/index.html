@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Météo Ondes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Météo</h1>
+            <p id="location">Recherche position...</p>
+        </header>
+
+        <main>
+            <div class="weather-card">
+                <div class="icon" id="weather-icon">🤔</div>
+                <div class="temp" id="temperature">--°</div>
+                <div class="desc" id="description">En attente du GPS</div>
+            </div>
+
+            <div class="details grid">
+                <div class="detail-item">
+                    <span class="label">Vent</span>
+                    <span class="value" id="wind">-- km/h</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Humidité</span>
+                    <span class="value" id="humidity">--%</span>
+                </div>
+            </div>
+
+            <button onclick="refreshWeather()" class="refresh-btn">
+                🔄 Actualiser
+            </button>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

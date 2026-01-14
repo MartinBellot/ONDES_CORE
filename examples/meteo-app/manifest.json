@@ -1,0 +1,7 @@
+{
+    "id": "com.ondes.meteo",
+    "name": "Météo Ondes",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "description": "Prévisions météo hyper-locales utilisant le GPS natif."
+}
