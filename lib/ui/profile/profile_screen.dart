@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/app_library_service.dart';
 
@@ -70,6 +71,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirmed == true) {
        setState(() => _isLoading = true);
        await AppLibraryService().deleteAllApps();
+       
+       final prefs = await SharedPreferences.getInstance();
+       await prefs.remove('app_order');
+
        setState(() => _isLoading = false);
        if (mounted) {
          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Applications supprimées")));
@@ -99,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!url.startsWith('http')) url = "http://127.0.0.1:8000$url";
       avatarProvider = NetworkImage(url);
     } else {
-       avatarProvider = const NetworkImage("https://via.placeholder.com/150"); 
+       avatarProvider = const NetworkImage("https://placehold.co/150/png"); 
     }
 
     return Scaffold(
@@ -108,13 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
          actions: [
           IconButton(
             onPressed: () async {
-               await AuthService().logout();
-               // Trigger a full app rebuild/navigation
-               // Since we are inside a TabView, it's tricky. 
-               // We will use a global key or proper State Management later.
-               // For now, hack:
-               runApp(const MaterialApp(home: Scaffold(body: Center(child: Text("Restarting..."))))); // Terrible hack but resets
-               // Actually, `main.dart` should listen to auth change.
+              await _logout();
             }, 
             icon: const Icon(Icons.logout, color: Colors.redAccent)
           )

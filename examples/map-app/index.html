@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ondes Maps</title>
+    
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- UI Overlay -->
+    <div class="ui-layer">
+        
+        <!-- Top Bar -->
+        <div class="search-bar blur-panel">
+            <div class="search-icon">🔍</div>
+            <input type="text" id="search-input" placeholder="Rechercher un lieu...">
+        </div>
+        
+        <!-- Suggestion List for Search -->
+        <ul id="suggestions" class="suggestions-list blur-panel" style="display: none;"></ul>
+
+        <!-- Map Style Toggle -->
+        <div class="map-toggle blur-panel">
+            <button class="toggle-btn active" data-style="standard">Plan</button>
+            <button class="toggle-btn" data-style="satellite">Satellite</button>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button id="locate-btn" class="fab blur-panel">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+            </svg>
+        </button>
+
+        <!-- Bottom Sheet -->
+        <div class="bottom-sheet blur-panel">
+            <div class="handle"></div>
+            <div class="location-info">
+                <h1 id="loc-title">Ma Position</h1>
+                <p id="loc-coords">En attente du signal GPS...</p>
+                
+                <!-- Transport Mode Selector -->
+                <div id="transport-mode" class="transport-toggle" style="display:none;">
+                    <button class="mode-btn active" data-mode="driving">🚗 Voiture</button>
+                    <button class="mode-btn" data-mode="walking">🚶 À pied</button>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat">
+                        <span class="label">Précision</span>
+                        <span class="value" id="loc-accuracy">--</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Altitude</span>
+                        <span class="value" id="loc-altitude">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

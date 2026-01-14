@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/auth_service.dart';
 import 'dev_studio_screen.dart';
 import '../widgets/glass_window.dart';
@@ -15,9 +16,31 @@ class LabScreen extends StatefulWidget {
 class _LabScreenState extends State<LabScreen> {
   final TextEditingController _ipController = TextEditingController(text: "http://192.168.1.15:3000");
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedUrl();
+  }
+
+  Future<void> _loadSavedUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUrl = prefs.getString('lab_url');
+    if (savedUrl != null && savedUrl.isNotEmpty) {
+      setState(() {
+        _ipController.text = savedUrl;
+      });
+    }
+  }
+
+  Future<void> _saveUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lab_url', url);
+  }
+
   void _launchLiveServer() {
     final url = _ipController.text.trim();
     if (url.isNotEmpty) {
+      _saveUrl(url);
       Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: url)));
     }
   }

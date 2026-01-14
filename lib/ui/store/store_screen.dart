@@ -106,17 +106,7 @@ class _StoreScreenState extends State<StoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-         children: [
-            Positioned.fill(
-              child: Image.network(
-                "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop", 
-                fit: BoxFit.cover,
-              ),
-            ),
-            Container(color: Colors.black54),
-            
-            SafeArea(
+      body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -221,8 +211,6 @@ class _StoreScreenState extends State<StoreScreen> {
                 ),
               ),
             )
-         ],
-      ),
     );
   }
 }
