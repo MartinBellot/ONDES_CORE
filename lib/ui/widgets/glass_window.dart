@@ -43,6 +43,8 @@ class GlassWindow extends StatelessWidget {
               children: [
                 // Window Header (MacOS style)
                 Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  width: double.infinity,
                   height: 38,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
@@ -52,19 +54,7 @@ class GlassWindow extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 12),
-                      // Traffic Lights
-                      _trafficLight(Colors.redAccent),
-                      SizedBox(width: 8),
-                      _trafficLight(Colors.amber),
-                      SizedBox(width: 8),
-                      _trafficLight(Colors.greenAccent),
-                      SizedBox(width: 16),
-                      // Title
-                      Expanded(
-                        child: Text(
+                  child: Text(
                           title,
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.9),
@@ -73,10 +63,6 @@ class GlassWindow extends StatelessWidget {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                      ),
-                      SizedBox(width: 70), // Balance
-                    ],
-                  ),
                 ),
                 // Content
                 Expanded(child: child),
@@ -84,17 +70,6 @@ class GlassWindow extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _trafficLight(Color color) {
-    return Container(
-      width: 12,
-      height: 12,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
       ),
     );
   }

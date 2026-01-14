@@ -107,110 +107,110 @@ class _StoreScreenState extends State<StoreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Ondes Store", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-                        IconButton(onPressed: _fetchApps, icon: const Icon(Icons.refresh, color: Colors.white))
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    if (_isLoading) 
-                      const Expanded(child: Center(child: CircularProgressIndicator())),
-                    
-                    if (_error != null)
-                      Expanded(child: Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent), textAlign: TextAlign.center))),
-
-                    if (!_isLoading && _error == null)
-                    Expanded(
-                      child: GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.8,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: _storeApps.length,
-                        itemBuilder: (context, index) {
-                          final app = _storeApps[index];
-                          
-                          // Check installation status
-                          bool isInstalled = false;
-                          bool isUpdateAvailable = false;
-                          
-                          try {
-                            final installed = _installedApps.firstWhere((a) => a.id == app.id);
-                            isInstalled = true;
-                            if (installed.version != app.version) {
-                              isUpdateAvailable = true;
-                            }
-                          } catch (e) {
-                            // Not installed
-                          }
-
-                          return GlassWindow(
-                            width: double.infinity,
-                            height: double.infinity,
-                            title: app.name,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                children: [
-                                  app.iconUrl.isNotEmpty 
-                                  ? Image.network(
-                                      app.iconUrl, 
-                                      height: 60,
-                                      errorBuilder: (c,e,s) => const Icon(Icons.broken_image, color: Colors.white54, size: 50),
-                                    )
-                                  : const Icon(Icons.apps, color: Colors.white, size: 60),
-                                  
-                                  const SizedBox(height: 12),
-                                  Text(app.description, 
-                                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                                    maxLines: 2, 
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const Spacer(),
-                                  Text("v${app.version}", style: const TextStyle(color: Colors.white30, fontSize: 10)),
-                                  const SizedBox(height: 4),
-                                  
-                                  // Dynamic Button
-                                  if (isUpdateAvailable)
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
-                                      onPressed: () => _installAndOpen(app),
-                                      child: const Text("Mettre à jour"),
-                                    )
-                                  else if (isInstalled)
-                                     ElevatedButton(
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.white24, foregroundColor: Colors.white),
-                                      onPressed: () => _openApp(app.id),
-                                      child: const Text("Ouvrir"),
-                                    )
-                                  else
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black),
-                                      onPressed: () => _installAndOpen(app),
-                                      child: const Text("Installer"),
-                                    )
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  ],
-                ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Ondes Store", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                  IconButton(onPressed: _fetchApps, icon: const Icon(Icons.refresh, color: Colors.white))
+                ],
               ),
-            )
+              const SizedBox(height: 20),
+              
+              if (_isLoading) 
+                const Expanded(child: Center(child: CircularProgressIndicator())),
+              
+              if (_error != null)
+                Expanded(child: Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent), textAlign: TextAlign.center))),
+
+              if (!_isLoading && _error == null)
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.8,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: _storeApps.length,
+                  itemBuilder: (context, index) {
+                    final app = _storeApps[index];
+                    
+                    // Check installation status
+                    bool isInstalled = false;
+                    bool isUpdateAvailable = false;
+                    
+                    try {
+                      final installed = _installedApps.firstWhere((a) => a.id == app.id);
+                      isInstalled = true;
+                      if (installed.version != app.version) {
+                        isUpdateAvailable = true;
+                      }
+                    } catch (e) {
+                      // Not installed
+                    }
+
+                    return GlassWindow(
+                      width: double.infinity,
+                      height: double.infinity,
+                      title: app.name,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          children: [
+                            app.iconUrl.isNotEmpty 
+                            ? Image.network(
+                                app.iconUrl, 
+                                height: 60,
+                                errorBuilder: (c,e,s) => const Icon(Icons.broken_image, color: Colors.white54, size: 50),
+                              )
+                            : const Icon(Icons.apps, color: Colors.white, size: 60),
+                            
+                            const SizedBox(height: 12),
+                            Text(app.description, 
+                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              maxLines: 2, 
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                            const Spacer(),
+                            Text("v${app.version}", style: const TextStyle(color: Colors.white30, fontSize: 10)),
+                            const SizedBox(height: 4),
+                            
+                            // Dynamic Button
+                            if (isUpdateAvailable)
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
+                                onPressed: () => _installAndOpen(app),
+                                child: const Text("Mettre à jour"),
+                              )
+                            else if (isInstalled)
+                                ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white24, foregroundColor: Colors.white),
+                                onPressed: () => _openApp(app.id),
+                                child: const Text("Ouvrir"),
+                              )
+                            else
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black),
+                                onPressed: () => _installAndOpen(app),
+                                child: const Text("Installer"),
+                              )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
+      )
     );
   }
 }
