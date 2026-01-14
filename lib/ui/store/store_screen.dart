@@ -56,6 +56,15 @@ class _StoreScreenState extends State<StoreScreen> {
     }
   }
 
+  Future<void> _refreshLocalApps() async {
+    final localApps = await _library.getInstalledApps();
+    if (mounted) {
+      setState(() {
+        _installedApps = localApps;
+      });
+    }
+  }
+
   Future<void> _installAndOpen(MiniApp app) async {
      if (app.downloadUrl.isEmpty) {
        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Lien de téléchargement manquant")));
@@ -73,23 +82,24 @@ class _StoreScreenState extends State<StoreScreen> {
      });
      
      // Refresh local list to update UI state
-     final localApps = await _library.getInstalledApps();
-     setState(() {
-       _installedApps = localApps;
-     });
+     await Future.delayed(const Duration(milliseconds: 300)); // Small delay for FS consistency
+     await _refreshLocalApps();
 
      await _server.startServer(appId: app.id);
      
      if (mounted) {
        Navigator.pop(context); // Close loading
-       Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: _server.localUrl)));
+       await Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: _server.localUrl)));
+       // Refresh again when back
+       _refreshLocalApps();
      }
   }
 
   Future<void> _openApp(String appId) async {
      await _server.startServer(appId: appId);
      if (mounted) {
-       Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: _server.localUrl)));
+       await Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: _server.localUrl)));
+       _refreshLocalApps();
      }
   }
 
