@@ -95,6 +95,8 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
 
     String manifestVersion = "1.0.0";
     String manifestIconPath = "";
+    String manifestDescription = "";
+    String manifestName = "";
 
     try {
       final content = await manifestFile.readAsString();
@@ -102,6 +104,8 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
       final String manifestId = json['id'] ?? "";
       manifestVersion = json['version'] ?? "1.0.0";
       manifestIconPath = json['icon'] ?? "";
+      manifestDescription = json['description'] ?? "";
+      manifestName = json['name'] ?? "";
       
       if (manifestId != app.id) {
          if (mounted) {
@@ -197,13 +201,23 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
        );
 
        if (success) {
-         // Auto-update Icon from manifest if available
+         // Auto-update Icon and Description from manifest if available
+         File? iconUrlToUpdate;
          if (manifestIconPath.isNotEmpty) {
             final iconFile = File("${dir.path}/$manifestIconPath");
             if (iconFile.existsSync()) {
-               print("Updating app icon from manifest: $manifestIconPath");
-               await _service.updateApp(appId: app.dbId!, icon: iconFile);
+               iconUrlToUpdate = iconFile;
             }
+         }
+
+         if (iconUrlToUpdate != null || manifestDescription.isNotEmpty || manifestName.isNotEmpty) {
+             print("Auto-updating app metadata from manifest.");
+             await _service.updateApp(
+               appId: app.dbId!,
+               icon: iconUrlToUpdate,
+               description: manifestDescription.isNotEmpty ? manifestDescription : null,
+               name: manifestName.isNotEmpty ? manifestName : null
+             );
          }
 
          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Version publiée avec succès !")));
