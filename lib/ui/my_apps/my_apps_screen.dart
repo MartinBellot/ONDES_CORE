@@ -36,7 +36,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> {
 
   Future<void> _openApp(MiniApp app) async {
     // Start Server
-    await _server.startServer(appId: app.id);
+    await _server.startServer(appId: app.id, appPath: app.localPath);
     // Navigate
     if (mounted) {
        Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: _server.localUrl)));

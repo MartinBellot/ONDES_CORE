@@ -8,20 +8,30 @@ class LocalServerService {
   HttpServer? _server;
   int _port = 8080;
 
-  Future<void> startServer({required String appId}) async {
-    if (_server != null) return;
+  Future<void> startServer({String? appId, String? appPath}) async {
+    // Always stop the previous server to ensure we serve the correct directory
+    await stopServer();
 
-    final docsDir = await getApplicationDocumentsDirectory();
-    final appPath = "${docsDir.path}/apps/$appId";
-    final webDir = Directory(appPath);
+    String webPath;
+    if (appPath != null) {
+      webPath = appPath;
+    } else if (appId != null) {
+      final docsDir = await getApplicationDocumentsDirectory();
+      webPath = "${docsDir.path}/apps/$appId";
+    } else {
+      print("❌ StartServer: Missing parameters");
+      return;
+    }
+    
+    final webDir = Directory(webPath);
 
     if (!webDir.existsSync()) {
-      print("❌ App directory not found: $appPath");
+      print("❌ App directory not found: $webPath");
       return;
     }
 
     var handler = createStaticHandler(
-      appPath, 
+      webPath, 
       defaultDocument: 'index.html',
       listDirectories: false
     );
@@ -39,12 +49,14 @@ class LocalServerService {
     }).addHandler(handler);
 
     try {
-      _server = await shelf_io.serve(pipeline, '127.0.0.1', 8080); // Localhost only
+      // Use port 0 to let the OS assign a random available port.
+      // This prevents caching issues in the WebView (new Origin each time).
+      _server = await shelf_io.serve(pipeline, '127.0.0.1', 0); 
       _port = _server!.port;
       print('🚀 Ondes Local Server running on http://127.0.0.1:$_port for App: $appId');
     } catch (e) {
       print("⚠️ Could not start server: $e");
-      // Try random port
+      // Fallback
       _server = await shelf_io.serve(pipeline, '127.0.0.1', 0);
       _port = _server!.port;
       print('🚀 Ondes Local Server running on http://127.0.0.1:$_port (Fallback)');

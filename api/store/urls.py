@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import AppListView, RegisterView, CustomAuthToken, UserProfileView, MyAppsManagerView, AppVersionUploadView
+from .views import AppListView, RegisterView, CustomAuthToken, UserProfileView, MyAppsManagerView, AppVersionUploadView, MyAppsDetailView
 
 urlpatterns = [
     path('apps/', AppListView.as_view(), name='app-list'),
@@ -9,5 +9,6 @@ urlpatterns = [
     
     # Dev Studio
     path('studio/apps/', MyAppsManagerView.as_view(), name='studio-apps'),
+    path('studio/apps/<int:pk>/', MyAppsDetailView.as_view(), name='studio-app-detail'),
     path('studio/apps/<int:app_id>/versions/', AppVersionUploadView.as_view(), name='studio-app-versions'),
 ]

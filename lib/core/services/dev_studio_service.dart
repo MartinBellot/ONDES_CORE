@@ -90,4 +90,52 @@ class DevStudioService {
       return false;
     }
   }
+
+  Future<MiniApp?> updateApp({
+    required int appId,
+    String? name,
+    String? description,
+    File? icon,
+  }) async {
+    if (_token == null) return null;
+    try {
+      final map = <String, dynamic>{};
+      if (name != null) map['name'] = name;
+      if (description != null) map['description'] = description;
+      
+      FormData formData = FormData.fromMap(map);
+
+      if (icon != null) {
+        formData.files.add(MapEntry(
+          'icon',
+          await MultipartFile.fromFile(icon.path, filename: 'icon.png'),
+        ));
+      }
+
+      final response = await _dio.patch(
+        '$_baseUrl/apps/$appId/',
+        data: formData,
+        options: Options(headers: {'Authorization': 'Token $_token'}),
+      );
+      
+      return MiniApp.fromJson(response.data);
+    } catch (e) {
+      print("Update App Error: $e");
+      return null;
+    }
+  }
+
+  Future<bool> deleteApp(int appId) async {
+    if (_token == null) return false;
+    try {
+      await _dio.delete(
+        '$_baseUrl/apps/$appId/',
+        options: Options(headers: {'Authorization': 'Token $_token'}),
+      );
+      return true;
+    } catch (e) {
+      print("Delete App Error: $e");
+      return false;
+    }
+  }
 }

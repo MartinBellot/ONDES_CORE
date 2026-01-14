@@ -31,7 +31,9 @@ class AppLibraryService {
                 : "";
 
             installedApps.add(MiniApp(
-              id: json['id'],
+              // TRUST LOCAL FOLDER NAME AS ID (Syncs with Installer & Store)
+              id: entity.path.split(Platform.pathSeparator).last, 
+              // id: json['id'], // Don't trust manifest ID, can be desync
               name: json['name'],
               version: json['version'],
               description: json['description'] ?? "",
@@ -54,6 +56,14 @@ class AppLibraryService {
     final appDir = Directory("${docsDir.path}/apps/$appId");
     if (appDir.existsSync()) {
       await appDir.delete(recursive: true);
+    }
+  }
+
+  Future<void> deleteAllApps() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    final appsDir = Directory("${docsDir.path}/apps");
+    if (appsDir.existsSync()) {
+      await appsDir.delete(recursive: true);
     }
   }
 }

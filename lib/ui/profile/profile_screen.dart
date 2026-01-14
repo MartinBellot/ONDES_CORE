@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/app_library_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -51,6 +52,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _newAvatar = null;
      });
      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profil mis à jour !")));
+  }
+
+  Future<void> _deleteAllApps() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Attention"),
+        content: const Text("Voulez-vous vraiment supprimer toutes les applications locales ?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Annuler")),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Supprimer tout", style: TextStyle(color: Colors.red))),
+        ],
+      )
+    );
+
+    if (confirmed == true) {
+       setState(() => _isLoading = true);
+       await AppLibraryService().deleteAllApps();
+       setState(() => _isLoading = false);
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Applications supprimées")));
+       }
+    }
   }
 
   Future<void> _logout() async {
@@ -135,6 +159,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                  onPressed: _isLoading ? null : _save,
                  child: _isLoading ? const CircularProgressIndicator() : const Text("Enregistrer"),
                ),
+             ),
+
+             const SizedBox(height: 40),
+             
+             TextButton.icon(
+               onPressed: _isLoading ? null : _deleteAllApps,
+               icon: const Icon(Icons.delete_forever, color: Colors.white54),
+               label: const Text("Supprimer toutes les apps locales", style: TextStyle(color: Colors.white54)),
              )
           ],
         ),

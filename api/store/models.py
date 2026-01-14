@@ -33,3 +33,8 @@ class AppVersion(models.Model):
 
     def __str__(self):
         return f"{self.app.name} v{self.version_number}"
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.app.name} v{self.version_number}"

@@ -81,6 +81,50 @@ class MyAppsManagerView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class MyAppsDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    def get_object(self, pk, user):
+        try:
+            return MiniApp.objects.get(pk=pk, author=user)
+        except MiniApp.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        app = self.get_object(pk, request.user)
+        if not app:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = MiniAppSerializer(app, context={'request': request})
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        app = self.get_object(pk, request.user)
+        if not app:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = MiniAppSerializer(app, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        app = self.get_object(pk, request.user)
+        if not app:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = MiniAppSerializer(app, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        app = self.get_object(pk, request.user)
+        if not app:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        app.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 class AppVersionUploadView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
