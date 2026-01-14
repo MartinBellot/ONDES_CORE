@@ -4,23 +4,41 @@ Bienvenue dans le SDK OndesBridge. Ce kit de développement permet à votre Mini
 
 ## 🚀 Initialisation
 
-Le pont `window.Ondes` est injecté automatiquement au chargement de votre application dans le navigateur d'Ondes Core.
+Le pont `window.Ondes` est injecté automatiquement par le système. Cependant, cette injection peut prendre quelques millisecondes. 
 
-> **Bonne pratique :** Vérifiez toujours si l'environnement est disponible avant d'appeler une fonction.
+> **Important - Le cycle de vie :** N'utilisez **pas** `DOMContentLoaded` ou `window.onload`. Le système émet un événement spécifique `OndesReady` lorsque le pont est sûr à utiliser.
 
 ```javascript
+// ✅ La bonne méthode
+document.addEventListener('OndesReady', () => {
+    console.log("✅ Ondes Core connectée et prête");
+    
+    // Vous pouvez lancer votre app ici
+    initApp();
+});
+
+// ❌ Évitez ceci (Risque de "Object Ondes is undefined")
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.Ondes) {
-        console.log("✅ Ondes Core connectée");
-    } else {
-        console.warn("⚠️ Mode Web classique (Hors Ondes Core)");
-    }
+    Ondes.UI.showToast(...); // Crash potentiel
 });
 ```
 
-> **⚠️ Note Importante :** Toutes les méthodes du SDK sont **Asynchrones** et retournent des `Promise`. Utilisez `async/await` ou `.then()` pour gérer les réponses.
+## 📦 Déploiement & Manifest
 
-## 1. 🎨 Interface (Ondes.UI)
+Chaque application doit contenir un fichier `manifest.json` à la racine pour être reconnue par le Studio.
+
+### Versioning
+Pour publier une mise à jour, vous devez **impérativement** incrémenter le champ `version` dans votre fichier `manifest.json`. Le Studio utilise cette valeur comme source de vérité.
+
+```json
+{
+    "id": "com.votre.app",
+    "name": "Mon App Super",
+    "version": "1.2.0", // <-- Incrémentez ceci avant l'upload
+    "icon": "assets/icon.png",
+    "description": "Une super application."
+}
+```
 
 Contrôlez l'interface native qui entoure votre application.
 
