@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive_io.dart';
-import 'package:uuid/uuid.dart';
 import '../models/mini_app.dart';
 
 class AppInstallerService {

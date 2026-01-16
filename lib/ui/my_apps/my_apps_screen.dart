@@ -56,7 +56,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
     // Determine the size of the grid. 
     // It should be at least (savedOrder.length) or (installedApps.length) rounded up to full pages.
     // Actually we just use a loose list and fill gaps with nulls.
-    int maxIndex = 0;
+    //int maxIndex = 0;
     // savedOrder may contain "NULL" strings for empty slots
     
     // First, reconstruct the grid based on saved order

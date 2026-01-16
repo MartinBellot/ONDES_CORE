@@ -46,8 +46,6 @@ class OndesCoreApp extends StatefulWidget {
 }
 
 class _OndesCoreAppState extends State<OndesCoreApp> {
-  int _currentIndex = 0;
-  
   // Use a method to rebuild screens based on auth state if needed, 
   // or wrap the profile tab in a reactive widget.
   // Ideally use a ValueListenable or StreamBuilder.
@@ -101,24 +99,24 @@ class _AuthWrapperState extends State<AuthWrapper> {
     ];
 
     return Scaffold(
-        body: screens[_currentIndex],
-        bottomNavigationBar: BottomNavigationBar(
-           backgroundColor: Colors.black87,
-           selectedItemColor: Colors.blueAccent,
-           unselectedItemColor: Colors.white38,
-           type: BottomNavigationBarType.fixed,
-           currentIndex: _currentIndex,
-           onTap: (i) => setState(() => _currentIndex = i),
-           items: [
-             const BottomNavigationBarItem(icon: Icon(Icons.science), label: "Lab"),
-             const BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: "Apps"),
-             const BottomNavigationBarItem(icon: Icon(Icons.explore), label: "Store"),
-             BottomNavigationBarItem(
-               icon: Icon(isAuth ? Icons.person : Icons.login), 
-               label: isAuth ? "Profil" : "Compte"
-             ),
-           ],
-        ),
-      );
+      body: screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Colors.black87,
+          selectedItemColor: Colors.blueAccent,
+          unselectedItemColor: Colors.white38,
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+          items: [
+            const BottomNavigationBarItem(icon: Icon(Icons.science), label: "Lab"),
+            const BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: "Apps"),
+            const BottomNavigationBarItem(icon: Icon(Icons.explore), label: "Store"),
+            BottomNavigationBarItem(
+              icon: Icon(isAuth ? Icons.person : Icons.login), 
+              label: isAuth ? "Profil" : "Compte"
+            ),
+          ],
+      ),
+    );
   }
 }
