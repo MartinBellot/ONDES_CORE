@@ -2,7 +2,7 @@
     "id": "com.ondes.tiktok-demo",
     "name": "TikTok Demo",
     "description": "A TikTok-style vertical video feed app showcasing Ondes.Social with HLS video streaming",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "author": "Ondes Team",
     "icon": "icon.png",
     "entry": "index.html",

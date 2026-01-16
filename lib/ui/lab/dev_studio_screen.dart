@@ -6,6 +6,7 @@ import '../../core/services/dev_studio_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
+import 'app_edit_screen.dart';
 
 class DevStudioScreen extends StatefulWidget {
   const DevStudioScreen({super.key});
@@ -235,78 +236,18 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
   }
 
   Future<void> _editApp(MiniApp app) async {
-    final nameCtrl = TextEditingController(text: app.name);
-    final descCtrl = TextEditingController(text: app.description);
+    if (app.dbId == null) return;
     
-    File? newIcon;
-
-    await showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setStateBuilder) { 
-            return AlertDialog(
-            title: Text("Modifier ${app.name}"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Nom")),
-                TextField(controller: descCtrl, decoration: const InputDecoration(labelText: "Description")),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    if (newIcon != null) 
-                        Image.file(newIcon!, width: 40, height: 40)
-                    else 
-                        app.iconUrl.isNotEmpty 
-                          ? Image.network(app.iconUrl, width: 40, height: 40, errorBuilder: (c,e,s) => const Icon(Icons.apps)) 
-                          : const Icon(Icons.apps),
-                    const SizedBox(width: 16),
-                    TextButton.icon(
-                        icon: const Icon(Icons.image),
-                        label: const Text("Changer l'icône"),
-                        onPressed: () async {
-                           final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                           if (result != null) {
-                               setStateBuilder(() {
-                                   newIcon = File(result.files.single.path!);
-                               });
-                           }
-                        },
-                    )
-                  ],
-                )
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Annuler")),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(ctx);
-                  if (app.dbId == null) return;
-
-                  setState(() => _isLoading = true);
-                  final updatedApp = await _service.updateApp(
-                    appId: app.dbId!,
-                    name: nameCtrl.text,
-                    description: descCtrl.text,
-                    icon: newIcon
-                  );
-                  
-                  if (updatedApp != null) {
-                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Application modifiée")));
-                    _loadMyApps();
-                  } else {
-                    setState(() => _isLoading = false);
-                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Erreur modification")));
-                  }
-                },
-                child: const Text("Enregistrer"),
-              )
-            ],
-          );
-        }
-      )
+    // Navigate to full edit screen
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AppEditScreen(app: app),
+      ),
     );
+    
+    // Reload apps after returning from edit screen
+    _loadMyApps();
   }
 
   Future<void> _deleteApp(MiniApp app) async {
