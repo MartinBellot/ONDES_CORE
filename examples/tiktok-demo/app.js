@@ -107,17 +107,18 @@ function createVideoElement(post, index) {
     div.dataset.postId = post.uuid;
     
     const videoMedia = post.media.find(m => m.media_type === 'video');
-    const videoSrc = videoMedia.hls_playlist || videoMedia.compressed_file || videoMedia.original_file;
-    const isHls = videoMedia.hls_playlist ? true : false;
+    // API returns full URLs: hls_url, display_url, thumbnail_url
+    const hlsUrl = videoMedia.hls_url;
+    const isHls = !!hlsUrl;
     
     div.innerHTML = `
         <video 
             id="video-${index}"
-            data-hls="${videoMedia.hls_playlist || ''}"
+            data-hls="${hlsUrl || ''}"
             playsinline
             loop
             preload="metadata"
-            poster="${videoMedia.thumbnail || ''}"
+            poster="${videoMedia.thumbnail_url || ''}"
         ></video>
         
         <div class="play-indicator">
@@ -139,11 +140,11 @@ function createVideoElement(post, index) {
     
     const videoEl = div.querySelector('video');
     
-    // Initialize HLS or regular video
+    // Initialize HLS or fallback to display_url
     if (isHls) {
-        initHlsPlayer(videoEl, videoMedia.hls_playlist, index);
+        initHlsPlayer(videoEl, hlsUrl, index);
     } else {
-        videoEl.src = videoSrc;
+        videoEl.src = videoMedia.display_url;
     }
     
     // Event listeners
@@ -183,25 +184,48 @@ function createVideoElement(post, index) {
 function initHlsPlayer(videoElement, hlsUrl, index) {
     if (!hlsUrl) return;
     
-    if (Hls.isSupported()) {
+    // Prevent double initialization
+    if (state.hlsInstances.has(index)) {
+        return;
+    }
+    
+    console.log('[VIDEO] Initializing HLS player:', hlsUrl);
+    
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
         const hls = new Hls({
             maxBufferLength: 30,
             maxMaxBufferLength: 60,
             startLevel: -1 // Auto quality
         });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                console.error('[HLS] Fatal error:', data.type, data.details);
+                if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                    hls.startLoad();
+                } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                    hls.recoverMediaError();
+                }
+            }
+        });
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('[HLS] Manifest loaded, video ready');
+            if (index === state.currentVideoIndex) {
+                videoElement.play().catch(() => {});
+            }
+        });
+        
         hls.loadSource(hlsUrl);
         hls.attachMedia(videoElement);
         
         // Store HLS instance for cleanup
         state.hlsInstances.set(index, hls);
-        
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            if (index === state.currentVideoIndex) {
-                videoElement.play().catch(() => {});
-            }
-        });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS support (Safari)
         videoElement.src = hlsUrl;
+    } else {
+        console.warn('[VIDEO] HLS not supported');
     }
 }
 
@@ -285,7 +309,7 @@ function updateSidebarAndInfo(index) {
     // Update sidebar
     elements.sidebarActions.innerHTML = `
         <div class="action-item">
-            <button class="action-btn profile-btn" onclick="openProfile('${post.author.uuid}')">
+            <button class="action-btn profile-btn" onclick="openProfileModal(${post.author.id})">
                 <img src="${post.author.profile_picture || 'https://via.placeholder.com/48'}" alt="${post.author.username}">
                 ${!post.author.is_following ? '<div class="follow-badge">+</div>' : ''}
             </button>
@@ -461,12 +485,14 @@ async function openComments(postUuid) {
 function renderComments(comments) {
     const commentsList = document.getElementById('comments-list');
     commentsList.innerHTML = comments.map(comment => {
-        const isOwnComment = comment.author.id === state.currentUser?.id;
+        // Bridge sends 'user' not 'author' for comments, and 'is_liked' not 'user_has_liked'
+        const commentUser = comment.user || comment.author;
+        const isOwnComment = commentUser?.id === state.currentUser?.id;
         return `
             <div class="comment-item" data-id="${comment.uuid}">
-                <img class="comment-avatar" src="${comment.author.profile_picture || 'https://via.placeholder.com/40'}" alt="">
+                <img class="comment-avatar" src="${commentUser?.profile_picture || 'https://via.placeholder.com/40'}" alt="">
                 <div class="comment-content">
-                    <span class="comment-username">${comment.author.username}</span>
+                    <span class="comment-username">${commentUser?.username || 'Unknown'}</span>
                     <p class="comment-text">${comment.content}</p>
                     <div class="comment-meta">
                         <span>${formatTimeAgo(new Date(comment.created_at))}</span>
@@ -475,7 +501,7 @@ function renderComments(comments) {
                     </div>
                 </div>
                 <div class="comment-like">
-                    <button class="comment-like-btn ${comment.user_has_liked ? 'liked' : ''}" onclick="likeComment('${comment.uuid}')">
+                    <button class="comment-like-btn ${comment.is_liked ? 'liked' : ''}" onclick="likeComment('${comment.uuid}')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                         </svg>
@@ -728,14 +754,6 @@ function switchFeed(type) {
 elements.tabFollowing.addEventListener('click', () => switchFeed('following'));
 elements.tabForyou.addEventListener('click', () => switchFeed('foryou'));
 
-function openProfile(userUuid) {
-    // Find user id from uuid
-    const video = state.videos.find(v => v.author.uuid === userUuid);
-    if (video) {
-        openProfileModal(video.author.id);
-    }
-}
-
 function openSearch() {
     openDiscoverModal();
 }
@@ -972,7 +990,8 @@ function renderProfileVideosGrid(posts) {
     
     grid.innerHTML = posts.map(post => {
         const videoMedia = post.media.find(m => m.media_type === 'video');
-        const thumbnail = videoMedia?.thumbnail || 'https://via.placeholder.com/150?text=Video';
+        // API returns full URL in thumbnail_url
+        const thumbnail = videoMedia?.thumbnail_url || 'https://via.placeholder.com/150?text=Video';
         
         return `
             <div class="profile-video-item" onclick="playProfileVideo('${post.uuid}')">

@@ -1,7 +1,7 @@
 {
     "id": "com.ondes.instagram-demo",
     "name": "Ondes Social",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "Application sociale style Instagram avec feed, stories, posts et interactions",
     "icon": "assets/icon.png",
     "author": "Ondes Team",

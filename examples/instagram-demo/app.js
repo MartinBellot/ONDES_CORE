@@ -549,18 +549,20 @@ async function showComments(postUuid) {
 function renderComments(comments) {
     const commentsList = document.getElementById('comments-list');
     commentsList.innerHTML = comments.map(comment => {
-        const isOwnComment = comment.author.id === state.currentUser?.id;
+        // Bridge sends 'user' not 'author' for comments, and 'is_liked' not 'user_has_liked'
+        const commentUser = comment.user || comment.author;
+        const isOwnComment = commentUser?.id === state.currentUser?.id;
         return `
             <div class="comment-item" data-comment-id="${comment.uuid}">
-                <img class="comment-avatar" src="${comment.author.profile_picture || 'https://via.placeholder.com/32'}" alt="${comment.author.username}">
+                <img class="comment-avatar" src="${commentUser?.profile_picture || 'https://via.placeholder.com/32'}" alt="${commentUser?.username || ''}">
                 <div class="comment-content">
-                    <span class="comment-username">${comment.author.username}</span>
+                    <span class="comment-username">${commentUser?.username || 'Unknown'}</span>
                     <p class="comment-text">${comment.content}</p>
                     <div class="comment-meta">
                         <span>${formatTimeAgo(new Date(comment.created_at))}</span>
                         <span>${comment.likes_count} likes</span>
                         <button class="comment-like-btn" onclick="likeComment('${comment.uuid}')">
-                            ${comment.user_has_liked ? 'Unlike' : 'Like'}
+                            ${comment.is_liked ? 'Unlike' : 'Like'}
                         </button>
                         ${isOwnComment ? `
                             <button class="comment-delete-btn" onclick="deleteComment('${comment.uuid}')">Delete</button>
