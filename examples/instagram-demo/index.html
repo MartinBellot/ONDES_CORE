@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ondes Social</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="logo">Ondes</h1>
+            <div class="header-actions">
+                <button class="icon-btn" id="newPostBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="messagesBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stories Bar -->
+    <section class="stories-container" id="storiesContainer">
+        <div class="stories-scroll" id="storiesScroll">
+            <!-- Your Story -->
+            <div class="story-item your-story" id="yourStory">
+                <div class="story-ring">
+                    <div class="story-avatar">
+                        <img src="" alt="You" id="yourAvatar">
+                        <span class="add-story-badge">+</span>
+                    </div>
+                </div>
+                <span class="story-username">Votre story</span>
+            </div>
+            <!-- Stories will be inserted here -->
+        </div>
+    </section>
+
+    <!-- Feed -->
+    <main class="feed-container" id="feedContainer">
+        <div class="feed-loading" id="feedLoading">
+            <div class="spinner"></div>
+            <p>Chargement du feed...</p>
+        </div>
+        <div class="feed" id="feed">
+            <!-- Posts will be inserted here -->
+        </div>
+        <div class="feed-empty" id="feedEmpty" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <h3>Aucun post</h3>
+            <p>Suivez des utilisateurs pour voir leurs publications ici</p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-tab="home">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+        </button>
+        <button class="nav-item" data-tab="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+            </svg>
+        </button>
+        <button class="nav-item" data-tab="reels">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="20" rx="2"/>
+                <path d="m10 8 6 4-6 4V8z"/>
+            </svg>
+        </button>
+        <button class="nav-item" data-tab="notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+        </button>
+        <button class="nav-item" data-tab="profile" id="profileNavBtn">
+            <div class="nav-avatar">
+                <img src="" alt="Profile" id="navAvatar">
+            </div>
+        </button>
+    </nav>
+
+    <!-- Create Post Modal -->
+    <div class="modal" id="createPostModal">
+        <div class="modal-content">
+            <!-- Publishing overlay -->
+            <div class="publishing-overlay" id="publishingOverlay">
+                <div class="publishing-spinner"></div>
+                <span class="publishing-text" id="publishingText">Publication...</span>
+                <div class="publishing-progress">
+                    <div class="publishing-progress-bar" id="publishingProgressBar"></div>
+                </div>
+            </div>
+            
+            <div class="modal-header">
+                <button class="close-btn" id="closePostModal">&times;</button>
+                <h2>Nouvelle publication</h2>
+                <button class="post-btn" id="publishBtn">Publier</button>
+            </div>
+            <div class="modal-body">
+                <div class="post-preview" id="postPreview">
+                    <div class="media-placeholder" id="mediaPlaceholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/>
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        </svg>
+                        <p>Ajouter des photos/vidéos</p>
+                        <button class="select-media-btn" id="selectMediaBtn">Sélectionner</button>
+                    </div>
+                    <div class="media-preview-container" id="mediaPreviewContainer" style="display: none;"></div>
+                </div>
+                <textarea class="post-caption" id="postCaption" placeholder="Écrivez une légende..."></textarea>
+                <div class="post-options">
+                    <div class="option-row">
+                        <span>Visibilité</span>
+                        <select id="visibilitySelect">
+                            <option value="followers">Abonnés</option>
+                            <option value="public">Public</option>
+                            <option value="private">Privé</option>
+                        </select>
+                    </div>
+                    <div class="option-row">
+                        <span>Tags</span>
+                        <input type="text" id="tagsInput" placeholder="vacances, soleil...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Viewer -->
+    <div class="story-viewer" id="storyViewer">
+        <div class="story-viewer-header">
+            <div class="story-progress-container" id="storyProgressContainer"></div>
+            <div class="story-user-info">
+                <img class="story-viewer-avatar" id="storyViewerAvatar" src="" alt="">
+                <span class="story-viewer-username" id="storyViewerUsername"></span>
+                <span class="story-viewer-time" id="storyViewerTime"></span>
+            </div>
+            <button class="close-story-btn" id="closeStoryBtn">&times;</button>
+        </div>
+        <div class="story-content" id="storyContent"></div>
+        <div class="story-nav story-prev" id="storyPrev"></div>
+        <div class="story-nav story-next" id="storyNext"></div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div class="modal comments-modal" id="commentsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-btn" id="closeCommentsModal">&times;</button>
+                <h2>Commentaires</h2>
+            </div>
+            <div class="comments-list" id="commentsList"></div>
+            <div class="comment-input-container">
+                <input type="text" id="commentInput" placeholder="Ajouter un commentaire...">
+                <button id="sendCommentBtn">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Page -->
+    <div class="page search-page hidden" id="searchPage">
+        <div class="search-header">
+            <input type="text" class="search-input" id="searchInput" placeholder="Rechercher des utilisateurs...">
+        </div>
+        <div class="search-results" id="searchResults">
+            <div class="search-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <p>Recherchez des utilisateurs par nom</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reels Page -->
+    <div class="page reels-page hidden" id="reelsPage">
+        <div class="reels-container" id="reelsContainer">
+            <div class="reels-loading" id="reelsLoading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div class="page profile-page hidden" id="profilePage">
+        <div class="profile-header" id="profileHeader">
+            <div class="profile-top">
+                <img class="profile-avatar-lg" id="profileAvatar" src="">
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-count" id="postsCount">0</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat-item" onclick="showFollowers()">
+                        <span class="stat-count" id="followersCount">0</span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                    <div class="stat-item" onclick="showFollowing()">
+                        <span class="stat-count" id="followingCount">0</span>
+                        <span class="stat-label">Following</span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-username" id="profileUsername"></h2>
+                <p class="profile-bio" id="profileBio"></p>
+            </div>
+            <div class="profile-actions" id="profileActions">
+                <!-- Follow/Edit button inserted here -->
+            </div>
+        </div>
+        <div class="profile-tabs">
+            <button class="profile-tab active" data-tab="posts" onclick="switchProfileTab('posts')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                </svg>
+            </button>
+            <button class="profile-tab" data-tab="bookmarks" onclick="switchProfileTab('bookmarks')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="profile-grid" id="profileGrid">
+            <!-- Posts grid inserted here -->
+        </div>
+    </div>
+
+    <!-- Post Options Modal -->
+    <div class="modal post-options-modal" id="postOptionsModal">
+        <div class="modal-content options-content">
+            <button class="option-item danger" onclick="deleteCurrentPost()">Supprimer</button>
+            <button class="option-item" onclick="copyPostLink()">Copier le lien</button>
+            <button class="option-item" onclick="closePostOptions()">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Followers/Following Modal -->
+    <div class="modal users-modal" id="usersModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-btn" onclick="closeUsersModal()">&times;</button>
+                <h2 id="usersModalTitle">Followers</h2>
+            </div>
+            <div class="users-list" id="usersList">
+                <!-- Users inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- HLS.js for video streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="app.js"></script>
+</body>
+</html>

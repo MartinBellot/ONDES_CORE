@@ -8,3 +8,4 @@ export 'device_handler.dart';
 export 'storage_handler.dart';
 export 'app_handler.dart';
 export 'friends_handler.dart';
+export 'social_handler.dart';

@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'store',
     'friends',
+    'social',
 ]
 
 REST_FRAMEWORK = {

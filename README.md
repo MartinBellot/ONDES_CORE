@@ -25,6 +25,7 @@
   - [Ondes.Storage - Stockage](#4-ondesstorage---stockage)
   - [Ondes.App - Système](#5-ondesapp---système)
   - [Ondes.Friends - Système social](#6-ondesfriends---système-social)
+  - [Ondes.Social - Réseau social & Médias](#7-ondessocial---réseau-social--médias)
 - [API Backend Django](#-api-backend-django)
 - [Exemples](#-exemples)
 - [Gestion des erreurs](#-gestion-des-erreurs)
@@ -59,28 +60,35 @@
 │                        ONDES CORE                               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌─────────────┐    ┌─────────────────────────────────────┐    │
-│  │  Mini-App   │    │          Flutter App                │    │
-│  │  (WebView)  │◄──►│  ┌─────────────────────────────┐    │    │
-│  │             │    │  │      Bridge Controller      │    │    │
-│  │  HTML/JS/   │    │  ├─────────────────────────────┤    │    │
-│  │    CSS      │    │  │ ┌─────┐ ┌─────┐ ┌────────┐ │    │    │
-│  └─────────────┘    │  │ │ UI  │ │User │ │ Device │ │    │    │
-│        │            │  │ └─────┘ └─────┘ └────────┘ │    │    │
-│        │            │  │ ┌─────┐ ┌─────┐ ┌────────┐ │    │    │
-│        ▼            │  │ │Store│ │ App │ │Friends │ │    │    │
-│  window.Ondes       │  │ └─────┘ └─────┘ └────────┘ │    │    │
-│                     │  └─────────────────────────────┘    │    │
-│                     └─────────────────────────────────────┘    │
+│  ┌─────────────┐    ┌─────────────────────────────────────┐     │
+│  │  Mini-App   │    │          Flutter App                │     │
+│  │  (WebView)  │◄──►│  ┌─────────────────────────────┐    │     │
+│  │             │    │  │      Bridge Controller      │    │     │
+│  │  HTML/JS/   │    │  ├─────────────────────────────┤    │     │
+│  │    CSS      │    │  │ ┌─────┐ ┌─────┐ ┌────────┐  │    │     │
+│  └─────────────┘    │  │ │ UI  │ │User │ │ Device │  │    │     │
+│        │            │  │ └─────┘ └─────┘ └────────┘  │    │     │
+│        │            │  │ ┌─────┐ ┌─────┐ ┌────────┐  │    │     │
+│        ▼            │  │ │Store│ │ App │ │Friends │  │    │     │
+│  window.Ondes       │  │ └─────┘ └─────┘ └────────┘  │    │     │
+│                     │  │ ┌────────────────────────┐  │    │     │
+│                     │  │ │        Social          │  │    │     │
+│                     │  │ └────────────────────────┘  │    │     │
+│                     │  └─────────────────────────────┘    │     │
+│                     └─────────────────────────────────────┘     │
 │                                      │                          │
 │                                      ▼                          │
-│                     ┌─────────────────────────────────────┐    │
-│                     │          Django API                 │    │
-│                     │  ┌─────────┐    ┌─────────────┐     │    │
-│                     │  │  Store  │    │   Friends   │     │    │
-│                     │  │  (apps) │    │ (relations) │     │    │
-│                     │  └─────────┘    └─────────────┘     │    │
-│                     └─────────────────────────────────────┘    │
+│                     ┌─────────────────────────────────────┐     │
+│                     │          Django API                 │     │
+│                     │  ┌─────────┐    ┌─────────────┐     │     │
+│                     │  │  Store  │    │   Friends   │     │     │
+│                     │  │  (apps) │    │ (relations) │     │     │
+│                     │  └─────────┘    └─────────────┘     │     │
+│                     │  ┌─────────────────────────────┐    │     │
+│                     │  │   Social (posts, feed,      │    │     │
+│                     │  │   stories, media, HLS)      │    │     │
+│                     │  └─────────────────────────────┘    │     │
+│                     └─────────────────────────────────────┘     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -898,9 +906,505 @@ if (count > 0) {
 
 ---
 
+### 7. Ondes.Social - Réseau social & Médias
+
+Module complet de réseau social avec support des posts, stories, followers et traitement média avancé (compression d'images, conversion HLS pour vidéos).
+
+> 🔐 Toutes ces fonctions nécessitent une authentification.
+> 
+> 📹 Les vidéos sont automatiquement converties en HLS (HTTP Live Streaming) pour un streaming adaptatif.
+> 
+> 🖼️ Les images sont compressées automatiquement (max 1920x1920, qualité 85%).
+
+#### Relations (Followers)
+
+##### `follow(userUuid)`
+
+Suivre un utilisateur.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `userUuid` | String | UUID de l'utilisateur à suivre |
+
+```javascript
+await Ondes.Social.follow('user_uuid_456');
+Ondes.UI.showToast({ message: "Utilisateur suivi !", type: "success" });
+```
+
+---
+
+##### `unfollow(userUuid)`
+
+Arrêter de suivre un utilisateur.
+
+```javascript
+await Ondes.Social.unfollow('user_uuid_456');
+```
+
+---
+
+##### `getFollowers(userUuid?, options?)`
+
+Liste des followers d'un utilisateur.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `userUuid` | String | UUID (optionnel, défaut: utilisateur courant) |
+| `options.limit` | Number | Nombre de résultats (défaut: 20) |
+| `options.offset` | Number | Décalage pour pagination |
+
+```javascript
+// Mes followers
+const myFollowers = await Ondes.Social.getFollowers();
+
+// Followers d'un autre utilisateur
+const theirFollowers = await Ondes.Social.getFollowers('user_uuid', { limit: 50 });
+```
+
+---
+
+##### `getFollowing(userUuid?, options?)`
+
+Liste des utilisateurs suivis.
+
+```javascript
+const following = await Ondes.Social.getFollowing();
+console.log(`Vous suivez ${following.length} utilisateurs`);
+```
+
+---
+
+##### `getFollowStats(userUuid?)`
+
+Statistiques de suivi.
+
+**Retourne** :
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `followers_count` | Number | Nombre de followers |
+| `following_count` | Number | Nombre de suivis |
+| `mutual_count` | Number | Nombre d'amis mutuels |
+
+```javascript
+const stats = await Ondes.Social.getFollowStats();
+console.log(`${stats.followers_count} followers, ${stats.following_count} suivis`);
+```
+
+---
+
+#### Publications (Posts)
+
+##### `publish(options)`
+
+Publie un nouveau post avec médias.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `content` | String | Texte du post |
+| `media` | Array<String> | Chemins des fichiers médias |
+| `visibility` | String | `'public'` \| `'followers'` \| `'private'` \| `'local_mesh'` |
+| `tags` | Array<String> | Hashtags (sans #) |
+| `location` | String | Lieu (optionnel) |
+
+```javascript
+// Publier un post avec image
+await Ondes.Social.publish({
+    content: "Ma super photo !",
+    media: ["/path/to/image.jpg"],
+    visibility: "public",
+    tags: ["travel", "summer"]
+});
+
+// Publier une vidéo (convertie automatiquement en HLS)
+await Ondes.Social.publish({
+    content: "Nouveau clip 🎬",
+    media: ["/path/to/video.mp4"],
+    visibility: "followers"
+});
+```
+
+> 💡 Les images sont automatiquement compressées et les vidéos converties en streaming adaptatif HLS.
+
+---
+
+##### `getFeed(options?)`
+
+Récupère le fil d'actualité personnalisé.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `limit` | Number | Nombre de posts (défaut: 20) |
+| `offset` | Number | Décalage pour pagination |
+| `algorithm` | String | `'chronological'` \| `'trending'` (défaut) |
+| `following_only` | Boolean | Uniquement les suivis |
+| `media_type` | String | Filtrer par type: `'image'` \| `'video'` |
+
+**Retourne** : `Promise<Array<Post>>`
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `uuid` | String | Identifiant unique |
+| `author` | Object | Informations auteur |
+| `content` | String | Texte du post |
+| `media` | Array | Fichiers médias (avec URLs HLS si vidéo) |
+| `likes_count` | Number | Nombre de likes |
+| `comments_count` | Number | Nombre de commentaires |
+| `user_has_liked` | Boolean | L'utilisateur a liké |
+| `user_has_bookmarked` | Boolean | Post sauvegardé |
+| `created_at` | String | Date ISO de création |
+
+```javascript
+// Feed par défaut (algorithme trending)
+const feed = await Ondes.Social.getFeed();
+
+// Feed chronologique des suivis uniquement
+const chronoFeed = await Ondes.Social.getFeed({
+    algorithm: 'chronological',
+    following_only: true,
+    limit: 30
+});
+
+// Feed vidéos uniquement (style TikTok)
+const videoFeed = await Ondes.Social.getFeed({
+    media_type: 'video',
+    algorithm: 'trending'
+});
+```
+
+---
+
+##### `getPost(postUuid)`
+
+Récupère un post spécifique.
+
+```javascript
+const post = await Ondes.Social.getPost('post_uuid_123');
+console.log(`${post.likes_count} likes`);
+```
+
+---
+
+##### `deletePost(postUuid)`
+
+Supprime un de vos posts.
+
+```javascript
+const confirmed = await Ondes.UI.showConfirm({
+    title: "Supprimer",
+    message: "Supprimer ce post ?"
+});
+
+if (confirmed) {
+    await Ondes.Social.deletePost('post_uuid_123');
+}
+```
+
+---
+
+##### `getUserPosts(userUuid?, options?)`
+
+Posts d'un utilisateur.
+
+```javascript
+// Mes posts
+const myPosts = await Ondes.Social.getUserPosts();
+
+// Posts d'un autre utilisateur
+const theirPosts = await Ondes.Social.getUserPosts('user_uuid', { limit: 20 });
+```
+
+---
+
+#### Interactions (Likes, Commentaires, Bookmarks)
+
+##### `like(postUuid)`
+
+Like un post.
+
+```javascript
+await Ondes.Social.like('post_uuid_123');
+```
+
+---
+
+##### `unlike(postUuid)`
+
+Retire le like.
+
+```javascript
+await Ondes.Social.unlike('post_uuid_123');
+```
+
+---
+
+##### `comment(postUuid, content, parentUuid?)`
+
+Ajoute un commentaire.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `postUuid` | String | UUID du post |
+| `content` | String | Texte du commentaire |
+| `parentUuid` | String | UUID du commentaire parent (réponse) |
+
+```javascript
+// Commentaire direct
+await Ondes.Social.comment('post_uuid', "Super post !");
+
+// Réponse à un commentaire
+await Ondes.Social.comment('post_uuid', "@user merci !", 'parent_comment_uuid');
+```
+
+---
+
+##### `getComments(postUuid, options?)`
+
+Liste les commentaires d'un post.
+
+```javascript
+const comments = await Ondes.Social.getComments('post_uuid');
+
+comments.forEach(c => {
+    console.log(`${c.author.username}: ${c.content}`);
+});
+```
+
+---
+
+##### `likeComment(commentUuid)`
+
+Like un commentaire.
+
+```javascript
+await Ondes.Social.likeComment('comment_uuid');
+```
+
+---
+
+##### `deleteComment(commentUuid)`
+
+Supprime un de vos commentaires.
+
+```javascript
+await Ondes.Social.deleteComment('comment_uuid');
+```
+
+---
+
+##### `bookmark(postUuid)`
+
+Sauvegarde un post.
+
+```javascript
+await Ondes.Social.bookmark('post_uuid');
+Ondes.UI.showToast({ message: "Post sauvegardé", type: "info" });
+```
+
+---
+
+##### `removeBookmark(postUuid)`
+
+Retire un post des favoris.
+
+```javascript
+await Ondes.Social.removeBookmark('post_uuid');
+```
+
+---
+
+##### `getBookmarks(options?)`
+
+Liste vos posts sauvegardés.
+
+```javascript
+const saved = await Ondes.Social.getBookmarks({ limit: 50 });
+```
+
+---
+
+#### Stories
+
+##### `createStory(options)`
+
+Crée une story (24h de visibilité).
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `media` | String | Chemin du fichier média |
+| `media_type` | String | `'image'` \| `'video'` |
+| `duration` | Number | Durée d'affichage en secondes (optionnel) |
+
+```javascript
+await Ondes.Social.createStory({
+    media: '/path/to/photo.jpg',
+    media_type: 'image'
+});
+```
+
+---
+
+##### `getStories()`
+
+Récupère les stories des utilisateurs suivis.
+
+**Retourne** : `Promise<Array<UserStories>>`
+
+```javascript
+const stories = await Ondes.Social.getStories();
+
+stories.forEach(userStory => {
+    console.log(`${userStory.user.username} a ${userStory.stories.length} stories`);
+});
+```
+
+---
+
+##### `viewStory(storyUuid)`
+
+Marque une story comme vue.
+
+```javascript
+await Ondes.Social.viewStory('story_uuid');
+```
+
+---
+
+##### `deleteStory(storyUuid)`
+
+Supprime une de vos stories.
+
+```javascript
+await Ondes.Social.deleteStory('story_uuid');
+```
+
+---
+
+#### Profil
+
+##### `getProfile(userUuid?)`
+
+Récupère un profil utilisateur.
+
+**Retourne** :
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `uuid` | String | UUID unique |
+| `username` | String | Nom d'utilisateur |
+| `display_name` | String | Nom affiché |
+| `bio` | String | Biographie |
+| `profile_picture` | String | URL de l'avatar |
+| `posts_count` | Number | Nombre de posts |
+| `followers_count` | Number | Nombre de followers |
+| `following_count` | Number | Nombre de suivis |
+| `is_following` | Boolean | Est-ce que vous suivez |
+| `follows_you` | Boolean | Est-ce qu'il vous suit |
+
+```javascript
+// Mon profil
+const me = await Ondes.Social.getProfile();
+
+// Profil d'un autre utilisateur
+const user = await Ondes.Social.getProfile('user_uuid');
+```
+
+---
+
+##### `updateProfile(data)`
+
+Met à jour votre profil.
+
+```javascript
+await Ondes.Social.updateProfile({
+    display_name: "Nouveau Nom",
+    bio: "Ma nouvelle bio 🚀"
+});
+```
+
+---
+
+#### Médias
+
+##### `pickMedia(options)`
+
+Sélectionne des médias depuis la galerie.
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `multiple` | Boolean | Sélection multiple (défaut: false) |
+| `maxFiles` | Number | Maximum de fichiers |
+| `allowVideo` | Boolean | Autoriser les vidéos |
+| `videoOnly` | Boolean | Uniquement les vidéos |
+
+**Retourne** : `Promise<Array<MediaFile>>`
+
+```javascript
+// Sélectionner plusieurs images
+const images = await Ondes.Social.pickMedia({
+    multiple: true,
+    maxFiles: 10
+});
+
+// Sélectionner une vidéo
+const video = await Ondes.Social.pickMedia({
+    multiple: false,
+    allowVideo: true,
+    videoOnly: true
+});
+```
+
+---
+
+#### Exemple complet : Mini Instagram
+
+```javascript
+document.addEventListener('OndesReady', async () => {
+    // Charger le feed
+    const feed = await Ondes.Social.getFeed({ limit: 20 });
+    
+    feed.forEach(post => {
+        renderPost(post);
+    });
+    
+    // Suivre quelqu'un
+    async function followUser(uuid) {
+        await Ondes.Social.follow(uuid);
+        Ondes.UI.showToast({ message: "Suivi !", type: "success" });
+    }
+    
+    // Publier un post
+    async function createPost() {
+        const media = await Ondes.Social.pickMedia({ 
+            multiple: true, 
+            maxFiles: 10,
+            allowVideo: true
+        });
+        
+        if (media.length > 0) {
+            await Ondes.Social.publish({
+                content: document.getElementById('caption').value,
+                media: media.map(m => m.path),
+                visibility: 'public'
+            });
+            
+            Ondes.UI.showToast({ message: "Publié !", type: "success" });
+        }
+    }
+    
+    // Double-tap pour liker
+    function onDoubleTap(postUuid) {
+        Ondes.Social.like(postUuid);
+        showHeartAnimation();
+    }
+});
+```
+
+---
+
 ## 🖥️ API Backend Django
 
-L'API REST est structurée en deux applications Django :
+L'API REST est structurée en trois applications Django :
 
 ### App `store` - Gestion des applications
 
@@ -930,6 +1434,87 @@ L'API REST est structurée en deux applications Django :
 | `/api/friends/blocked/` | GET | Liste des bloqués |
 | `/api/friends/search/` | GET | Rechercher des utilisateurs |
 
+### App `social` - Réseau social & Médias
+
+#### Relations (Follow)
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/social/follow/` | POST | Suivre un utilisateur |
+| `/api/social/unfollow/` | POST | Ne plus suivre |
+| `/api/social/followers/` | GET | Liste des followers |
+| `/api/social/followers/<uuid>/` | GET | Followers d'un utilisateur |
+| `/api/social/following/` | GET | Utilisateurs suivis |
+| `/api/social/following/<uuid>/` | GET | Suivis d'un utilisateur |
+| `/api/social/follow-stats/` | GET | Statistiques de suivi |
+
+#### Publications
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/social/posts/` | GET | Feed personnalisé |
+| `/api/social/posts/` | POST | Publier un post (multipart) |
+| `/api/social/posts/<uuid>/` | GET | Détails d'un post |
+| `/api/social/posts/<uuid>/` | DELETE | Supprimer un post |
+| `/api/social/posts/user/` | GET | Mes posts |
+| `/api/social/posts/user/<uuid>/` | GET | Posts d'un utilisateur |
+
+#### Interactions
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/social/posts/<uuid>/like/` | POST | Liker un post |
+| `/api/social/posts/<uuid>/unlike/` | POST | Retirer le like |
+| `/api/social/posts/<uuid>/comments/` | GET | Commentaires d'un post |
+| `/api/social/posts/<uuid>/comments/` | POST | Ajouter un commentaire |
+| `/api/social/comments/<uuid>/like/` | POST | Liker un commentaire |
+| `/api/social/comments/<uuid>/` | DELETE | Supprimer un commentaire |
+| `/api/social/posts/<uuid>/bookmark/` | POST | Sauvegarder un post |
+| `/api/social/posts/<uuid>/unbookmark/` | POST | Retirer des favoris |
+| `/api/social/bookmarks/` | GET | Posts sauvegardés |
+
+#### Stories
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/social/stories/` | GET | Stories des suivis |
+| `/api/social/stories/` | POST | Créer une story |
+| `/api/social/stories/<uuid>/view/` | POST | Marquer comme vue |
+| `/api/social/stories/<uuid>/` | DELETE | Supprimer une story |
+
+#### Profil
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/social/profile/` | GET | Mon profil |
+| `/api/social/profile/` | PUT | Mettre à jour mon profil |
+| `/api/social/profile/<uuid>/` | GET | Profil d'un utilisateur |
+
+### Traitement des médias
+
+Les médias uploadés sont traités automatiquement :
+
+| Type | Traitement |
+|------|------------|
+| **Images** | Compression (max 1920×1920, qualité 85%, JPEG) |
+| **Vidéos** | Conversion HLS avec variantes adaptatives (360p/480p/720p/1080p) |
+
+#### Structure des fichiers vidéo HLS
+
+```
+media/
+└── posts/
+    └── <post_uuid>/
+        └── <media_uuid>/
+            ├── original.mp4
+            ├── master.m3u8      # Playlist principale
+            ├── 360p.m3u8        # Variante 360p
+            ├── 480p.m3u8        # Variante 480p
+            ├── 720p.m3u8        # Variante 720p
+            ├── 1080p.m3u8       # Variante 1080p
+            └── *.ts             # Segments vidéo
+```
+
 ### Authentification
 
 Toutes les requêtes authentifiées nécessitent le header :
@@ -952,6 +1537,8 @@ Le dossier `examples/` contient plusieurs mini-apps de démonstration :
 | `map-app/` | Utilisation du GPS |
 | `meteo-app/` | App météo avec API externe |
 | `friends-demo/` | Système social complet |
+| `instagram-demo/` | 📸 Clone Instagram avec Ondes.Social (posts, stories, likes, commentaires) |
+| `tiktok-demo/` | 🎬 Clone TikTok avec feed vidéo vertical et streaming HLS |
 
 ### Lancer un exemple
 

@@ -22,6 +22,7 @@ class OndesBridgeController {
   late final StorageHandler _storageHandler;
   late final AppHandler _appHandler;
   late final FriendsHandler _friendsHandler;
+  late final SocialHandler _socialHandler;
 
   OndesBridgeController(
     this.context, {
@@ -44,6 +45,7 @@ class OndesBridgeController {
       onClose: onClose,
     );
     _friendsHandler = FriendsHandler(context);
+    _socialHandler = SocialHandler(context);
   }
 
   void setController(InAppWebViewController controller) {
@@ -61,6 +63,7 @@ class OndesBridgeController {
     _storageHandler.attach(webViewController!);
     _appHandler.attach(webViewController!);
     _friendsHandler.attach(webViewController!);
+    _socialHandler.attach(webViewController!);
   }
 
   // Expose handlers for direct access if needed
@@ -70,4 +73,5 @@ class OndesBridgeController {
   StorageHandler get storageHandler => _storageHandler;
   AppHandler get appHandler => _appHandler;
   FriendsHandler get friendsHandler => _friendsHandler;
+  SocialHandler get socialHandler => _socialHandler;
 }
