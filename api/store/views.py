@@ -6,7 +6,13 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import parsers
 from .models import MiniApp, UserProfile, AppVersion
-from .serializers import MiniAppSerializer, RegisterSerializer, UserProfileSerializer, AppVersionSerializer
+from .serializers import (
+    MiniAppSerializer, RegisterSerializer, UserProfileSerializer, 
+    AppVersionSerializer
+)
+
+
+# ============== AUTH API ==============
 
 class RegisterView(APIView):
     def post(self, request):
@@ -16,6 +22,7 @@ class RegisterView(APIView):
             token, created = Token.objects.get_or_create(user=user)
             return Response({'token': token.key}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -28,6 +35,7 @@ class CustomAuthToken(ObtainAuthToken):
             'user_id': user.pk,
             'email': user.email
         })
+
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -56,12 +64,16 @@ class UserProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+# ============== APPS API ==============
+
 class AppListView(APIView):
     def get(self, request):
         apps = MiniApp.objects.all()
         # Pass request context for absolute URLs (icons/files)
         serializer = MiniAppSerializer(apps, many=True, context={'request': request})
         return Response(serializer.data)
+
 
 class MyAppsManagerView(APIView):
     permission_classes = [IsAuthenticated]
@@ -80,6 +92,7 @@ class MyAppsManagerView(APIView):
             serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class MyAppsDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -125,6 +138,7 @@ class MyAppsDetailView(APIView):
         app.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class AppVersionUploadView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
@@ -155,4 +169,5 @@ class AppVersionUploadView(APIView):
         )
         
         return Response(AppVersionSerializer(version).data, status=status.HTTP_201_CREATED)
+
 

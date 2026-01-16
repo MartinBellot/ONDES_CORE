@@ -15,6 +15,7 @@ class AuthService {
   Map<String, dynamic>? _currentUser;
 
   String? get token => _token;
+  String get baseUrl => _baseUrl;
   Map<String, dynamic>? get currentUser => _currentUser;
   bool get isAuthenticated => _token != null;
 

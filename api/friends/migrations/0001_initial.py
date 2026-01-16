@@ -1,0 +1,100 @@
+"""
+Migration initiale pour l'app friends.
+Crée les modèles Friendship et FriendshipActivity.
+"""
+import django.db.models.deletion
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('store', '0005_remove_friendship_models'),  # Après suppression de store
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Friendship',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('status', models.CharField(
+                    choices=[
+                        ('pending', 'En attente'), 
+                        ('accepted', 'Acceptée'), 
+                        ('rejected', 'Refusée'), 
+                        ('blocked', 'Bloquée')
+                    ], 
+                    default='pending', 
+                    max_length=20, 
+                    verbose_name='Statut'
+                )),
+                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Créé le')),
+                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Mis à jour le')),
+                ('accepted_at', models.DateTimeField(blank=True, null=True, verbose_name='Accepté le')),
+                ('from_user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, 
+                    related_name='friendships_sent', 
+                    to=settings.AUTH_USER_MODEL, 
+                    verbose_name="De l'utilisateur"
+                )),
+                ('to_user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, 
+                    related_name='friendships_received', 
+                    to=settings.AUTH_USER_MODEL, 
+                    verbose_name="Vers l'utilisateur"
+                )),
+            ],
+            options={
+                'verbose_name': 'Amitié',
+                'verbose_name_plural': 'Amitiés',
+                'ordering': ['-created_at'],
+                'unique_together': {('from_user', 'to_user')},
+            },
+        ),
+        migrations.CreateModel(
+            name='FriendshipActivity',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('action', models.CharField(
+                    choices=[
+                        ('request', 'Demande envoyée'), 
+                        ('accept', 'Demande acceptée'), 
+                        ('reject', 'Demande refusée'), 
+                        ('block', 'Utilisateur bloqué'), 
+                        ('unblock', 'Utilisateur débloqué'), 
+                        ('remove', 'Ami supprimé')
+                    ], 
+                    max_length=20
+                )),
+                ('timestamp', models.DateTimeField(auto_now_add=True)),
+                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
+                ('user_agent', models.TextField(blank=True)),
+                ('actor', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, 
+                    related_name='friendship_activities', 
+                    to=settings.AUTH_USER_MODEL
+                )),
+                ('friendship', models.ForeignKey(
+                    blank=True, 
+                    null=True, 
+                    on_delete=django.db.models.deletion.CASCADE, 
+                    related_name='activities', 
+                    to='friends.friendship'
+                )),
+                ('target', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, 
+                    related_name='friendship_activities_received', 
+                    to=settings.AUTH_USER_MODEL
+                )),
+            ],
+            options={
+                'verbose_name': "Activité d'amitié",
+                'verbose_name_plural': "Activités d'amitiés",
+                'ordering': ['-timestamp'],
+            },
+        ),
+    ]

@@ -1,5 +1,8 @@
 from django.urls import path
-from .views import AppListView, RegisterView, CustomAuthToken, UserProfileView, MyAppsManagerView, AppVersionUploadView, MyAppsDetailView
+from .views import (
+    AppListView, RegisterView, CustomAuthToken, UserProfileView, 
+    MyAppsManagerView, AppVersionUploadView, MyAppsDetailView
+)
 
 urlpatterns = [
     path('apps/', AppListView.as_view(), name='app-list'),

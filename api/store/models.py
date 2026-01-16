@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
@@ -8,6 +9,7 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return self.user.username
+
 
 class MiniApp(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='apps', null=True, blank=True)
@@ -20,6 +22,7 @@ class MiniApp(models.Model):
     def __str__(self):
         return self.name
 
+
 class AppVersion(models.Model):
     app = models.ForeignKey(MiniApp, on_delete=models.CASCADE, related_name='versions')
     version_number = models.CharField(max_length=20, help_text="ex: 1.0.0")
@@ -28,11 +31,6 @@ class AppVersion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.app.name} v{self.version_number}"
     class Meta:
         ordering = ['-created_at']
 

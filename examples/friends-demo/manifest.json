@@ -1,0 +1,7 @@
+{
+    "id": "com.ondes.friends-demo",
+    "name": "Friends Demo",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "description": "Démonstration de l'API Ondes.Friends"
+}

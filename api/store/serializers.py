@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import MiniApp, AppVersion, UserProfile
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
@@ -9,6 +10,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['username', 'email', 'avatar', 'bio']
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -25,6 +27,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         UserProfile.objects.create(user=user)
         return user
+
 
 class MiniAppSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.username', read_only=True)
@@ -48,6 +51,7 @@ class MiniAppSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(version.zip_file.url)
             return version.zip_file.url
         return None
+
 
 class AppVersionSerializer(serializers.ModelSerializer):
     class Meta:
