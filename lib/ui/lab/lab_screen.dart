@@ -1,3 +1,4 @@
+import 'package:url_launcher/url_launcher.dart'; // Ensure url_launcher is in pubspec, otherwise use simple webview push or check imports.
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/auth_service.dart';
@@ -69,6 +70,16 @@ class _LabScreenState extends State<LabScreen> {
        return;
     }
     Navigator.push(context, MaterialPageRoute(builder: (c) => const DevStudioScreen()));
+  }
+
+  void _openDocumentation() async {
+     const url = 'https://martinbellot.github.io/ONDES_CORE/';
+     final uri = Uri.parse(url);
+     if (await canLaunchUrl(uri)) {
+       await launchUrl(uri, mode: LaunchMode.externalApplication);
+     } else {
+       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Impossible d'ouvrir le lien")));
+     }
   }
 
   @override
@@ -159,6 +170,17 @@ class _LabScreenState extends State<LabScreen> {
                         const SizedBox(height: 8),
                         Text("Gérez vos applications, publiez des mises à jour et suivez vos déploiements.",
                           style: TextStyle(color: Colors.white70)
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Documentation Link
+                        Center(
+                          child: TextButton.icon(
+                            icon: const Icon(Icons.menu_book, color: Colors.white70, size: 18),
+                            label: const Text("Documentation officielle", style: TextStyle(color: Colors.white70)),
+                            onPressed: _openDocumentation,
+                          ),
                         ),
                         const SizedBox(height: 20),
                         SizedBox(

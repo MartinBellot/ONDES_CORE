@@ -47,14 +47,33 @@ class DevStudioService {
     required String bundleId,
     required String description,
     File? icon,
+    String? fullDescription,
+    int? categoryId,
+    String? ageRating,
+    String? privacyUrl,
+    String? supportUrl,
+    String? websiteUrl,
+    List<String>? languages,
+    List<String>? tags,
   }) async {
     if (_token == null) return null;
     try {
-      FormData formData = FormData.fromMap({
+      final map = <String, dynamic>{
         'name': name,
         'bundle_id': bundleId,
         'description': description,
-      });
+      };
+      
+      if (fullDescription != null) map['full_description'] = fullDescription;
+      if (categoryId != null) map['category_id'] = categoryId;
+      if (ageRating != null) map['age_rating'] = ageRating;
+      if (privacyUrl != null) map['privacy_policy_url'] = privacyUrl;
+      if (supportUrl != null) map['support_url'] = supportUrl;
+      if (websiteUrl != null) map['website_url'] = websiteUrl;
+      if (languages != null) map['languages'] = languages.join(',');
+      if (tags != null) map['tags'] = tags.join(',');
+
+      FormData formData = FormData.fromMap(map);
 
       if (icon != null) {
         formData.files.add(MapEntry(
