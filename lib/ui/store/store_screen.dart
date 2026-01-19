@@ -786,7 +786,7 @@ class _StoreScreenState extends State<StoreScreen> with SingleTickerProviderStat
                   elevation: 0,
                 ),
                 child: Text(
-                  hasUpdate ? 'MAJ' : isInstalled ? 'Ouvrir' : 'Obtenir',
+                  hasUpdate ? 'MAJ' : isInstalled ? 'Ouvrir' : 'Installer',
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -963,7 +963,7 @@ class _StoreScreenState extends State<StoreScreen> with SingleTickerProviderStat
                   elevation: 0,
                 ),
                 child: Text(
-                  hasUpdate ? 'MAJ' : isInstalled ? 'Ouvrir' : 'Obtenir',
+                  hasUpdate ? 'MAJ' : isInstalled ? 'Ouvrir' : 'Installer',
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
