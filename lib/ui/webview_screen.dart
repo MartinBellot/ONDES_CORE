@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../bridge/bridge_controller.dart';
 import '../bridge/ondes_js_injection.dart';
@@ -13,7 +14,6 @@ class WebViewScreen extends StatefulWidget {
 
 class _WebViewScreenState extends State<WebViewScreen> {
   late OndesBridgeController _bridge;
-  double progress = 0;
   
   // AppBar State
   bool _appBarVisible = false;
@@ -51,8 +51,16 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Make status bar transparent for immersive experience
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light, 
+    ));
+
     return Scaffold(
       backgroundColor: Colors.black, // Immersive
+      extendBody: true,
+      extendBodyBehindAppBar: false,
       appBar: _appBarVisible 
           ? AppBar(
               title: Text(_appBarTitle, style: TextStyle(color: _appBarTextColor)),
@@ -61,70 +69,60 @@ class _WebViewScreenState extends State<WebViewScreen> {
               elevation: 0,
             )
           : null,
-      body: SafeArea(
-        top: !_appBarVisible, // If appbar is hidden, safe area is needed for status bar
-        child: Stack(
-          children: [
-            InAppWebView(
-              initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-              initialSettings: InAppWebViewSettings(
-                isInspectable: true, // Specific for debugging/Lab
-                mediaPlaybackRequiresUserGesture: false,
-                allowsInlineMediaPlayback: true,
-                iframeAllow: "camera; microphone",
-                
-                // Allow Local Server (HTTP)
-                allowUniversalAccessFromFileURLs: true,
-              ),
-              onWebViewCreated: (controller) {
-                _bridge.setController(controller);
-              },
-              onLoadStart: (controller, url) {
-                // Reinject just in case, though UserScript is better
-              },
-              onLoadStop: (controller, url) async {
-                 // Inject the Bridge JS
-                 await controller.evaluateJavascript(source: ondesBridgeJs);
-              },
-              onPermissionRequest: (controller, request) async {
-                return PermissionResponse(
-                  resources: request.resources,
-                  action: PermissionResponseAction.GRANT,
-                );
-              },
-              onProgressChanged: (controller, p) {
-                setState(() {
-                  progress = p / 100;
-                });
-              },
-              onConsoleMessage: (controller, msg) {
-                print("JS Console: ${msg.message}");
-              },
+      body: Stack(
+        children: [
+          InAppWebView(
+            initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+            initialSettings: InAppWebViewSettings(
+              isInspectable: true, // Specific for debugging/Lab
+              mediaPlaybackRequiresUserGesture: false,
+              allowsInlineMediaPlayback: true,
+              iframeAllow: "camera; microphone",
+              transparentBackground: true,
+              
+              // Allow Local Server (HTTP)
+              allowUniversalAccessFromFileURLs: true,
             ),
-            if (progress < 1.0)
-              LinearProgressIndicator(value: progress, color: Colors.blueAccent),
-
-            // Fallback Back Button (only if no native AppBar is visible)
-            if (!_appBarVisible)
-              Positioned(
-                top: 10,
-                left: 10,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.home, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
-                    iconSize: 20,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                  ),
+            onWebViewCreated: (controller) {
+              _bridge.setController(controller);
+            },
+            onLoadStart: (controller, url) {
+              // Reinject just in case, though UserScript is better
+            },
+            onLoadStop: (controller, url) async {
+                // Inject the Bridge JS
+                await controller.evaluateJavascript(source: ondesBridgeJs);
+            },
+            onPermissionRequest: (controller, request) async {
+              return PermissionResponse(
+                resources: request.resources,
+                action: PermissionResponseAction.GRANT,
+              );
+            },
+            onConsoleMessage: (controller, msg) {
+              print("JS Console: ${msg.message}");
+            },
+          ),
+          // Fallback Back Button (only if no native AppBar is visible)
+          if (!_appBarVisible)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 10,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.home, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                  iconSize: 20,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

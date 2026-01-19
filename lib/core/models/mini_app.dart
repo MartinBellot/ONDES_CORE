@@ -1,3 +1,4 @@
+
 /// Catégorie d'application
 class AppCategory {
   final int id;
@@ -254,6 +255,7 @@ class MiniApp {
 
   /// Parse depuis JSON détail (complet)
   factory MiniApp.fromDetailJson(Map<String, dynamic> json) {
+    //debugPrint('Parsing MiniApp from detail JSON: $json');
     // Parse screenshots
     List<AppScreenshot> screenshots = [];
     if (json['screenshots'] != null) {

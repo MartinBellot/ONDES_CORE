@@ -1,7 +1,7 @@
 {
     "id": "com.ondes.bpmfinder",
     "name": "BPM Finder",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "icon": "icon.png",
     "description": "Détecteur de BPM : Écoutez le rythme de la musique.",
     "permissions": ["microphone"]
