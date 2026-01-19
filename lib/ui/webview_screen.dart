@@ -103,6 +103,26 @@ class _WebViewScreenState extends State<WebViewScreen> {
             ),
             if (progress < 1.0)
               LinearProgressIndicator(value: progress, color: Colors.blueAccent),
+
+            // Fallback Back Button (only if no native AppBar is visible)
+            if (!_appBarVisible)
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.home, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                    iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
