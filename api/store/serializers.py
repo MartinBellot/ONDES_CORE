@@ -102,6 +102,7 @@ class MiniAppListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_slug = serializers.CharField(source='category.slug', read_only=True)
     latest_version = serializers.SerializerMethodField()
+    download_url = serializers.SerializerMethodField()
     average_rating = serializers.FloatField(read_only=True)
     ratings_count = serializers.IntegerField(read_only=True)
 
@@ -110,13 +111,22 @@ class MiniAppListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'bundle_id', 'name', 'description', 'icon', 
             'author_name', 'category_name', 'category_slug',
-            'age_rating', 'latest_version', 'average_rating', 'ratings_count',
+            'age_rating', 'latest_version', 'download_url', 'average_rating', 'ratings_count',
             'downloads_count', 'featured', 'created_at'
         ]
 
     def get_latest_version(self, obj):
         version = obj.versions.filter(is_active=True).first()
         return version.version_number if version else "0.0.0"
+
+    def get_download_url(self, obj):
+        version = obj.versions.filter(is_active=True).first()
+        if version and version.zip_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(version.zip_file.url)
+            return version.zip_file.url
+        return None
 
 
 class MiniAppDetailSerializer(serializers.ModelSerializer):
@@ -203,6 +213,8 @@ class MiniAppSerializer(serializers.ModelSerializer):
         allow_null=True,
         write_only=True
     )
+    # Return full category object for Dev Studio to pre-fill dropdown
+    category = CategorySerializer(read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     ratings_count = serializers.IntegerField(read_only=True)
@@ -211,7 +223,7 @@ class MiniAppSerializer(serializers.ModelSerializer):
         model = MiniApp
         fields = [
             'id', 'bundle_id', 'author_name', 'name', 'description', 'full_description',
-            'whats_new', 'icon', 'banner', 'category_id', 'category_name', 'tags',
+            'whats_new', 'icon', 'banner', 'category_id', 'category', 'category_name', 'tags',
             'age_rating', 'languages', 'privacy_url', 'support_url', 'website_url',
             'latest_version', 'download_url', 'average_rating', 'ratings_count',
             'downloads_count', 'created_at'

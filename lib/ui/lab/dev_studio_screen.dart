@@ -204,11 +204,22 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
        if (success) {
          // Auto-update Icon and Description from manifest if available
          File? iconUrlToUpdate;
+         
+         // Try to find icon from manifest or fallback to standard names
          if (manifestIconPath.isNotEmpty) {
             final iconFile = File("${dir.path}/$manifestIconPath");
             if (iconFile.existsSync()) {
                iconUrlToUpdate = iconFile;
             }
+         }
+         
+         if (iconUrlToUpdate == null) {
+            // Fallback check for icon.png or icon.jpg at root
+            final iconPng = File("${dir.path}/icon.png");
+            if (iconPng.existsSync()) iconUrlToUpdate = iconPng;
+            
+            final iconJpg = File("${dir.path}/icon.jpg");
+            if (iconUrlToUpdate == null && iconJpg.existsSync()) iconUrlToUpdate = iconJpg;
          }
 
          if (iconUrlToUpdate != null || manifestDescription.isNotEmpty || manifestName.isNotEmpty) {

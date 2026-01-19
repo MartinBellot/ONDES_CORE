@@ -99,6 +99,16 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
         reconstructedGrid.add(null);
     }
 
+    // Evict icon cache to ensure updates are reflected
+    for (var app in reconstructedGrid) {
+      if (app != null && app.iconUrl.isNotEmpty) {
+        final file = File(app.iconUrl);
+        if (file.existsSync()) {
+          FileImage(file).evict();
+        }
+      }
+    }
+
     setState(() {
       _apps = reconstructedGrid;
       _isLoading = false;

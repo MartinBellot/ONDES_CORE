@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BPM Finder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>BPM Finder</h1>
+            <p>Analysez le tempo en temps réel</p>
+        </header>
+
+        <main>
+            <div id="bpm-display" class="bpm-circle">
+                <span id="bpm-value">--</span>
+                <span class="bpm-label">BPM</span>
+            </div>
+
+            <div id="visualizer">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+
+            <p id="status-text">Appuyez pour commencer</p>
+
+            <button id="start-btn" class="primary-btn">
+                Écouter
+            </button>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

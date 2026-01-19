@@ -92,3 +92,4 @@ if (info.platform === 'ios') {
     // Adapter l'UI pour iOS
 }
 ```
+

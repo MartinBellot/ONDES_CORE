@@ -25,10 +25,29 @@ class AppLibraryService {
             final json = jsonDecode(content);
             
             // Handle Icon Path (Local)
-            final String iconFilename = json['icon'] ?? "";
-            final String iconPath = iconFilename.isNotEmpty 
-                ? "${entity.path}/$iconFilename" 
-                : "";
+            // Logic: 1. Trust manifest if file exists. 2. Fallback to icon.png/jpg 3. Empty
+            String iconPath = "";
+            String manifestIcon = json['icon'] ?? "";
+            
+            if (manifestIcon.isNotEmpty) {
+              final f = File("${entity.path}/$manifestIcon");
+              if (f.existsSync()) {
+                iconPath = f.path;
+              }
+            }
+            
+            // Fallback detection
+            if (iconPath.isEmpty) {
+               final iconPng = File("${entity.path}/icon.png");
+               if (iconPng.existsSync()) {
+                  iconPath = iconPng.path;
+               } else {
+                  final iconJpg = File("${entity.path}/icon.jpg");
+                  if (iconJpg.existsSync()) {
+                     iconPath = iconJpg.path;
+                  }
+               }
+            }
 
             installedApps.add(MiniApp(
               // TRUST LOCAL FOLDER NAME AS ID (Syncs with Installer & Store)

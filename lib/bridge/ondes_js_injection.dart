@@ -410,6 +410,6 @@ const String ondesBridgeJs = """
     // Event ready
     const event = new Event('OndesReady');
     document.dispatchEvent(event);
-    console.log("✅ Ondes Core Bridge v2.1 Ready (with Social module)");
+    console.log("✅ Ondes Core Bridge v2.1 Ready !");
 })();
 """;

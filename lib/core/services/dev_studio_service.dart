@@ -128,7 +128,7 @@ class DevStudioService {
       if (description != null) map['description'] = description;
       if (fullDescription != null) map['full_description'] = fullDescription;
       if (whatsNew != null) map['whats_new'] = whatsNew;
-      if (categoryId != null) map['category'] = categoryId;
+      if (categoryId != null) map['category_id'] = categoryId;
       if (ageRating != null) map['age_rating'] = ageRating;
       if (privacyUrl != null) map['privacy_policy_url'] = privacyUrl;
       if (supportUrl != null) map['support_url'] = supportUrl;

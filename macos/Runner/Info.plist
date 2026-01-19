@@ -30,6 +30,8 @@
 	<string>NSApplication</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Ondes Core a besoin de l'accès à la caméra pour scanner les QR Codes et pour les Mini-Apps.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ondes Core a besoin de l'accès au microphone pour les Mini-Apps audio.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Ondes Core a besoin de l'accès à la galerie pour modifier votre avatar.</string>
 	<key>NSLocationUsageDescription</key>

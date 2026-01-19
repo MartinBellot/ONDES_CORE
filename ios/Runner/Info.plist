@@ -49,6 +49,8 @@
 	<!-- Ondes Core Permissions -->
 	<key>NSCameraUsageDescription</key>
 	<string>Ondes Core a besoin de l'accès à la caméra pour scanner les QR Codes et pour les Mini-Apps.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ondes Core a besoin de l'accès au microphone pour les Mini-Apps audio.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Ondes Core utilise votre position pour les services de géolocalisation des Mini-Apps.</string>
 	<key>NSAppTransportSecurity</key>

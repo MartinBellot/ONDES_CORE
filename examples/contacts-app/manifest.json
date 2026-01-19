@@ -1,0 +1,7 @@
+{
+    "id": "com.ondes.contacts",
+    "name": "Contacts",
+    "version": "1.0.2",
+    "icon": "icon.png",
+    "description": "L'application de gestion des contacts pour Ondes."
+}

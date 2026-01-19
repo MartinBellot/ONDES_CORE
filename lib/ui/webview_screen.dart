@@ -86,6 +86,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
                  // Inject the Bridge JS
                  await controller.evaluateJavascript(source: ondesBridgeJs);
               },
+              onPermissionRequest: (controller, request) async {
+                return PermissionResponse(
+                  resources: request.resources,
+                  action: PermissionResponseAction.GRANT,
+                );
+              },
               onProgressChanged: (controller, p) {
                 setState(() {
                   progress = p / 100;
