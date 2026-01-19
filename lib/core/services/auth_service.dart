@@ -1,13 +1,14 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'configuration_service.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  final String _baseUrl = "http://127.0.0.1:8000/api"; // Adjust for Android (10.0.2.2) if needed
+  final String _baseUrl = ConfigurationService().apiBaseUrl;
   final Dio _dio = Dio();
   
   String? _token;

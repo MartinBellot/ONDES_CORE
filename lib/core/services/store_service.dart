@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'auth_service.dart';
+import 'configuration_service.dart';
 import '../models/mini_app.dart';
 
 /// Service pour interagir avec l'API Store
@@ -8,7 +9,7 @@ class StoreService {
   factory StoreService() => _instance;
   StoreService._internal();
 
-  final String _baseUrl = "http://127.0.0.1:8000/api";
+  final String _baseUrl = ConfigurationService().apiBaseUrl;
   final Dio _dio = Dio();
 
   String? get _token => AuthService().token;

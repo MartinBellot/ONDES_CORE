@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'auth_service.dart';
+import 'configuration_service.dart';
 import '../models/mini_app.dart';
 
 class DevStudioService {
@@ -8,8 +9,8 @@ class DevStudioService {
   factory DevStudioService() => _instance;
   DevStudioService._internal();
 
-  final String _baseUrl = "http://127.0.0.1:8000/api/studio";
-  final String _apiUrl = "http://127.0.0.1:8000/api";
+  final String _baseUrl = "${ConfigurationService().apiBaseUrl}/studio";
+  final String _apiUrl = ConfigurationService().apiBaseUrl;
   final Dio _dio = Dio();
 
   String? get _token => AuthService().token;
