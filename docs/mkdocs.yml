@@ -1,0 +1,66 @@
+site_name: Ondes Core
+site_description: Documentation officielle de la plateforme Ondes Core
+site_author: Martin Bellot
+repo_url: https://github.com/votre-repo/ondes-core
+repo_name: ondes-core
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Mode sombre
+    - scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Mode clair
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+
+
+
+nav:
+  - Accueil: index.md
+  - Présentation: introduction.md
+  - Architecture: architecture.md
+  - Installation: installation.md
+  - Guide Développeur:
+    - Introduction: mini_app_guide.md
+    - Exemples: examples.md
+  - Référence SDK:
+    - Introduction SDK: sdk/index.md
+    - Interface (UI): sdk/ui.md
+    - Utilisateur (User): sdk/user.md
+    - Matériel (Device): sdk/device.md
+    - Stockage (Storage): sdk/storage.md
+    - Application App): sdk/app.md
+    - Amis (Friends): sdk/friends.md
+    - Social & Médias: sdk/social.md
+  - Backend API: backend.md
