@@ -21,8 +21,25 @@ on:
 
 jobs:
   publish:
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    with:
-      working-directory: packages/ondes_sdk
+      contents: read
+    
+    defaults:
+      run:
+        working-directory: packages/ondes_sdk
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dart-lang/setup-dart@v1
+      
+      - name: Install dependencies
+        run: dart pub get
+      
+      - name: Dry run
+        run: dart pub publish --dry-run
+      
+      - name: Publish
+        run: dart pub publish -f
