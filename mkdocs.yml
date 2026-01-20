@@ -61,15 +61,17 @@ nav:
   - Architecture: architecture.md
   - Installation: installation.md
   - Guide Développeur:
-    - Introduction: mini_app_guide.md
+    - Créer une Mini-App: mini_app_guide.md
+    - 🧪 Ondes Lab: lab.md
     - Exemples: examples.md
   - Référence SDK:
     - Introduction SDK: sdk/index.md
+    - 💙 SDK Flutter: sdk/flutter.md
     - Interface (UI): sdk/ui.md
     - Utilisateur (User): sdk/user.md
     - Matériel (Device): sdk/device.md
     - Stockage (Storage): sdk/storage.md
-    - Application App): sdk/app.md
+    - Application (App): sdk/app.md
     - Amis (Friends): sdk/friends.md
     - Social & Médias: sdk/social.md
   - Backend API: backend.md

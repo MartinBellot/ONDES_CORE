@@ -1,0 +1,11 @@
+{
+  "name": "Ondes SDK Example",
+  "short_name": "OndesExample",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196F3",
+  "description": "Example Flutter Web app using Ondes SDK",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}

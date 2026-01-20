@@ -1,0 +1,53 @@
+# Publish ondes_sdk to pub.dev
+#
+# This workflow publishes the package when a new tag is pushed.
+# Tags should follow the format: ondes_sdk-v1.0.0
+#
+# Setup required:
+# 1. Go to https://pub.dev/packages/ondes_sdk/admin
+# 2. Enable "Automated publishing" 
+# 3. Add GitHub Actions as a trusted publisher:
+#    - Repository: MartinBellot/ONDES_CORE
+#    - Workflow: publish_package.yml
+#    - Environment: pub.dev (optional but recommended)
+
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - 'ondes_sdk-v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish to pub.dev
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    defaults:
+      run:
+        working-directory: packages/ondes_sdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Verify package
+        run: flutter pub publish --dry-run
+
+      - name: Publish to pub.dev
+        run: flutter pub publish --force

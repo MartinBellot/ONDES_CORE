@@ -2,7 +2,18 @@
 
 Apprenez à créer votre première application pour l'écosystème Ondes.
 
-## Démarrage rapide
+## 🎯 Choisissez votre approche
+
+| Approche | Technologies | Pour qui ? |
+|----------|-------------|------------|
+| 🌐 **Web classique** | HTML, CSS, JavaScript | Développeurs web, projets simples |
+| 💙 **Flutter Web** | Dart, Flutter | Développeurs Flutter, apps complexes |
+
+> 💡 Ce guide couvre l'approche **Web classique**. Pour Flutter, consultez le [SDK Flutter](sdk/flutter.md).
+
+---
+
+## Démarrage rapide (Web)
 
 Créez votre première mini-app en 3 étapes simples :
 

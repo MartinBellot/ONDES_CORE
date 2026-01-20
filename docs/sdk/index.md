@@ -18,9 +18,20 @@ document.addEventListener('OndesReady', () => {
 console.log(Ondes.User.getProfile()); 
 ```
 
-## Modules disponibles
+## Choisissez votre technologie
 
-Le SDK est divisé en plusieurs modules thématiques :
+| Technologie | Description | Lien |
+|-------------|-------------|------|
+| 🌐 **JavaScript** | SDK natif pour apps HTML/CSS/JS | Cette page |
+| 💙 **Flutter Web** | Package Dart pour apps Flutter | [SDK Flutter](flutter.md) |
+
+> 💡 **Recommandation** : Utilisez **JavaScript** pour des apps simples, et **Flutter** pour des interfaces plus complexes ou si vous maîtrisez déjà Flutter.
+
+---
+
+## Modules disponibles (JavaScript)
+
+Le SDK JavaScript est divisé en plusieurs modules thématiques :
 
 - [**Ondes.UI**](ui.md) : Gestion de l'interface (Toasts, Modales, Navigation).
 - [**Ondes.User**](user.md) : Informations sur l'utilisateur connecté.
@@ -29,6 +40,8 @@ Le SDK est divisé en plusieurs modules thématiques :
 - [**Ondes.App**](app.md) : Infos sur l'application et cycle de vie.
 - [**Ondes.Friends**](friends.md) : Gestion des amis et du graphe social.
 - [**Ondes.Social**](social.md) : Fonctionnalités de réseau social (Feed, Posts, Stories).
+
+Pour la version **Flutter/Dart**, voir le [SDK Flutter](flutter.md).
 
 ## Gestion des erreurs
 
