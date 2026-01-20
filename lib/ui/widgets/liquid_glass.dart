@@ -11,8 +11,11 @@ class OndesLiquidGlass extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LiquidGlass(
-      glassContainsChild: false,
+    return FakeGlass(
+      settings: LiquidGlassSettings(
+        glassColor: Theme.of(context).colorScheme.surface.withOpacity(0.4),
+          blur: 5,
+      ),
       shape: const LiquidRoundedSuperellipse(
             borderRadius: 30,
           ),
