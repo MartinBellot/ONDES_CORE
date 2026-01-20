@@ -40,6 +40,7 @@ L'objet `window.Ondes` est votre porte d'entrée vers le natif.
   - 📦 **[Application (App)](sdk/app.md)** : Infos et cycle de vie.
   - 👥 **[Amis (Friends)](sdk/friends.md)** : Gestion du graphe d'amitié.
   - 🌍 **[Social (Social)](sdk/social.md)** : Feed, Posts, Stories et Médias.
+  - 🔌 **[WebSocket (Websocket)](sdk/websocket.md)** : Connexions temps réel.
 
 #### 💙 SDK Flutter (Dart)
 Package Flutter pour créer des mini-apps avec toute la puissance de Flutter.

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import '../bridge/js_bridge.dart';
 import '../models/udp_socket.dart';
 
@@ -41,6 +43,9 @@ class OndesUdp {
 
   /// Stream controllers for close events per socket
   final Map<String, StreamController<String>> _closeControllers = {};
+  
+  /// JS callback unsubscribers per socket
+  final Map<String, JSFunction?> _jsUnsubscribers = {};
 
   OndesUdp(this._bridge);
 
@@ -70,7 +75,77 @@ class OndesUdp {
     _messageControllers[socket.id] = StreamController<UdpMessage>.broadcast();
     _closeControllers[socket.id] = StreamController<String>.broadcast();
 
+    // Register JS callback for messages
+    _registerJsCallbacks(socket.id);
+
     return socket;
+  }
+
+  /// Register JavaScript callbacks to receive UDP messages
+  void _registerJsCallbacks(String socketId) {
+    // Create a Dart callback that will be called from JS
+    final dartCallback = ((JSObject data) {
+      try {
+        final messageData = _jsObjectToMap(data);
+        final message = UdpMessage(
+          socketId: messageData['socketId'] as String? ?? socketId,
+          message: messageData['message'] as String? ?? '',
+          address: messageData['address'] as String? ?? '',
+          port: (messageData['port'] as num?)?.toInt() ?? 0,
+          timestamp: messageData['timestamp'] != null
+              ? DateTime.fromMillisecondsSinceEpoch((messageData['timestamp'] as num).toInt())
+              : DateTime.now(),
+        );
+        _messageControllers[socketId]?.add(message);
+      } catch (e) {
+        // ignore parse errors
+      }
+    }).toJS;
+
+    // Get Ondes.UDP module and call onMessage to register
+    final ondes = globalContext['Ondes'] as JSObject?;
+    if (ondes == null) return;
+
+    final udpModule = ondes['UDP'] as JSObject?;
+    if (udpModule == null) return;
+
+    final onMessageMethod = udpModule['onMessage'] as JSFunction?;
+    if (onMessageMethod == null) return;
+
+    // Register the callback and store unsubscriber
+    final unsubscriber = onMessageMethod.callAsFunction(
+      udpModule,
+      socketId.toJS,
+      dartCallback,
+    );
+    
+    if (unsubscriber != null && unsubscriber.isA<JSFunction>()) {
+      _jsUnsubscribers[socketId] = unsubscriber as JSFunction;
+    }
+  }
+
+  /// Convert a JSObject to a Dart Map
+  Map<String, dynamic> _jsObjectToMap(JSObject obj) {
+    final result = <String, dynamic>{};
+    final objectConstructor = globalContext['Object'] as JSObject;
+    final keysMethod = objectConstructor['keys'] as JSFunction;
+    final keysArray = keysMethod.callAsFunction(objectConstructor, obj) as JSArray;
+    
+    final length = ((keysArray as JSObject)['length'] as JSNumber).toDartInt;
+    for (var i = 0; i < length; i++) {
+      final key = ((keysArray as JSObject)[i.toString()] as JSString).toDart;
+      final value = obj[key];
+      if (value == null) {
+        result[key] = null;
+      } else if (value.isA<JSString>()) {
+        result[key] = (value as JSString).toDart;
+      } else if (value.isA<JSNumber>()) {
+        result[key] = (value as JSNumber).toDartDouble;
+      } else if (value.isA<JSBoolean>()) {
+        result[key] = (value as JSBoolean).toDart;
+      }
+    }
+    return result;
   }
 
   /// Send a UDP message to a specific address and port.
@@ -137,6 +212,13 @@ class OndesUdp {
   ///
   /// [socketId] The socket ID to close
   Future<void> close(String socketId) async {
+    // Call the JS unsubscriber if available
+    final unsubscriber = _jsUnsubscribers[socketId];
+    if (unsubscriber != null) {
+      unsubscriber.callAsFunction(null);
+    }
+    _jsUnsubscribers.remove(socketId);
+
     await _bridge.call<Map<String, dynamic>>(
       'Ondes.UDP.close',
       [socketId],
