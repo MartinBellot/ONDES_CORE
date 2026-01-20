@@ -2,6 +2,7 @@
 ///
 /// Represents a UDP socket connection for network discovery
 /// and communication.
+library;
 
 /// Status of a UDP socket
 enum UdpSocketStatus {

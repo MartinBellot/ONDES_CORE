@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-01-20
+
+### Added
+- **Cross-platform compilation support**: Package now compiles on all platforms (iOS, Android, macOS, Windows, Linux)
+- Added conditional exports for web vs non-web platforms using `dart.library.js_interop`
+- Created stub implementations for non-web platforms that throw `UnsupportedError` with clear messages
+
+### Changed
+- Removed `platforms: web:` restriction from pubspec.yaml
+- Refactored `js_bridge.dart` to use conditional exports (`js_bridge_stub.dart` / `js_bridge_web.dart`)
+- Refactored `udp.dart` to use conditional exports (`udp_stub.dart` / `udp_web.dart`)
+
+### Note
+- The SDK still only functions on web platform inside the Ondes Core host
+- Non-web platforms will compile but throw `UnsupportedError` at runtime when Ondes features are used
+
 ## [1.3.3] - 2026-01-20
 
 ### Added
