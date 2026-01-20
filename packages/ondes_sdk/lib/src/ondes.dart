@@ -5,6 +5,7 @@ import 'modules/storage.dart';
 import 'modules/app.dart';
 import 'modules/friends.dart';
 import 'modules/social.dart';
+import 'modules/websocket.dart';
 import 'bridge/js_bridge.dart';
 
 /// Main entry point for the Ondes SDK.
@@ -32,6 +33,7 @@ class Ondes {
   static OndesApp? _app;
   static OndesFriends? _friends;
   static OndesSocial? _social;
+  static OndesWebsocket? _websocket;
 
   /// Whether the Ondes bridge is ready to use.
   static bool get isReady => _bridge.isReady;
@@ -83,4 +85,9 @@ class Ondes {
   ///
   /// Posts, likes, comments, stories, follows, and more.
   static OndesSocial get social => _social ??= OndesSocial(_bridge);
+
+  /// WebSocket module for real-time communication.
+  ///
+  /// Manage WebSocket connections for real-time data exchange.
+  static OndesWebsocket get websocket => _websocket ??= OndesWebsocket(_bridge);
 }

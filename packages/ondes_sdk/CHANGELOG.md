@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-20
+
+### Added
+- **Websocket Module** (`Ondes.websocket`)
+  - `connect()` - Connect to a WebSocket server with auto-reconnect support
+  - `disconnect()` - Close a WebSocket connection
+  - `send()` - Send messages (text or JSON)
+  - `onMessage()` - Stream of incoming messages
+  - `onStatusChange()` - Stream of connection status changes
+  - `getStatus()` - Get current connection status
+  - `list()` - List all active connections
+  - `disconnectAll()` - Close all connections
+- New models: `WebsocketConnection`, `WebsocketStatus`, `WebsocketConnectOptions`
+
 ## [1.1.0] - 2026-01-20
 
 ### Changed
