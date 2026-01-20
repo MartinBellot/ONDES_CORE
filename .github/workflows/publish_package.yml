@@ -44,21 +44,16 @@ jobs:
       - name: Dry run
         run: flutter pub publish --dry-run
       
-      - name: Setup pub.dev credentials
+      - name: Get OIDC token and publish
         run: |
-          mkdir -p $HOME/.config/dart
-          
-          # Get OIDC token from GitHub
+          # Get OIDC token from GitHub Actions
           OIDC_TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://pub.dev" | jq -r '.value')
           
-          # Create pub-credentials.json
-          cat <<EOF > $HOME/.config/dart/pub-credentials.json
-          {
-            "accessToken": "$OIDC_TOKEN",
-            "tokenEndpoint": "https://accounts.google.com/o/oauth2/token"
-          }
-          EOF
-      
-      - name: Publish
-        run: flutter pub publish -f
+          # Configure dart to use the token
+          dart pub token add https://pub.dev --env-var MY_PUB_TOKEN
+          
+          # Publish with the token
+          MY_PUB_TOKEN="$OIDC_TOKEN" flutter pub publish -f
+        env:
+          MY_PUB_TOKEN: ""
