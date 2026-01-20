@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-20
+
+### Added
+- **UDP Module** (`Ondes.udp`)
+  - `bind()` - Bind to a UDP port and start listening
+  - `send()` - Send a UDP message to a specific address
+  - `broadcast()` - Broadcast a message to multiple addresses
+  - `close()` - Close a UDP socket
+  - `onMessage()` - Stream of incoming UDP messages
+  - `onClose()` - Stream of socket close events
+  - `getInfo()` - Get socket information
+  - `list()` - List all active sockets
+  - `closeAll()` - Close all sockets
+- New models: `UdpSocket`, `UdpMessage`, `UdpSendResult`, `UdpBroadcastResult`, `UdpBindOptions`
+
 ## [1.2.0] - 2026-01-20
 
 ### Added

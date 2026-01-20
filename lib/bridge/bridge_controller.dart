@@ -23,6 +23,8 @@ class OndesBridgeController {
   late final AppHandler _appHandler;
   late final FriendsHandler _friendsHandler;
   late final SocialHandler _socialHandler;
+  late final WebsocketHandler _websocketHandler;
+  late final UdpHandler _udpHandler;
 
   OndesBridgeController(
     this.context, {
@@ -46,6 +48,8 @@ class OndesBridgeController {
     );
     _friendsHandler = FriendsHandler(context);
     _socialHandler = SocialHandler(context);
+    _websocketHandler = WebsocketHandler(context);
+    _udpHandler = UdpHandler(context);
   }
 
   void setController(InAppWebViewController controller) {
@@ -64,6 +68,8 @@ class OndesBridgeController {
     _appHandler.attach(webViewController!);
     _friendsHandler.attach(webViewController!);
     _socialHandler.attach(webViewController!);
+    _websocketHandler.attach(webViewController!);
+    _udpHandler.attach(webViewController!);
   }
 
   // Expose handlers for direct access if needed
@@ -74,4 +80,6 @@ class OndesBridgeController {
   AppHandler get appHandler => _appHandler;
   FriendsHandler get friendsHandler => _friendsHandler;
   SocialHandler get socialHandler => _socialHandler;
+  WebsocketHandler get websocketHandler => _websocketHandler;
+  UdpHandler get udpHandler => _udpHandler;
 }

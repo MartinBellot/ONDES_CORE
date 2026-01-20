@@ -404,12 +404,285 @@ const String ondesBridgeJs = """
             pickMedia: async function(options) {
                 return await callBridge('Ondes.Social.pickMedia', options || {});
             }
+        },
+
+        // ============== 8. Websocket ==============
+        Websocket: {
+            // Internal handlers storage
+            _handlers: {},
+
+            /**
+             * Connect to a WebSocket server
+             * @param {string} url - WebSocket URL (ws:// or wss://)
+             * @param {Object} options - Connection options
+             * @param {boolean} options.reconnect - Auto-reconnect on disconnect (default: false)
+             * @param {number} options.timeout - Connection timeout in ms (default: 10000)
+             * @returns {Promise<{id, url, status, connectedAt}>}
+             */
+            connect: async function(url, options) {
+                const result = await callBridge('Ondes.Websocket.connect', url, options || {});
+                // Initialize handlers storage for this connection
+                if (result && result.id) {
+                    this._handlers[result.id] = {
+                        onMessage: [],
+                        onStatusChange: []
+                    };
+                }
+                return result;
+            },
+
+            /**
+             * Disconnect from a WebSocket server
+             * @param {string} connectionId - The connection ID returned by connect()
+             * @returns {Promise<{success, id}>}
+             */
+            disconnect: async function(connectionId) {
+                const result = await callBridge('Ondes.Websocket.disconnect', connectionId);
+                // Clean up handlers
+                if (this._handlers[connectionId]) {
+                    delete this._handlers[connectionId];
+                }
+                return result;
+            },
+
+            /**
+             * Send a message through a WebSocket connection
+             * @param {string} connectionId - The connection ID
+             * @param {string|Object} data - Data to send (objects will be JSON-stringified)
+             * @returns {Promise<{success, id}>}
+             */
+            send: async function(connectionId, data) {
+                return await callBridge('Ondes.Websocket.send', connectionId, data);
+            },
+
+            /**
+             * Get the status of a WebSocket connection
+             * @param {string} connectionId - The connection ID
+             * @returns {Promise<{id, url, status, exists, connectedAt, reconnect}>}
+             */
+            getStatus: async function(connectionId) {
+                return await callBridge('Ondes.Websocket.getStatus', connectionId);
+            },
+
+            /**
+             * List all active WebSocket connections
+             * @returns {Promise<Array<{id, url, status, connectedAt}>>}
+             */
+            list: async function() {
+                return await callBridge('Ondes.Websocket.list');
+            },
+
+            /**
+             * Disconnect all WebSocket connections
+             * @returns {Promise<{success, disconnected}>}
+             */
+            disconnectAll: async function() {
+                const result = await callBridge('Ondes.Websocket.disconnectAll');
+                this._handlers = {};
+                return result;
+            },
+
+            /**
+             * Register a callback for incoming messages
+             * @param {string} connectionId - The connection ID
+             * @param {Function} callback - Function called with (message) on each message
+             * @returns {Function} Unsubscribe function
+             */
+            onMessage: function(connectionId, callback) {
+                if (!this._handlers[connectionId]) {
+                    this._handlers[connectionId] = { onMessage: [], onStatusChange: [] };
+                }
+                this._handlers[connectionId].onMessage.push(callback);
+                
+                // Return unsubscribe function
+                return () => {
+                    const handlers = this._handlers[connectionId];
+                    if (handlers) {
+                        const index = handlers.onMessage.indexOf(callback);
+                        if (index > -1) handlers.onMessage.splice(index, 1);
+                    }
+                };
+            },
+
+            /**
+             * Register a callback for connection status changes
+             * @param {string} connectionId - The connection ID
+             * @param {Function} callback - Function called with (status, error) on status change
+             * @returns {Function} Unsubscribe function
+             */
+            onStatusChange: function(connectionId, callback) {
+                if (!this._handlers[connectionId]) {
+                    this._handlers[connectionId] = { onMessage: [], onStatusChange: [] };
+                }
+                this._handlers[connectionId].onStatusChange.push(callback);
+                
+                // Return unsubscribe function
+                return () => {
+                    const handlers = this._handlers[connectionId];
+                    if (handlers) {
+                        const index = handlers.onStatusChange.indexOf(callback);
+                        if (index > -1) handlers.onStatusChange.splice(index, 1);
+                    }
+                };
+            }
+        },
+
+        // ============== 9. UDP ==============
+        UDP: {
+            // Internal handlers storage
+            _handlers: {},
+
+            /**
+             * Bind to a UDP port and start listening
+             * @param {Object} options - Bind options
+             * @param {number} options.port - Port to bind (0 for random)
+             * @param {boolean} options.broadcast - Enable broadcast (default: true)
+             * @param {boolean} options.reuseAddress - Allow address reuse (default: true)
+             * @returns {Promise<{id, port, broadcast, status}>}
+             */
+            bind: async function(options) {
+                const result = await callBridge('Ondes.UDP.bind', options || {});
+                if (result && result.id) {
+                    this._handlers[result.id] = {
+                        onMessage: [],
+                        onClose: []
+                    };
+                }
+                return result;
+            },
+
+            /**
+             * Send a UDP message to a specific address and port
+             * @param {string} socketId - The socket ID returned by bind()
+             * @param {string} message - Message to send
+             * @param {string} address - Target IP address
+             * @param {number} port - Target port
+             * @returns {Promise<{success, bytesSent, address, port}>}
+             */
+            send: async function(socketId, message, address, port) {
+                return await callBridge('Ondes.UDP.send', socketId, message, address, port);
+            },
+
+            /**
+             * Broadcast a UDP message to multiple addresses
+             * @param {string} socketId - The socket ID
+             * @param {string} message - Message to send
+             * @param {Array<string>} addresses - List of target IP addresses
+             * @param {number} port - Target port (default: 12345)
+             * @returns {Promise<{socketId, messageLength, port, results}>}
+             */
+            broadcast: async function(socketId, message, addresses, port) {
+                return await callBridge('Ondes.UDP.broadcast', socketId, message, addresses, port || 12345);
+            },
+
+            /**
+             * Close a UDP socket
+             * @param {string} socketId - The socket ID
+             * @returns {Promise<{id, status}>}
+             */
+            close: async function(socketId) {
+                const result = await callBridge('Ondes.UDP.close', socketId);
+                if (this._handlers[socketId]) {
+                    delete this._handlers[socketId];
+                }
+                return result;
+            },
+
+            /**
+             * Get info about a UDP socket
+             * @param {string} socketId - The socket ID
+             * @returns {Promise<{id, port, broadcast, createdAt, messagesReceived}>}
+             */
+            getInfo: async function(socketId) {
+                return await callBridge('Ondes.UDP.getInfo', socketId);
+            },
+
+            /**
+             * List all active UDP sockets
+             * @returns {Promise<Array<{id, port, broadcast, createdAt, messagesReceived}>>}
+             */
+            list: async function() {
+                return await callBridge('Ondes.UDP.list');
+            },
+
+            /**
+             * Close all UDP sockets
+             * @returns {Promise<{closedCount}>}
+             */
+            closeAll: async function() {
+                const result = await callBridge('Ondes.UDP.closeAll');
+                this._handlers = {};
+                return result;
+            },
+
+            /**
+             * Register a callback for incoming UDP messages
+             * @param {string} socketId - The socket ID
+             * @param {Function} callback - Function called with ({socketId, message, data, address, port, timestamp})
+             * @returns {Function} Unsubscribe function
+             */
+            onMessage: function(socketId, callback) {
+                if (!this._handlers[socketId]) {
+                    this._handlers[socketId] = { onMessage: [], onClose: [] };
+                }
+                this._handlers[socketId].onMessage.push(callback);
+                
+                return () => {
+                    const handlers = this._handlers[socketId];
+                    if (handlers) {
+                        const index = handlers.onMessage.indexOf(callback);
+                        if (index > -1) handlers.onMessage.splice(index, 1);
+                    }
+                };
+            },
+
+            /**
+             * Register a callback for socket close events
+             * @param {string} socketId - The socket ID
+             * @param {Function} callback - Function called with ({socketId, timestamp})
+             * @returns {Function} Unsubscribe function
+             */
+            onClose: function(socketId, callback) {
+                if (!this._handlers[socketId]) {
+                    this._handlers[socketId] = { onMessage: [], onClose: [] };
+                }
+                this._handlers[socketId].onClose.push(callback);
+                
+                return () => {
+                    const handlers = this._handlers[socketId];
+                    if (handlers) {
+                        const index = handlers.onClose.indexOf(callback);
+                        if (index > -1) handlers.onClose.splice(index, 1);
+                    }
+                };
+            },
+
+            // Internal method called by native side
+            _onMessage: function(data) {
+                const handlers = this._handlers[data.socketId];
+                if (handlers) {
+                    handlers.onMessage.forEach(cb => {
+                        try { cb(data); } catch(e) { console.error('[Ondes.UDP] onMessage error:', e); }
+                    });
+                }
+            },
+
+            // Internal method called by native side
+            _onClose: function(data) {
+                const handlers = this._handlers[data.socketId];
+                if (handlers) {
+                    handlers.onClose.forEach(cb => {
+                        try { cb(data); } catch(e) { console.error('[Ondes.UDP] onClose error:', e); }
+                    });
+                    delete this._handlers[data.socketId];
+                }
+            }
         }
     };
 
     // Event ready
     const event = new Event('OndesReady');
     document.dispatchEvent(event);
-    console.log("✅ Ondes Core Bridge v2.1 Ready !");
+    console.log("✅ Ondes Core Bridge v2.3 Ready !");
 })();
 """;

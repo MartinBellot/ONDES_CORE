@@ -6,6 +6,7 @@ import 'modules/app.dart';
 import 'modules/friends.dart';
 import 'modules/social.dart';
 import 'modules/websocket.dart';
+import 'modules/udp.dart';
 import 'bridge/js_bridge.dart';
 
 /// Main entry point for the Ondes SDK.
@@ -34,6 +35,7 @@ class Ondes {
   static OndesFriends? _friends;
   static OndesSocial? _social;
   static OndesWebsocket? _websocket;
+  static OndesUdp? _udp;
 
   /// Whether the Ondes bridge is ready to use.
   static bool get isReady => _bridge.isReady;
@@ -90,4 +92,10 @@ class Ondes {
   ///
   /// Manage WebSocket connections for real-time data exchange.
   static OndesWebsocket get websocket => _websocket ??= OndesWebsocket(_bridge);
+
+  /// UDP module for network discovery and communication.
+  ///
+  /// Bind sockets, send/broadcast messages, and listen for responses.
+  /// Useful for device discovery on local networks.
+  static OndesUdp get udp => _udp ??= OndesUdp(_bridge);
 }

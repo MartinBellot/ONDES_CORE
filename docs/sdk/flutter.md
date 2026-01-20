@@ -468,6 +468,157 @@ for (final file in media) {
 }
 ```
 
+### 🔌 Websocket - Connexions temps réel {#websocket}
+
+```dart
+// Connexion à un serveur WebSocket
+final conn = await Ondes.websocket.connect(
+  'ws://192.168.1.42:8080',
+  options: WebsocketConnectOptions(
+    reconnect: true,  // Auto-reconnexion
+    timeout: 5000,    // Timeout 5 secondes
+  ),
+);
+print('Connecté: ${conn.id}');
+
+// Écouter les messages entrants
+Ondes.websocket.onMessage(conn.id).listen((message) {
+  print('Message reçu: $message');
+  // Parser le message si nécessaire
+  if (message is String && message.startsWith('<')) {
+    handleRobotMessage(message);
+  }
+});
+
+// Écouter les changements d'état
+Ondes.websocket.onStatusChange(conn.id).listen((event) {
+  print('État: ${event.status.name}');
+  if (event.status == WebsocketStatus.error) {
+    print('Erreur: ${event.error}');
+  }
+});
+
+// Envoyer des messages
+await Ondes.websocket.send(conn.id, '<100s50>');  // Texte
+await Ondes.websocket.send(conn.id, {             // JSON
+  'type': 'command',
+  'action': 'move',
+});
+
+// Obtenir le statut d'une connexion
+final status = await Ondes.websocket.getStatus(conn.id);
+if (status != null) {
+  print('URL: ${status.url}, État: ${status.status.name}');
+}
+
+// Lister toutes les connexions
+final connections = await Ondes.websocket.list();
+print('${connections.length} connexion(s) active(s)');
+
+// Déconnecter
+await Ondes.websocket.disconnect(conn.id);
+
+// Déconnecter toutes les connexions
+final count = await Ondes.websocket.disconnectAll();
+print('$count connexion(s) fermée(s)');
+```
+
+---
+
+### 📡 UDP - Découverte réseau {#udp}
+
+Le module UDP permet la découverte de périphériques et la communication réseau via sockets UDP.
+
+```dart
+// Créer un socket UDP
+final socket = await Ondes.udp.bind(
+  options: UdpBindOptions(
+    port: 12345,      // Port local (0 = aléatoire)
+    broadcast: true,  // Autoriser le broadcast
+  ),
+);
+print('Socket lié sur le port ${socket.port}');
+
+// Écouter les messages entrants
+Ondes.udp.onMessage(socket.id).listen((message) {
+  print('Reçu de ${message.address}:${message.port}');
+  print('Message: ${message.message}');
+});
+
+// Envoyer un message
+await Ondes.udp.send(socket.id, 'DISCOVER_ROBOT', '192.168.1.100', 12345);
+
+// Broadcast vers plusieurs adresses
+final result = await Ondes.udp.broadcast(
+  socket.id,
+  'DISCOVER_ROBOT',
+  [
+    '192.168.1.255',
+    '192.168.4.255',
+    '192.168.4.1',
+  ],
+  12345,
+);
+print('Broadcast vers ${result.results.length} adresses');
+
+// Infos sur le socket
+final info = await Ondes.udp.getInfo(socket.id);
+print('Messages reçus: ${info.messagesReceived}');
+
+// Lister tous les sockets
+final sockets = await Ondes.udp.list();
+print('${sockets.length} socket(s) actif(s)');
+
+// Fermer le socket
+await Ondes.udp.close(socket.id);
+
+// Fermer tous les sockets
+final closedCount = await Ondes.udp.closeAll();
+print('$closedCount socket(s) fermé(s)');
+```
+
+#### Exemple : Découverte de robots IoT
+
+```dart
+Future<List<Map<String, String>>> discoverRobots() async {
+  final robots = <Map<String, String>>[];
+  
+  final socket = await Ondes.udp.bind(
+    options: UdpBindOptions(port: 12345, broadcast: true),
+  );
+  
+  final subscription = Ondes.udp.onMessage(socket.id).listen((msg) {
+    final match = RegExp(r'<(.+)>').firstMatch(msg.message);
+    if (match == null) return;
+    
+    final parts = match.group(1)!.split(',');
+    if (parts[0] == 'DISCOVER_ROBOT') return; // Ignorer nos messages
+    
+    final robot = {
+      'ip': parts[0],
+      'name': parts.length > 1 ? parts[1] : parts[0],
+    };
+    
+    if (!robots.any((r) => r['ip'] == robot['ip'])) {
+      robots.add(robot);
+    }
+  });
+  
+  await Ondes.udp.broadcast(
+    socket.id,
+    'DISCOVER_ROBOT',
+    ['192.168.1.255', '192.168.4.255', '192.168.4.1'],
+    12345,
+  );
+  
+  await Future.delayed(Duration(seconds: 4));
+  await subscription.cancel();
+  await Ondes.udp.close(socket.id);
+  
+  return robots;
+}
+```
+
 ---
 
 ## ⚠️ Gestion des erreurs
