@@ -180,12 +180,14 @@ class UdpHandler extends BaseHandler {
           );
           results.add({
             'address': address,
+            'port': port,
             'success': true,
             'bytesSent': bytesSent,
           });
         } catch (e) {
           results.add({
             'address': address,
+            'port': port,
             'success': false,
             'error': e.toString(),
           });

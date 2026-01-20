@@ -1,6 +1,6 @@
 const String ondesBridgeJs = """
 (function() {
-    console.log("🌊 Injecting Ondes Core Bridge v2.1...");
+    console.log("🌊 Injecting Ondes Core Bridge v2.5...");
 
     if (window.Ondes) return; // Already injected
 
@@ -410,6 +410,8 @@ const String ondesBridgeJs = """
         Websocket: {
             // Internal handlers storage
             _handlers: {},
+            // Polling intervals per connection
+            _pollingIntervals: {},
 
             /**
              * Connect to a WebSocket server
@@ -427,6 +429,8 @@ const String ondesBridgeJs = """
                         onMessage: [],
                         onStatusChange: []
                     };
+                    // Start polling for this connection
+                    this._startPolling(result.id);
                 }
                 return result;
             },
@@ -437,6 +441,8 @@ const String ondesBridgeJs = """
              * @returns {Promise<{success, id}>}
              */
             disconnect: async function(connectionId) {
+                // Stop polling first
+                this._stopPolling(connectionId);
                 const result = await callBridge('Ondes.Websocket.disconnect', connectionId);
                 // Clean up handlers
                 if (this._handlers[connectionId]) {
@@ -477,9 +483,89 @@ const String ondesBridgeJs = """
              * @returns {Promise<{success, disconnected}>}
              */
             disconnectAll: async function() {
+                // Stop all polling
+                for (const id in this._pollingIntervals) {
+                    this._stopPolling(id);
+                }
                 const result = await callBridge('Ondes.Websocket.disconnectAll');
                 this._handlers = {};
                 return result;
+            },
+
+            /**
+             * Start polling for messages and status changes
+             * @private
+             */
+            _startPolling: function(connectionId) {
+                if (this._pollingIntervals[connectionId]) return;
+                
+                const poll = async () => {
+                    try {
+                        // Poll for messages
+                        const msgResult = await callBridge('Ondes.Websocket.pollMessages', connectionId);
+                        if (msgResult && msgResult.messages && msgResult.messages.length > 0) {
+                            const handlers = this._handlers[connectionId];
+                            if (handlers && handlers.onMessage) {
+                                for (const msg of msgResult.messages) {
+                                    handlers.onMessage.forEach(cb => {
+                                        try { cb(msg.message); } catch(e) { console.error('Ondes.Websocket callback error:', e); }
+                                    });
+                                }
+                            }
+                        }
+                        
+                        // Poll for status changes
+                        const statusResult = await callBridge('Ondes.Websocket.pollStatus', connectionId);
+                        if (statusResult && statusResult.statusChanges && statusResult.statusChanges.length > 0) {
+                            const handlers = this._handlers[connectionId];
+                            if (handlers && handlers.onStatusChange) {
+                                for (const change of statusResult.statusChanges) {
+                                    handlers.onStatusChange.forEach(cb => {
+                                        try { cb(change.status, change.error); } catch(e) { console.error('Ondes.Websocket status callback error:', e); }
+                                    });
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Connection may be closed, stop polling
+                        console.log('[Ondes.Websocket] Polling stopped for ' + connectionId);
+                        this._stopPolling(connectionId);
+                    }
+                };
+                
+                // Poll every 50ms for responsiveness
+                this._pollingIntervals[connectionId] = setInterval(poll, 50);
+                // Also poll immediately
+                poll();
+            },
+
+            /**
+             * Stop polling for a connection
+             * @private
+             */
+            _stopPolling: function(connectionId) {
+                if (this._pollingIntervals[connectionId]) {
+                    clearInterval(this._pollingIntervals[connectionId]);
+                    delete this._pollingIntervals[connectionId];
+                }
+            },
+
+            /**
+             * Poll for pending messages (public API for SDK)
+             * @param {string} connectionId - The connection ID
+             * @returns {Promise<{connectionId, messages}>}
+             */
+            pollMessages: async function(connectionId) {
+                return await callBridge('Ondes.Websocket.pollMessages', connectionId);
+            },
+
+            /**
+             * Poll for pending status changes (public API for SDK)
+             * @param {string} connectionId - The connection ID
+             * @returns {Promise<{connectionId, statusChanges}>}
+             */
+            pollStatus: async function(connectionId) {
+                return await callBridge('Ondes.Websocket.pollStatus', connectionId);
             },
 
             /**
@@ -491,6 +577,8 @@ const String ondesBridgeJs = """
             onMessage: function(connectionId, callback) {
                 if (!this._handlers[connectionId]) {
                     this._handlers[connectionId] = { onMessage: [], onStatusChange: [] };
+                    // Start polling if not already
+                    this._startPolling(connectionId);
                 }
                 this._handlers[connectionId].onMessage.push(callback);
                 
@@ -513,6 +601,8 @@ const String ondesBridgeJs = """
             onStatusChange: function(connectionId, callback) {
                 if (!this._handlers[connectionId]) {
                     this._handlers[connectionId] = { onMessage: [], onStatusChange: [] };
+                    // Start polling if not already
+                    this._startPolling(connectionId);
                 }
                 this._handlers[connectionId].onStatusChange.push(callback);
                 

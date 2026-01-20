@@ -35,6 +35,9 @@ class OndesWebsocket {
   /// Stream controllers for status change events per connection
   final Map<String, StreamController<WebsocketStatusEvent>> _statusControllers = {};
 
+  /// Polling timers per connection (for macOS compatibility)
+  final Map<String, Timer> _pollingTimers = {};
+
   OndesWebsocket(this._bridge);
 
   /// Connect to a WebSocket server.
@@ -67,9 +70,8 @@ class OndesWebsocket {
     _messageControllers[connection.id] = StreamController<dynamic>.broadcast();
     _statusControllers[connection.id] = StreamController<WebsocketStatusEvent>.broadcast();
 
-    // Note: The native handler will push events via JS callbacks.
-    // In a real implementation, we'd set up JS interop listeners here.
-    // For Flutter Web, the JS bridge handles this via evaluateJavascript.
+    // Start polling for messages and status changes (macOS compatibility)
+    _startPolling(connection.id);
 
     return connection;
   }
@@ -78,6 +80,9 @@ class OndesWebsocket {
   ///
   /// [connectionId] The connection ID from connect()
   Future<void> disconnect(String connectionId) async {
+    // Stop polling first
+    _stopPolling(connectionId);
+
     await _bridge.call('Ondes.Websocket.disconnect', [connectionId]);
 
     // Clean up stream controllers
@@ -134,6 +139,11 @@ class OndesWebsocket {
   ///
   /// Returns the number of connections that were closed.
   Future<int> disconnectAll() async {
+    // Stop all polling
+    for (final id in _pollingTimers.keys.toList()) {
+      _stopPolling(id);
+    }
+
     final result = await _bridge.call<Map<String, dynamic>>('Ondes.Websocket.disconnectAll');
 
     // Clean up all stream controllers
@@ -147,6 +157,65 @@ class OndesWebsocket {
     _statusControllers.clear();
 
     return result?['disconnected'] as int? ?? 0;
+  }
+
+  /// Start polling for messages and status changes (macOS compatibility)
+  void _startPolling(String connectionId) {
+    if (_pollingTimers.containsKey(connectionId)) return;
+
+    _pollingTimers[connectionId] = Timer.periodic(
+      const Duration(milliseconds: 50),
+      (_) => _pollConnection(connectionId),
+    );
+    // Also poll immediately
+    _pollConnection(connectionId);
+  }
+
+  /// Stop polling for a connection
+  void _stopPolling(String connectionId) {
+    _pollingTimers[connectionId]?.cancel();
+    _pollingTimers.remove(connectionId);
+  }
+
+  /// Poll for messages and status changes
+  Future<void> _pollConnection(String connectionId) async {
+    try {
+      // Poll for messages
+      final msgResult = await _bridge.call<Map<String, dynamic>>(
+        'Ondes.Websocket.pollMessages',
+        [connectionId],
+      );
+
+      if (msgResult != null && msgResult['messages'] is List) {
+        final messages = msgResult['messages'] as List;
+        for (final msg in messages) {
+          final message = msg is Map ? msg['message'] : msg;
+          _messageControllers[connectionId]?.add(message);
+        }
+      }
+
+      // Poll for status changes
+      final statusResult = await _bridge.call<Map<String, dynamic>>(
+        'Ondes.Websocket.pollStatus',
+        [connectionId],
+      );
+
+      if (statusResult != null && statusResult['statusChanges'] is List) {
+        final changes = statusResult['statusChanges'] as List;
+        for (final change in changes) {
+          if (change is Map) {
+            final status = WebsocketStatus.fromString(change['status'] as String? ?? 'unknown');
+            final error = change['error'] as String?;
+            _statusControllers[connectionId]?.add(
+              WebsocketStatusEvent(status: status, error: error),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      // Connection may have been closed, stop polling
+      _stopPolling(connectionId);
+    }
   }
 
   /// Get a stream of messages for a connection.

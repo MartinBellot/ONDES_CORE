@@ -15,6 +15,12 @@ class WebsocketHandler extends BaseHandler {
   /// Counter for generating unique connection IDs
   int _connectionCounter = 0;
 
+  /// Message queues for each connection (polling-based approach for macOS compatibility)
+  final Map<String, List<Map<String, dynamic>>> _messageQueues = {};
+  
+  /// Status change queues for each connection
+  final Map<String, List<Map<String, dynamic>>> _statusQueues = {};
+
   @override
   void registerHandlers() {
     _registerConnect();
@@ -23,6 +29,8 @@ class WebsocketHandler extends BaseHandler {
     _registerGetStatus();
     _registerList();
     _registerDisconnectAll();
+    _registerPollMessages();
+    _registerPollStatus();
   }
 
   /// Generate a unique connection ID
@@ -191,7 +199,53 @@ class WebsocketHandler extends BaseHandler {
       for (final id in ids) {
         await _closeConnection(id);
       }
+      _messageQueues.clear();
+      _statusQueues.clear();
       return {'success': true, 'disconnected': ids.length};
+    });
+  }
+
+  /// Poll for pending messages (macOS compatible approach)
+  void _registerPollMessages() {
+    addHandler('Ondes.Websocket.pollMessages', (args) async {
+      if (args.isEmpty) {
+        throw Exception('Connection ID is required');
+      }
+      
+      final connectionId = args[0] as String;
+      final queue = _messageQueues[connectionId];
+      
+      if (queue == null || queue.isEmpty) {
+        return {'connectionId': connectionId, 'messages': []};
+      }
+      
+      // Return and clear the queue
+      final messages = List<Map<String, dynamic>>.from(queue);
+      queue.clear();
+      
+      return {'connectionId': connectionId, 'messages': messages};
+    });
+  }
+
+  /// Poll for pending status changes (macOS compatible approach)
+  void _registerPollStatus() {
+    addHandler('Ondes.Websocket.pollStatus', (args) async {
+      if (args.isEmpty) {
+        throw Exception('Connection ID is required');
+      }
+      
+      final connectionId = args[0] as String;
+      final queue = _statusQueues[connectionId];
+      
+      if (queue == null || queue.isEmpty) {
+        return {'connectionId': connectionId, 'statusChanges': []};
+      }
+      
+      // Return and clear the queue
+      final statusChanges = List<Map<String, dynamic>>.from(queue);
+      queue.clear();
+      
+      return {'connectionId': connectionId, 'statusChanges': statusChanges};
     });
   }
 
@@ -199,20 +253,12 @@ class WebsocketHandler extends BaseHandler {
   void _handleMessage(String connectionId, dynamic message) {
     debugPrint('[WebsocketHandler] Message from $connectionId: $message');
 
-    // Send message to JavaScript via evaluateJavascript
-    final escapedMessage = _escapeForJs(message.toString());
-    webViewController?.evaluateJavascript(source: '''
-      (function() {
-        if (window.Ondes && window.Ondes.Websocket && window.Ondes.Websocket._handlers) {
-          const handlers = window.Ondes.Websocket._handlers['$connectionId'];
-          if (handlers && handlers.onMessage) {
-            handlers.onMessage.forEach(cb => {
-              try { cb($escapedMessage); } catch(e) { console.error('Ondes.Websocket callback error:', e); }
-            });
-          }
-        }
-      })();
-    ''');
+    // Queue the message for polling (macOS compatible approach)
+    _messageQueues.putIfAbsent(connectionId, () => []);
+    _messageQueues[connectionId]!.add({
+      'message': message.toString(),
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
   /// Handle connection errors
@@ -248,21 +294,17 @@ class WebsocketHandler extends BaseHandler {
     }
   }
 
-  /// Notify JavaScript of status changes
+  /// Notify JavaScript of status changes (uses queue for macOS compatibility)
   void _notifyStatusChange(String connectionId, String status, String? error) {
-    final errorJs = error != null ? '"${_escapeString(error)}"' : 'null';
-    webViewController?.evaluateJavascript(source: '''
-      (function() {
-        if (window.Ondes && window.Ondes.Websocket && window.Ondes.Websocket._handlers) {
-          const handlers = window.Ondes.Websocket._handlers['$connectionId'];
-          if (handlers && handlers.onStatusChange) {
-            handlers.onStatusChange.forEach(cb => {
-              try { cb("$status", $errorJs); } catch(e) { console.error('Ondes.Websocket status callback error:', e); }
-            });
-          }
-        }
-      })();
-    ''');
+    debugPrint('[WebsocketHandler] Status change for $connectionId: $status');
+    
+    // Queue the status change for polling
+    _statusQueues.putIfAbsent(connectionId, () => []);
+    _statusQueues[connectionId]!.add({
+      'status': status,
+      'error': error,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
   /// Attempt to reconnect
@@ -330,31 +372,12 @@ class WebsocketHandler extends BaseHandler {
     }
   }
 
-  /// Escape a string for JavaScript
-  String _escapeString(String str) {
-    return str
-        .replaceAll('\\', '\\\\')
-        .replaceAll('"', '\\"')
-        .replaceAll('\n', '\\n')
-        .replaceAll('\r', '\\r')
-        .replaceAll('\t', '\\t');
-  }
-
-  /// Escape message for JavaScript, handling JSON objects
-  String _escapeForJs(String message) {
-    // Try to parse as JSON first
-    try {
-      jsonDecode(message);
-      // It's valid JSON, return as-is (will be parsed by JS)
-      return message;
-    } catch (_) {
-      // Not JSON, return as escaped string
-      return '"${_escapeString(message)}"';
-    }
-  }
-
   /// Clean up all connections when handler is disposed
   void dispose() {
+    // Stop all message/status queues
+    _messageQueues.clear();
+    _statusQueues.clear();
+    
     for (final id in _connections.keys.toList()) {
       _closeConnection(id);
     }

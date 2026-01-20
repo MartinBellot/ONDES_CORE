@@ -38,8 +38,8 @@ class UdpSocket {
 
   factory UdpSocket.fromJson(Map<String, dynamic> json) {
     return UdpSocket(
-      id: json['id'] as String,
-      port: (json['port'] as num).toInt(),
+      id: json['id'] as String? ?? '',
+      port: (json['port'] as num?)?.toInt() ?? 0,
       broadcast: json['broadcast'] as bool? ?? true,
       createdAt: json['createdAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch((json['createdAt'] as num).toInt())
@@ -153,8 +153,8 @@ class UdpSendResult {
     return UdpSendResult(
       success: json['success'] as bool? ?? false,
       bytesSent: (json['bytesSent'] as num?)?.toInt(),
-      address: json['address'] as String,
-      port: (json['port'] as num).toInt(),
+      address: json['address'] as String? ?? '',
+      port: (json['port'] as num?)?.toInt() ?? 0,
       error: json['error'] as String?,
     );
   }
@@ -183,9 +183,9 @@ class UdpBroadcastResult {
 
   factory UdpBroadcastResult.fromJson(Map<String, dynamic> json) {
     return UdpBroadcastResult(
-      socketId: json['socketId'] as String,
-      messageLength: (json['messageLength'] as num).toInt(),
-      port: (json['port'] as num).toInt(),
+      socketId: json['socketId'] as String? ?? '',
+      messageLength: (json['messageLength'] as num?)?.toInt() ?? 0,
+      port: (json['port'] as num?)?.toInt() ?? 0,
       results: (json['results'] as List?)
               ?.map((r) => UdpSendResult.fromJson(r as Map<String, dynamic>))
               .toList() ??
