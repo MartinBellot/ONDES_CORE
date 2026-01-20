@@ -18,7 +18,7 @@ Or add manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ondes_sdk: ^1.1.0
+  ondes_sdk: ^1.3.3
 ```
 
 Then run:
@@ -265,6 +265,87 @@ final media = await Ondes.social.pickMedia(
 );
 ```
 
+### 🔌 WebSocket (`Ondes.websocket`)
+
+Bidirectional WebSocket connections for real-time communication.
+
+```dart
+// Connect to a WebSocket server
+final conn = await Ondes.websocket.connect(
+  'ws://192.168.1.42:4583',
+  options: const WebsocketConnectOptions(
+    reconnect: true,
+    timeout: 10000,
+  ),
+);
+print('Connected: ${conn.id}');
+
+// Listen for messages
+Ondes.websocket.onMessage(conn.id).listen((message) {
+  print('Received: $message');
+});
+
+// Listen for status changes
+Ondes.websocket.onStatusChange(conn.id).listen((event) {
+  print('Status: ${event.status.name}');
+});
+
+// Send messages
+await Ondes.websocket.send(conn.id, '<100s50>');
+await Ondes.websocket.send(conn.id, {'type': 'command', 'value': 42});
+
+// Get connection status
+final status = await Ondes.websocket.getStatus(conn.id);
+
+// List all connections
+final connections = await Ondes.websocket.list();
+
+// Disconnect
+await Ondes.websocket.disconnect(conn.id);
+
+// Disconnect all
+await Ondes.websocket.disconnectAll();
+```
+
+### 📡 UDP (`Ondes.udp`)
+
+UDP sockets for device discovery and lightweight communication.
+
+```dart
+// Bind to a UDP port
+final socket = await Ondes.udp.bind(
+  port: 0,           // 0 = auto-assign
+  broadcast: true,
+  reuseAddress: true,
+);
+print('Bound to port: ${socket.port}');
+
+// Listen for messages
+Ondes.udp.onMessage(socket.id).listen((msg) {
+  print('From ${msg.address}:${msg.port}: ${msg.data}');
+});
+
+// Send a message to specific address
+await Ondes.udp.send(
+  socket.id,
+  'Hello',
+  '192.168.1.100',
+  12345,
+);
+
+// Broadcast to multiple addresses (for device discovery)
+final result = await Ondes.udp.broadcast(
+  socket.id,
+  'DISCOVER',
+  ['192.168.1.255', '192.168.4.1', '172.20.10.1'],
+  12345,
+);
+print('Sent to ${result.results.length} addresses');
+
+// Close the socket
+await Ondes.udp.close(socket.id);
+```
+
 ## 🔧 Models
 
 The SDK provides strongly-typed models:
@@ -281,6 +362,14 @@ The SDK provides strongly-typed models:
 - `SocialUser` - User with social info
 - `PostMedia` - Media attached to post
 - `PickedMedia` - Media from picker
+- `WebsocketConnection` - WebSocket connection info
+- `WebsocketConnectOptions` - Connection options
+- `WebsocketStatus` - Connection status enum
+- `WebsocketStatusEvent` - Status change event
+- `UdpSocket` - UDP socket info
+- `UdpMessage` - Received UDP message
+- `UdpSendResult` - Send operation result
+- `UdpBroadcastResult` - Broadcast operation result
 
 ## ⚠️ Error Handling
 

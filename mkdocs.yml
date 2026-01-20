@@ -74,4 +74,7 @@ nav:
     - Application (App): sdk/app.md
     - Amis (Friends): sdk/friends.md
     - Social & Médias: sdk/social.md
+    - Communication:
+      - 🔌 WebSocket: sdk/websocket.md
+      - 📡 UDP: sdk/udp.md
   - Backend API: backend.md
