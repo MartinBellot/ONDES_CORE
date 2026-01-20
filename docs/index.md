@@ -51,6 +51,53 @@ Package Flutter pour créer des mini-apps avec toute la puissance de Flutter.
 
 ---
 
+## 🆚 Comparatif : Pourquoi Ondes Core ?
+
+Ondes Core n'est pas juste une alternative technique, c'est un changement de paradigme. Vous ne construisez pas une "App", vous construisez un **Écosystème**.
+
+### 1. ONDES_CORE vs Capacitor / Cordova
+> *L'analogie : Capacitor est un outil de construction de maison. ONDES est un quartier résidentiel géré.*
+
+* **Capacitor :** Vous créez une application autonome (`.ipa` / `.apk`). Vous êtes responsable de tout : l'authentification, le backend, la soumission aux stores, et les mises à jour sont lentes.
+* **ONDES_CORE :**
+    *   **Distribution instantanée :** Vous publiez une Mini-App sur votre Store interne. Elle est disponible immédiatement pour tous les utilisateurs.
+    *   **Infrastructure fournie :** L'authentification, le profil utilisateur, et le stockage sont déjà gérés par le Core.
+
+### 2. ONDES_CORE vs Flutter "Pur"
+> *L'analogie : Flutter est le moteur de la voiture. ONDES est la voiture complète où les passagers (mini-apps) peuvent monter.*
+
+* **Flutter Pur :** Produit un binaire monolithique. Pour ajouter une fonctionnalité, vous devez l'intégrer au code source, recompiler et redéployer.
+* **ONDES_CORE :**
+    *   **Démocratisation du code :** Le shell est en Flutter (robuste), mais les Mini-Apps peuvent être écrites en HTML/JS simple (accessible).
+    *   **Isolation :** Si une Mini-App plante, le Core survit.
+    *   **Hot-Reload en Prod :** Vous pouvez mettre à jour une partie de l'application sans toucher au reste.
+
+### 3. ONDES_CORE vs PWA (Progressive Web Apps)
+> *L'analogie : Une PWA est un site web mobile. ONDES est un site web avec des super-pouvoirs natifs.*
+
+* **PWA :** Tourne dans un navigateur générique. Elle est isolée du système et ne connait pas l'utilisateur.
+* **ONDES_CORE :**
+    *   **Contexte Social (Killer Feature) :** Une Mini-App sait *qui* est l'utilisateur et qui sont ses *amis*. Elle peut poster sur son mur et accéder à son graphe social.
+    *   **Pont Natif Avancé :** `OndesBridge` expose des fonctionnalités natives (HLS streaming, UI native).
+
+### 📊 En résumé
+
+| Fonctionnalité | **Capacitor / Cordova** 🐢 | **Flutter Pur** 🏎️ | **PWA** 🌐 | **ONDES CORE** 🌊 |
+| :--- | :--- | :--- | :--- | :--- |
+| **Modèle** | Constructeur d'App | Moteur Natif | Site Mobile | **OS de Mini-Apps** |
+| **Distribution** | Stores (Apple/Google) | Stores (Apple/Google) | URL (Web) | **Store Interne Instantané** |
+| **Mise à jour** | Lente (Validation Store) | Lente (Validation Store) | Instantanée | **Instantanée & Chaude** |
+| **Isolation** | Monolithique | Monolithique | Isolée (Sandbox) | **Sandboxed & Connectée** |
+| **Social** | À construire (0%) | À construire (0%) | Nul (pas d'identité) | **Natif (Feed, Amis, Graph)** |
+
+### 🏆 Pourquoi choisir ONDES_CORE ?
+
+1.  **L'effet Réseau (Social Graph) 🤝** : Vos mini-apps naissent connectées.
+2.  **Développement Décentralisé 🧩** : Plusieurs équipes peuvent travailler sur des apps différentes sans toucher au Shell.
+3.  **Time-to-Market ⚡** : Pas de compilation native ni de validation store pour les mini-apps.
+
+---
+
 <p align="center">
   <em>Créez. Distribuez. Connectez.</em>
 </p>
