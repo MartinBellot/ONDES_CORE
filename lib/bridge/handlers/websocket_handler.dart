@@ -402,7 +402,6 @@ class _WebsocketConnection {
     required this.status,
     required this.reconnect,
     required this.timeout,
-    this.connectedAt,
   });
 }
 
