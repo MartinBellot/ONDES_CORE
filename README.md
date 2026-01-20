@@ -55,42 +55,6 @@ Package Flutter pour créer des mini-apps en Dart.
 
 ---
 
-## ⚡ Quick Start - Développer une Mini-App Flutter
-
-```bash
-# 1. Créer un nouveau projet Flutter Web
-flutter create --platforms=web my_ondes_app
-cd my_ondes_app
-
-# 2. Ajouter le SDK Ondes
-flutter pub add ondes_sdk
-
-# 3. Lancer le serveur de développement
-flutter run -d web-server --web-port=3000 --web-hostname=0.0.0.0
-
-# 4. Trouver votre IP locale
-ifconfig | grep "inet " | grep -v 127.0.0.1
-
-# 5. Dans Ondes Core (mobile) → Lab → Entrer http://VOTRE_IP:3000 → Lancer
-```
-
-Code minimal (`lib/main.dart`) :
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:ondes_sdk/ondes_sdk.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Ondes.ensureReady().catchError((_) {}); // Silencieux hors Ondes
-  runApp(MaterialApp(home: Scaffold(body: Center(child: Text('Hello Ondes!')))));
-}
-```
-
-📖 Guide complet : [SDK Flutter](docs/sdk/flutter.md) | 🧪 Debugging : [Ondes Lab](docs/lab.md)
-
----
-
 ## 🆚 Comparatif : Pourquoi Ondes Core ?
 
 Ondes Core n'est pas juste une alternative technique, c'est un changement de paradigme. Vous ne construisez pas une "App", vous construisez un **Écosystème**.
