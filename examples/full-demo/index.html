@@ -36,14 +36,14 @@
             <p id="tokenDisplay" class="code-output"></p>
         </div>
 
-        <!-- Section: UI -->
+        <!-- Section: UI Enhanced -->
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-palette"></i>
-                <h2>Interface (Ondes.UI)</h2>
+                <h2>Interface (Ondes.UI) - Enhanced v3.0</h2>
             </div>
             
-            <h3>Notifications (Toasts)</h3>
+            <h3>🔔 Notifications (Toasts)</h3>
             <div class="grid-2">
                 <button onclick="showToast('success')" class="success-btn">Succès</button>
                 <button onclick="showToast('error')" class="danger-btn">Erreur</button>
@@ -51,15 +51,42 @@
                 <button onclick="showToast('info')" class="info-btn">Info</button>
             </div>
 
-            <h3>Dialogue</h3>
-            <button onclick="showNativeAlert()"><i class="fas fa-comment-alt"></i> Ouvrir Popup Natif</button>
+            <h3>💬 Dialogues</h3>
+            <div class="grid-2">
+                <button onclick="showNativeAlert()"><i class="fas fa-comment-alt"></i> Alert</button>
+                <button onclick="showConfirmDialog()"><i class="fas fa-question-circle"></i> Confirm</button>
+                <button onclick="showInputDialog()"><i class="fas fa-keyboard"></i> Input</button>
+                <button onclick="showCustomModal()"><i class="fas fa-window-maximize"></i> Modal</button>
+            </div>
 
-            <h3>Navigation Bar</h3>
+            <h3>📱 Action Sheets & Bottom Sheets</h3>
+            <div class="grid-2">
+                <button onclick="showActionSheet()"><i class="fas fa-list"></i> Action Sheet</button>
+                <button onclick="showBottomSheet()"><i class="fas fa-chevron-up"></i> Bottom Sheet</button>
+            </div>
+
+            <h3>⏳ Loading & Progress</h3>
+            <div class="grid-2">
+                <button onclick="showLoadingDemo()"><i class="fas fa-spinner"></i> Loading</button>
+                <button onclick="showSnackbarDemo()"><i class="fas fa-bell"></i> Snackbar</button>
+            </div>
+
+            <h3>📌 Navigation Bar (AppBar)</h3>
             <div class="grid-2">
                 <button onclick="updateAppBar('Demo App', '#1a73e8', '#ffffff')">Bleu</button>
                 <button onclick="updateAppBar('Ondes Core', '#000000', '#ffffff')">Noir</button>
+                <button onclick="updateAppBarFancy()">✨ Fancy</button>
+                <button onclick="updateAppBarWithActions()">+ Actions</button>
+            </div>
+            <div class="grid-2" style="margin-top:8px">
                 <button onclick="hideAppBar()">Cacher</button>
                 <button onclick="showAppBar()">Afficher</button>
+            </div>
+
+            <h3>📂 Drawer Navigation</h3>
+            <div class="grid-2">
+                <button onclick="setupDrawer()"><i class="fas fa-bars"></i> Config Drawer</button>
+                <button onclick="openDrawer()"><i class="fas fa-arrow-right"></i> Ouvrir Drawer</button>
             </div>
         </div>
 

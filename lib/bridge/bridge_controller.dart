@@ -8,6 +8,8 @@ class OndesBridgeController {
   final BuildContext context;
   InAppWebViewController? webViewController;
   final Function(Map<String, dynamic>)? onAppBarConfig;
+  final Function(Map<String, dynamic>)? onDrawerConfig;
+  final Function(String action, Map<String, dynamic>? data)? onDrawerAction;
   final VoidCallback? onClose;
   
   // App info (optional)
@@ -29,13 +31,20 @@ class OndesBridgeController {
   OndesBridgeController(
     this.context, {
     this.onAppBarConfig,
+    this.onDrawerConfig,
+    this.onDrawerAction,
     this.onClose,
     this.appBundleId,
     this.appVersion,
     this.appName,
   }) {
     // Initialize handlers
-    _uiHandler = UIHandler(context, onAppBarConfig: onAppBarConfig);
+    _uiHandler = UIHandler(
+      context, 
+      onAppBarConfig: onAppBarConfig,
+      onDrawerConfig: onDrawerConfig,
+      onDrawerAction: onDrawerAction,
+    );
     _userHandler = UserHandler(context);
     _deviceHandler = DeviceHandler(context);
     _storageHandler = StorageHandler(context, appBundleId: appBundleId);

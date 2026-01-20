@@ -1,6 +1,6 @@
 const String ondesBridgeJs = """
 (function() {
-    console.log("🌊 Injecting Ondes Core Bridge v2.5...");
+    console.log("🌊 Injecting Ondes Core Bridge v3.0...");
 
     if (window.Ondes) return; // Already injected
 
@@ -15,22 +15,80 @@ const String ondesBridgeJs = """
     };
 
     window.Ondes = {
-        // ============== 1. UI ==============
+        // ============== 1. UI (Enhanced v3.0) ==============
         UI: {
+            // === Toast ===
             showToast: async function(options) {
                 return await callBridge('Ondes.UI.showToast', options);
             },
+            
+            // === AppBar (Enhanced) ===
             configureAppBar: async function(options) {
                 return await callBridge('Ondes.UI.configureAppBar', options);
             },
+            
+            // === Drawer System ===
+            configureDrawer: async function(options) {
+                return await callBridge('Ondes.UI.configureDrawer', options);
+            },
+            openDrawer: async function(side = 'left') {
+                return await callBridge('Ondes.UI.openDrawer', side);
+            },
+            closeDrawer: async function() {
+                return await callBridge('Ondes.UI.closeDrawer');
+            },
+            onDrawerSelect: function(callback) {
+                window.addEventListener('ondes:drawer:select', (e) => callback(e.detail));
+            },
+            
+            // === AppBar Events ===
+            onAppBarAction: function(callback) {
+                window.addEventListener('ondes:appbar:action', (e) => callback(e.detail));
+            },
+            onAppBarLeading: function(callback) {
+                window.addEventListener('ondes:appbar:leading', (e) => callback(e.detail));
+            },
+            
+            // === Dialogs ===
             showAlert: async function(options) {
                 return await callBridge('Ondes.UI.showAlert', options);
             },
             showConfirm: async function(options) {
                 return await callBridge('Ondes.UI.showConfirm', options);
             },
+            showInputDialog: async function(options) {
+                return await callBridge('Ondes.UI.showInputDialog', options);
+            },
+            
+            // === Modal System (Ultra-customized) ===
+            showModal: async function(options) {
+                return await callBridge('Ondes.UI.showModal', options);
+            },
+            
+            // === Bottom Sheet ===
             showBottomSheet: async function(options) {
                 return await callBridge('Ondes.UI.showBottomSheet', options);
+            },
+            
+            // === Action Sheet (iOS-style) ===
+            showActionSheet: async function(options) {
+                return await callBridge('Ondes.UI.showActionSheet', options);
+            },
+            
+            // === Loading & Progress ===
+            showLoading: async function(options = {}) {
+                return await callBridge('Ondes.UI.showLoading', options);
+            },
+            hideLoading: async function() {
+                return await callBridge('Ondes.UI.hideLoading');
+            },
+            showProgress: async function(options) {
+                return await callBridge('Ondes.UI.showProgress', options);
+            },
+            
+            // === Advanced Snackbar ===
+            showSnackbar: async function(options) {
+                return await callBridge('Ondes.UI.showSnackbar', options);
             }
         },
 
