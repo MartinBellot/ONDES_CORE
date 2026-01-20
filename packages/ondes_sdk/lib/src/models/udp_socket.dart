@@ -39,12 +39,12 @@ class UdpSocket {
   factory UdpSocket.fromJson(Map<String, dynamic> json) {
     return UdpSocket(
       id: json['id'] as String,
-      port: json['port'] as int,
+      port: (json['port'] as num).toInt(),
       broadcast: json['broadcast'] as bool? ?? true,
       createdAt: json['createdAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int)
+          ? DateTime.fromMillisecondsSinceEpoch((json['createdAt'] as num).toInt())
           : null,
-      messagesReceived: json['messagesReceived'] as int? ?? 0,
+      messagesReceived: (json['messagesReceived'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -116,9 +116,9 @@ class UdpMessage {
       message: json['message'] as String,
       data: json['data'] != null ? List<int>.from(json['data'] as List) : null,
       address: json['address'] as String,
-      port: json['port'] as int,
+      port: (json['port'] as num).toInt(),
       timestamp: json['timestamp'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int)
+          ? DateTime.fromMillisecondsSinceEpoch((json['timestamp'] as num).toInt())
           : DateTime.now(),
     );
   }
@@ -152,9 +152,9 @@ class UdpSendResult {
   factory UdpSendResult.fromJson(Map<String, dynamic> json) {
     return UdpSendResult(
       success: json['success'] as bool? ?? false,
-      bytesSent: json['bytesSent'] as int?,
+      bytesSent: (json['bytesSent'] as num?)?.toInt(),
       address: json['address'] as String,
-      port: json['port'] as int,
+      port: (json['port'] as num).toInt(),
       error: json['error'] as String?,
     );
   }
@@ -184,8 +184,8 @@ class UdpBroadcastResult {
   factory UdpBroadcastResult.fromJson(Map<String, dynamic> json) {
     return UdpBroadcastResult(
       socketId: json['socketId'] as String,
-      messageLength: json['messageLength'] as int,
-      port: json['port'] as int,
+      messageLength: (json['messageLength'] as num).toInt(),
+      port: (json['port'] as num).toInt(),
       results: (json['results'] as List?)
               ?.map((r) => UdpSendResult.fromJson(r as Map<String, dynamic>))
               .toList() ??

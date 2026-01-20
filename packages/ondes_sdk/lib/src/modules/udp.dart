@@ -87,14 +87,27 @@ class OndesUdp {
     final dartCallback = ((JSObject data) {
       try {
         final messageData = _jsObjectToMap(data);
+        
+        // Safely parse port (could be int or double from JS)
+        int port = 0;
+        final portValue = messageData['port'];
+        if (portValue is num) {
+          port = portValue.toInt();
+        }
+        
+        // Safely parse timestamp
+        DateTime timestamp = DateTime.now();
+        final timestampValue = messageData['timestamp'];
+        if (timestampValue is num) {
+          timestamp = DateTime.fromMillisecondsSinceEpoch(timestampValue.toInt());
+        }
+        
         final message = UdpMessage(
           socketId: messageData['socketId'] as String? ?? socketId,
           message: messageData['message'] as String? ?? '',
           address: messageData['address'] as String? ?? '',
-          port: (messageData['port'] as num?)?.toInt() ?? 0,
-          timestamp: messageData['timestamp'] != null
-              ? DateTime.fromMillisecondsSinceEpoch((messageData['timestamp'] as num).toInt())
-              : DateTime.now(),
+          port: port,
+          timestamp: timestamp,
         );
         _messageControllers[socketId]?.add(message);
       } catch (e) {
