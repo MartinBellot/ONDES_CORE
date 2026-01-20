@@ -33,13 +33,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
       
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
       
       - name: Dry run
-        run: dart pub publish --dry-run
+        run: flutter pub publish --dry-run
       
       - name: Publish
-        run: dart pub publish -f
+        run: flutter pub publish -f
