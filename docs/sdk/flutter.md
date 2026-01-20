@@ -313,8 +313,8 @@ if (await Ondes.user.isAuthenticated()) {
   print("Email: ${profile?.email}");
   print("Avatar: ${profile?.avatar}");
   
-  // Récupérer le token pour vos propres APIs
-  final token = await Ondes.user.getAuthToken();
+  // Note: getAuthToken() a été supprimé pour des raisons de sécurité
+  // Utilisez les APIs du bridge qui gèrent l'authentification en interne
 }
 ```
 
