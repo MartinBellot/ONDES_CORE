@@ -31,19 +31,13 @@ class OndesUser {
     return UserProfile.fromJson(result);
   }
 
-  /// SECURITY: getAuthToken() has been removed.
-  /// 
-  /// Authentication tokens should NEVER be exposed to mini-apps as they could
-  /// be stolen by malicious apps and used to impersonate users.
-  /// 
-  /// Use the provided bridge APIs (Social, Friends, Storage, etc.) which
-  /// handle authentication internally and securely.
-  ///
-  /// @deprecated This method has been removed for security reasons.
-  // Future<String?> getAuthToken() async {
-  //   final result = await _bridge.call<String>('Ondes.User.getAuthToken');
-  //   return result;
-  // }
+  // SECURITY: getAuthToken() has been removed.
+  // 
+  // Authentication tokens should NEVER be exposed to mini-apps as they could
+  // be stolen by malicious apps and used to impersonate users.
+  // 
+  // Use the provided bridge APIs (Social, Friends, Storage, etc.) which
+  // handle authentication internally and securely.
 
   /// Checks if the user is authenticated.
   Future<bool> isAuthenticated() async {

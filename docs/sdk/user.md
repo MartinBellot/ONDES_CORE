@@ -24,7 +24,7 @@ document.getElementById('welcome').innerText = `Bonjour, ${user.username}`;
 
 ---
 
-## ~~`getAuthToken()`~~ (SUPPRIMÉ - Raison de sécurité)
+## ~~`getAuthToken()`~~ (SUPPRIMÉ - Raisons de sécurité)
 
 > ⚠️ **IMPORTANT : Cette méthode a été supprimée pour des raisons de sécurité.**
 
