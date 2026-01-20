@@ -10,22 +10,21 @@ This package provides a Dart API to communicate with the native host application
 
 ## 📦 Installation
 
-Add `ondes_sdk` to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  ondes_sdk:
-    git:
-      url: https://github.com/martinbellot/ONDES_CORE.git
-      path: packages/ondes_sdk
+```bash
+flutter pub add ondes_sdk
 ```
 
-Or for local development:
+Or add manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ondes_sdk:
-    path: ../ondes_sdk
+  ondes_sdk: ^1.1.0
+```
+
+Then run:
+
+```bash
+flutter pub get
 ```
 
 ## 🚀 Quick Start

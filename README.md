@@ -1,6 +1,4 @@
-# 🌊 Ondes Core - Documentation
-
-> 📘 **Documentation en ligne :** [**https://martinbellot.github.io/ONDES_CORE/**](https://martinbellot.github.io/ONDES_CORE/)
+# 🌊 Ondes Core
 
 Bienvenue sur la documentation officielle de **Ondes Core**, la plateforme de mini-applications web natives.
 
@@ -8,15 +6,13 @@ Ce dépôt contient le code source complet de l'écosystème :
 - L'application hôte (Flutter)
 - L'API backend (Django)
 - Le SDK JavaScript (Bridge)
-- Le SDK Flutter (`packages/ondes_sdk`)
+- Le SDK Flutter ([pub.dev/packages/ondes_sdk](https://pub.dev/packages/ondes_sdk))
 
 ---
 
 ## 📚 Documentation
 
-Pour une expérience de lecture optimale (recherche, mode sombre, navigation fluide), nous vous recommandons de consulter **[notre site de documentation](https://martinbellot.github.io/ONDES_CORE/)**.
-
-Sinon, vous pouvez naviguer dans les fichiers Markdown directement ici :
+Naviguez dans les fichiers Markdown directement ici :
 
 ### 🚀 Commencer ici
 - **[Présentation](docs/introduction.md)** : Comprendre ce qu'est Ondes Core.
@@ -62,14 +58,8 @@ Package Flutter pour créer des mini-apps en Dart.
 flutter create --platforms=web my_ondes_app
 cd my_ondes_app
 
-# 2. Ajouter le SDK Ondes (dans pubspec.yaml)
-# dependencies:
-#   ondes_sdk:
-#     git:
-#       url: https://github.com/martinbellot/ONDES_CORE.git
-#       path: packages/ondes_sdk
-
-flutter pub get
+# 2. Ajouter le SDK Ondes
+flutter pub add ondes_sdk
 
 # 3. Lancer le serveur de développement
 flutter run -d web-server --web-port=3000 --web-hostname=0.0.0.0

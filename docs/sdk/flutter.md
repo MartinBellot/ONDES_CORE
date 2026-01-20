@@ -25,16 +25,17 @@ cd my_ondes_app
 
 ### 2. Ajouter la dépendance `ondes_sdk`
 
-Dans votre `pubspec.yaml` :
+```bash
+flutter pub add ondes_sdk
+```
+
+Ou manuellement dans votre `pubspec.yaml` :
 
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  ondes_sdk:
-    git:
-      url: https://github.com/martinbellot/ONDES_CORE.git
-      path: packages/ondes_sdk
+  ondes_sdk: ^1.1.0
 ```
 
 Puis exécutez :
