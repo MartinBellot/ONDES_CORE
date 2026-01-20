@@ -97,9 +97,10 @@ const String ondesBridgeJs = """
             getProfile: async function() {
                 return await callBridge('Ondes.User.getProfile');
             },
-            getAuthToken: async function() {
-                return await callBridge('Ondes.User.getAuthToken');
-            },
+            // SECURITY: getAuthToken() has been removed
+            // Authentication tokens should NEVER be exposed to mini-apps.
+            // Use the provided bridge APIs (Social, Friends, Storage, etc.) which
+            // handle authentication internally and securely.
             isAuthenticated: async function() {
                 return await callBridge('Ondes.User.isAuthenticated');
             }

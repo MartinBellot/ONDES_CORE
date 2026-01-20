@@ -50,8 +50,10 @@ function closeApp() {
 async function getUserToken() {
     if (!window.Ondes) return;
     try {
-        const token = await Ondes.User.getAuthToken();
-        document.getElementById('tokenDisplay').innerText = token ? (token.substring(0, 20) + "...") : "No Token";
+        // SECURITY NOTE: getAuthToken() has been removed for security reasons
+        // Display authentication status instead
+        const isAuth = await Ondes.User.isAuthenticated();
+        document.getElementById('tokenDisplay').innerText = isAuth ? "✅ Authenticated" : "❌ Not Authenticated";
         
         // Load Profile too
         const user = await Ondes.User.getProfile();
@@ -59,7 +61,7 @@ async function getUserToken() {
             <img src="${user.avatar}" class="user-avatar">
             <div>
                 <div style="font-weight:bold">${user.username}</div>
-                <div style="font-size:12px">${user.id} • ${user.locale}</div>
+                <div style="font-size:12px">${user.id} • ${user.email}</div>
             </div>
         `;
         document.getElementById('userProfile').innerHTML = html;

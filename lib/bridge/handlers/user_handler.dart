@@ -10,7 +10,7 @@ class UserHandler extends BaseHandler {
   @override
   void registerHandlers() {
     _registerGetProfile();
-    _registerGetAuthToken();
+    // _registerGetAuthToken() - REMOVED for security: tokens should not be exposed to mini-apps
     _registerIsAuthenticated();
   }
 
@@ -36,11 +36,17 @@ class UserHandler extends BaseHandler {
     });
   }
 
-  void _registerGetAuthToken() {
-    addSyncHandler('Ondes.User.getAuthToken', (args) {
-      return AuthService().token;
-    });
-  }
+  // SECURITY: Removed getAuthToken() method
+  // Authentication tokens should NEVER be exposed to mini-apps as they could
+  // be stolen by malicious apps and used to impersonate users.
+  // Mini-apps should use the provided bridge APIs (Social, Friends, etc.) 
+  // which handle authentication internally.
+  //
+  // void _registerGetAuthToken() {
+  //   addSyncHandler('Ondes.User.getAuthToken', (args) {
+  //     return AuthService().token;
+  //   });
+  // }
 
   void _registerIsAuthenticated() {
     addSyncHandler('Ondes.User.isAuthenticated', (args) {
