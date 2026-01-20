@@ -1,5 +1,7 @@
 # 🌊 Ondes Core
 
+> 📘 **Documentation en ligne :** [**https://martinbellot.github.io/ONDES_CORE/**](https://martinbellot.github.io/ONDES_CORE/)
+
 Bienvenue sur la documentation officielle de **Ondes Core**, la plateforme de mini-applications web natives.
 
 Ce dépôt contient le code source complet de l'écosystème :
@@ -12,7 +14,9 @@ Ce dépôt contient le code source complet de l'écosystème :
 
 ## 📚 Documentation
 
-Naviguez dans les fichiers Markdown directement ici :
+Pour une expérience de lecture optimale, consultez **[notre site de documentation](https://martinbellot.github.io/ONDES_CORE/)**.
+
+Sinon, naviguez dans les fichiers Markdown directement ici :
 
 ### 🚀 Commencer ici
 - **[Présentation](docs/introduction.md)** : Comprendre ce qu'est Ondes Core.
