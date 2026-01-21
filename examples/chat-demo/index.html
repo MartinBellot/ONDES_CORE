@@ -2,59 +2,65 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ondes Chat Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ondes Chat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app">
-        <!-- Header -->
-        <header class="header">
-            <h1>💬 Ondes Chat</h1>
-            <div id="status" class="status">Connexion...</div>
-        </header>
-
-        <!-- Main content -->
-        <main class="main">
-            <!-- Sidebar - Conversations -->
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <h2>Conversations</h2>
-                    <button id="new-chat-btn" class="btn-primary">+</button>
-                </div>
-                <div id="conversations-list" class="conversations-list"></div>
-            </aside>
-
-            <!-- Chat Area -->
-            <section id="chat-area" class="chat-area">
-                <div class="chat-header">
-                    <h3 id="conversation-title">Sélectionnez une conversation</h3>
-                </div>
-                
-                <div id="messages-container" class="messages-container"></div>
-                
-                <div id="typing-indicator" class="typing-indicator" style="display: none;"></div>
-                
-                <div class="message-input-area">
-                    <input type="text" id="message-input" placeholder="Écrivez un message..." autocomplete="off">
-                    <button id="send-btn" class="btn-primary">Envoyer</button>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Modal Nouvelle Conversation -->
-    <div id="new-chat-modal" class="modal">
-        <div class="modal-content">
-            <h3>Nouvelle conversation</h3>
-            <p class="modal-subtitle">Sélectionnez un ami</p>
-            <div id="friends-list" class="friends-list">
-                <p class="loading">Chargement des amis...</p>
+    <div class="app" id="app">
+        
+        <!-- Vue: Liste des conversations -->
+        <div id="view-conversations" class="view active">
+            <div id="conversations-list" class="conversations-list">
+                <!-- Conversations chargées dynamiquement -->
             </div>
-            <div class="modal-buttons">
-                <button id="cancel-btn" class="btn-secondary">Annuler</button>
+            
+            <!-- État vide -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">💬</div>
+                <h3>Aucune conversation</h3>
+                <p>Commencez à discuter avec vos amis en créant une nouvelle conversation.</p>
+                <button id="empty-new-chat-btn" class="btn-primary">
+                    <span class="btn-icon">+</span>
+                    Nouvelle conversation
+                </button>
             </div>
         </div>
+
+        <!-- Vue: Chat actif -->
+        <div id="view-chat" class="view">
+            <!-- Messages -->
+            <div id="messages-container" class="messages-container">
+                <!-- Messages chargés dynamiquement -->
+            </div>
+            
+            <!-- Indicateur de frappe -->
+            <div id="typing-indicator" class="typing-indicator">
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <span id="typing-user"></span> écrit...
+            </div>
+            
+            <!-- Zone de saisie -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="message-input" 
+                        placeholder="Message..." 
+                        autocomplete="off"
+                        autocorrect="off"
+                    >
+                </div>
+                <button id="send-btn" class="send-btn" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>

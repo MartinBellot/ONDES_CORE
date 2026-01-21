@@ -862,7 +862,10 @@ class UIHandler extends BaseHandler {
       _hideLoadingOverlay();
       
       _loadingOverlay = OverlayEntry(
-        builder: (context) => Container(
+        builder: (context) => Material(
+          color: Colors.transparent,
+          child:
+         Container(
           color: (options['barrierColor'] != null 
               ? _parseColor(options['barrierColor'])
               : Colors.black).withOpacity(options['barrierOpacity']?.toDouble() ?? 0.5),
@@ -911,6 +914,7 @@ class UIHandler extends BaseHandler {
             ),
           ),
         ),
+        )
       );
       
       Overlay.of(context).insert(_loadingOverlay!);
