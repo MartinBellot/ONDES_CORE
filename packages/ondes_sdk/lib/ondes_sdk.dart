@@ -35,6 +35,7 @@ export 'src/modules/friends.dart';
 export 'src/modules/social.dart';
 export 'src/modules/websocket.dart';
 export 'src/modules/udp.dart';
+export 'src/modules/chat.dart';
 
 // Models
 export 'src/models/user_profile.dart';
@@ -48,6 +49,7 @@ export 'src/models/comment.dart';
 export 'src/models/story.dart';
 export 'src/models/media.dart';
 export 'src/models/social_user.dart';
+export 'src/models/chat.dart';
 export 'src/models/websocket_connection.dart';
 export 'src/models/udp_socket.dart';
 

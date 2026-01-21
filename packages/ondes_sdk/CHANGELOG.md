@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-01-21
+
+### Added
+- **Chat Module** (`Ondes.chat`): End-to-end encrypted messaging
+  - `init()` / `disconnect()` - Connect to real-time WebSocket
+  - `startChat(user)` - Start private conversation with automatic E2EE
+  - `createGroup(name, members)` - Create group conversations
+  - `send(conversationId, message)` - Send encrypted messages
+  - `getMessages(conversationId)` - Get decrypted message history
+  - `getConversations()` - List all conversations
+  - `setTyping(conversationId, isTyping)` - Typing indicators
+  - `markAsRead(messageIds)` - Read receipts
+  - `editMessage()` / `deleteMessage()` - Message management
+  - `onMessage()` - Real-time message listener
+  - `onTyping()` - Typing indicator listener
+  - `onReceipt()` - Read receipt listener
+  - `onConnectionChange()` - Connection status listener
+
+- **Chat Models**:
+  - `ChatConversation` - Conversation with members and last message
+  - `ChatMessage` - Message with decrypted content
+  - `ChatMember` - Conversation member info
+  - `ChatTypingEvent` - Typing indicator event
+  - `ChatReceiptEvent` - Read receipt event
+  - `ChatConnectionStatus` - Connection status enum
+
+### Security
+- **E2EE Automatic**: Keys generated at login, no configuration needed
+- **X25519**: Curve25519 key exchange for shared secrets
+- **AES-256-GCM**: Military-grade encryption with authentication
+
 ## [1.4.0] - 2026-01-20
 
 ### Added

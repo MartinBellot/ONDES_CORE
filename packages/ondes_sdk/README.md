@@ -18,7 +18,7 @@ Or add manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  ondes_sdk: ^1.3.3
+  ondes_sdk: ^1.5.0
 ```
 
 Then run:
@@ -343,6 +343,61 @@ print('Sent to ${result.results.length} addresses');
 await Ondes.udp.close(socket.id);
 ```
 
+### 💬 Chat (`Ondes.chat`)
+
+End-to-end encrypted messaging with **automatic E2EE**.
+
+Messages are encrypted before sending and decrypted on receipt - you just work with plain text!
+
+```dart
+// Initialize (connects WebSocket for real-time messages)
+await Ondes.chat.init();
+
+// Start a private conversation
+final conv = await Ondes.chat.startChat('alice');
+
+// Send a message (encrypted automatically)
+await Ondes.chat.send(conv!.id, 'Hello, Alice!');
+
+// Get conversation history (decrypted automatically)
+final messages = await Ondes.chat.getMessages(conv.id);
+for (final msg in messages) {
+  print('${msg.sender}: ${msg.content}');
+}
+
+// Listen for new messages in real-time
+final unsubscribe = Ondes.chat.onMessage((msg) {
+  print('New message: ${msg.content}');
+});
+
+// Listen for typing indicators
+Ondes.chat.onTyping((event) {
+  if (event.isTyping) {
+    print('${event.username} is typing...');
+  }
+});
+
+// Send typing indicator
+await Ondes.chat.setTyping(conv.id, true);
+
+// Create a group conversation
+final group = await Ondes.chat.createGroup('Project Team', ['alice', 'bob']);
+
+// Reply to a message
+await Ondes.chat.send(conv.id, 'I agree!', replyTo: 'msg-uuid');
+
+// Get all conversations
+final conversations = await Ondes.chat.getConversations();
+
+// Disconnect when done
+await Ondes.chat.disconnect();
+```
+
+**E2EE Security:**
+- 🔐 **X25519** key exchange (Curve25519)
+- 🔒 **AES-256-GCM** message encryption
+- ✅ Keys generated automatically at login - no configuration needed!
+
 ## 🔧 Models
 
 The SDK provides strongly-typed models:
@@ -367,6 +422,11 @@ The SDK provides strongly-typed models:
 - `UdpMessage` - Received UDP message
 - `UdpSendResult` - Send operation result
 - `UdpBroadcastResult` - Broadcast operation result
+- `ChatConversation` - Chat conversation with members
+- `ChatMessage` - Chat message (decrypted)
+- `ChatMember` - Conversation member
+- `ChatTypingEvent` - Typing indicator event
+- `ChatReceiptEvent` - Read receipt event
 
 ## ⚠️ Error Handling
 

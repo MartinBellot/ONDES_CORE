@@ -7,6 +7,7 @@ import 'modules/friends.dart';
 import 'modules/social.dart';
 import 'modules/websocket.dart';
 import 'modules/udp.dart';
+import 'modules/chat.dart';
 import 'bridge/js_bridge.dart';
 
 /// Main entry point for the Ondes SDK.
@@ -36,6 +37,7 @@ class Ondes {
   static OndesSocial? _social;
   static OndesWebsocket? _websocket;
   static OndesUdp? _udp;
+  static OndesChat? _chat;
 
   /// Whether the Ondes bridge is ready to use.
   static bool get isReady => _bridge.isReady;
@@ -98,4 +100,10 @@ class Ondes {
   /// Bind sockets, send/broadcast messages, and listen for responses.
   /// Useful for device discovery on local networks.
   static OndesUdp get udp => _udp ??= OndesUdp(_bridge);
+
+  /// Chat module for end-to-end encrypted messaging.
+  ///
+  /// Send and receive messages with automatic E2EE encryption.
+  /// Messages are encrypted before sending and decrypted on receipt.
+  static OndesChat get chat => _chat ??= OndesChat(_bridge);
 }
