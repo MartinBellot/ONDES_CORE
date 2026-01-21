@@ -8,7 +8,10 @@ from .views import (
     # Reviews
     AppReviewsView, ReviewDetailView, ReviewDeveloperResponseView, ReviewHelpfulView,
     # Dev Studio
-    MyAppsManagerView, AppVersionUploadView, MyAppsDetailView, AppScreenshotsView
+    MyAppsManagerView, AppVersionUploadView, MyAppsDetailView, AppScreenshotsView,
+    ScreenshotDetailView, ScreenshotReorderView,
+    # Stats
+    DeveloperStatsView
 )
 
 urlpatterns = [
@@ -16,6 +19,7 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', CustomAuthToken.as_view(), name='login'),
     path('auth/profile/', UserProfileView.as_view(), name='profile'),
+    path('auth/stats/', DeveloperStatsView.as_view(), name='developer-stats'),
     
     # === Categories (avant apps pour éviter conflit) ===
     path('categories/', CategoryListView.as_view(), name='category-list'),
@@ -39,4 +43,6 @@ urlpatterns = [
     path('studio/apps/<int:pk>/', MyAppsDetailView.as_view(), name='studio-app-detail'),
     path('studio/apps/<int:app_id>/versions/', AppVersionUploadView.as_view(), name='studio-app-versions'),
     path('studio/apps/<int:app_id>/screenshots/', AppScreenshotsView.as_view(), name='studio-app-screenshots'),
+    path('studio/apps/<int:app_id>/screenshots/<int:screenshot_id>/', ScreenshotDetailView.as_view(), name='studio-screenshot-detail'),
+    path('studio/apps/<int:app_id>/screenshots/reorder/', ScreenshotReorderView.as_view(), name='studio-screenshots-reorder'),
 ]

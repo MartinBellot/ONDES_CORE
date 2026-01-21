@@ -218,6 +218,8 @@ class MiniAppSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     average_rating = serializers.FloatField(read_only=True)
     ratings_count = serializers.IntegerField(read_only=True)
+    # Include screenshots for Dev Studio visualization
+    screenshots = AppScreenshotSerializer(many=True, read_only=True)
 
     class Meta:
         model = MiniApp
@@ -226,9 +228,9 @@ class MiniAppSerializer(serializers.ModelSerializer):
             'whats_new', 'icon', 'banner', 'category_id', 'category', 'category_name', 'tags',
             'age_rating', 'languages', 'privacy_url', 'support_url', 'website_url',
             'latest_version', 'download_url', 'average_rating', 'ratings_count',
-            'downloads_count', 'created_at'
+            'downloads_count', 'created_at', 'screenshots'
         ]
-        read_only_fields = ['id', 'author_name', 'latest_version', 'download_url', 'downloads_count', 'created_at', 'average_rating', 'ratings_count']
+        read_only_fields = ['id', 'author_name', 'latest_version', 'download_url', 'downloads_count', 'created_at', 'average_rating', 'ratings_count', 'screenshots']
 
     def get_latest_version(self, obj):
         version = obj.versions.filter(is_active=True).first()

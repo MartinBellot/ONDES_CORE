@@ -12,21 +12,16 @@ import 'core/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Init Auth
   await AuthService().init();
-  
+
   // Gestion sécurisée des permissions au démarrage
   try {
     if (Platform.isAndroid) {
-      await [
-        Permission.camera,
-        Permission.storage,
-      ].request();
+      await [Permission.camera, Permission.storage].request();
     } else if (Platform.isIOS) {
-       await [
-        Permission.camera,
-      ].request();
+      await [Permission.camera].request();
     } else if (Platform.isMacOS) {
       // Sur macOS, les permissions sont demandées à la volée par l'OS
       // lors de la première utilisation (ex: Scanner QR).
@@ -47,7 +42,7 @@ class OndesCoreApp extends StatefulWidget {
 }
 
 class _OndesCoreAppState extends State<OndesCoreApp> {
-  // Use a method to rebuild screens based on auth state if needed, 
+  // Use a method to rebuild screens based on auth state if needed,
   // or wrap the profile tab in a reactive widget.
   // Ideally use a ValueListenable or StreamBuilder.
   ThemeData get ultraDarkTheme {
@@ -149,7 +144,7 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
       useMaterial3: true,
       brightness: Brightness.dark,
       fontFamily: GoogleFonts.inter().fontFamily,
-      
+
       // Color scheme
       colorScheme: const ColorScheme.dark(
         brightness: Brightness.dark,
@@ -192,7 +187,7 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
 
       // Text theme
       textTheme: textTheme,
-      
+
       // App Bar theme
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -254,14 +249,20 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: primarySurface.withOpacity(0.6),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: tertiaryColor.withOpacity(0.3), width: 1),
+          borderSide: BorderSide(
+            color: tertiaryColor.withOpacity(0.3),
+            width: 1,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -277,7 +278,9 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
         ),
         hintStyle: textTheme.bodyMedium?.copyWith(color: textTertiary),
         labelStyle: textTheme.bodyMedium?.copyWith(color: textSecondary),
-        errorStyle: textTheme.bodySmall?.copyWith(color: const Color(0xFFFF453A)),
+        errorStyle: textTheme.bodySmall?.copyWith(
+          color: const Color(0xFFFF453A),
+        ),
       ),
 
       // List tile theme
@@ -289,9 +292,7 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
         titleTextStyle: textTheme.bodyLarge,
         subtitleTextStyle: textTheme.bodyMedium?.copyWith(color: textSecondary),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
 
       // Bottom sheet theme
@@ -335,9 +336,7 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
         }),
         checkColor: WidgetStateProperty.all(textPrimary),
         side: BorderSide(color: textTertiary, width: 1.5),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
 
       // Snack bar theme - Ultra stylé  style
@@ -349,10 +348,7 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: tertiaryColor.withOpacity(0.3),
-            width: 1,
-          ),
+          side: BorderSide(color: tertiaryColor.withOpacity(0.3), width: 1),
         ),
         behavior: SnackBarBehavior.floating,
         elevation: 8,
@@ -377,172 +373,190 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
         thumbColor: accentBlue,
         overlayColor: accentBlue.withOpacity(0.2),
         valueIndicatorColor: accentBlue,
-        valueIndicatorTextStyle: textTheme.bodySmall?.copyWith(color: textPrimary),
+        valueIndicatorTextStyle: textTheme.bodySmall?.copyWith(
+          color: textPrimary,
+        ),
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Ondes Core',
       debugShowCheckedModeBanner: false,
       theme: ultraDarkTheme,
-      home: AuthWrapper(
-          onAuthChange: () {
-             // Hack to force rebuild entire app to update profile connection status everywhere
-             setState(() {}); 
-          }
-        
-      ),
+      home: AuthWrapper(key: authWrapperKey),
     );
   }
 }
 
+/// GlobalKey pour accéder à l'AuthWrapper depuis n'importe où
+final GlobalKey<AuthWrapperState> authWrapperKey =
+    GlobalKey<AuthWrapperState>();
+
 class AuthWrapper extends StatefulWidget {
-  final VoidCallback onAuthChange;
-  const AuthWrapper({super.key, required this.onAuthChange});
+  const AuthWrapper({super.key});
 
   @override
-  State<AuthWrapper> createState() => _AuthWrapperState();
+  State<AuthWrapper> createState() => AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
-   int _currentIndex = 0;
+class AuthWrapperState extends State<AuthWrapper> {
+  int _currentIndex = 0;
 
-   @override
+  /// Méthode publique pour changer d'onglet
+  void navigateToTab(int index) {
+    if (index >= 0 && index < 4) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
+  }
+
+  /// Méthode pour rafraîchir l'état d'authentification
+  void refreshAuthState() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final bool isAuth = AuthService().isAuthenticated;
 
     final List<Widget> screens = [
-      
       const MyAppsScreen(),
       const StoreScreen(),
       // Profile Tab Logic
-      isAuth 
-         ? const ProfileScreen()
-         : LoginScreen(onLoginSuccess: () {
-            setState(() {}); // Rebuild to switch to ProfileScreen
-         }),
+      isAuth
+          ? const ProfileScreen()
+          : LoginScreen(
+              onLoginSuccess: () {
+                setState(() {}); // Rebuild to switch to ProfileScreen
+              },
+            ),
       const LabScreen(),
     ];
 
     final List<NavigationItem> navItems = [
-      NavigationItem(icon: Icons.grid_view, activeIcon: Icons.grid_view_rounded, label: "Apps"),
-      NavigationItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: "Store"),
       NavigationItem(
-          icon: isAuth ? Icons.person_outline : Icons.login, 
-          activeIcon: isAuth ? Icons.person : Icons.login, 
-          label: isAuth ? "Profil" : "Compte"
+        icon: Icons.grid_view,
+        activeIcon: Icons.grid_view_rounded,
+        label: "Apps",
       ),
-      NavigationItem(icon: Icons.science_outlined, activeIcon: Icons.science, label: "Lab"),
+      NavigationItem(
+        icon: Icons.explore_outlined,
+        activeIcon: Icons.explore,
+        label: "Store",
+      ),
+      NavigationItem(
+        icon: isAuth ? Icons.person_outline : Icons.login,
+        activeIcon: isAuth ? Icons.person : Icons.login,
+        label: isAuth ? "Profil" : "Compte",
+      ),
+      NavigationItem(
+        icon: Icons.science_outlined,
+        activeIcon: Icons.science,
+        label: "Lab",
+      ),
     ];
 
     Widget _buildLiquidGlassNavItem(
-    NavigationItem item,
-    bool isSelected,
-    int index,
-    ThemeData theme,
-  ) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: isSelected ? 1.0 : 0.0),
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return GestureDetector(
-          onTap: () => setState(() => _currentIndex = index),
-          behavior: HitTestBehavior.opaque,
-          child: SizedBox(
-            width: 70,
-            height: 70,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                
-                // Icône et label
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AnimatedScale(
-                      scale: 1.0 + (value * 0.15),
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        isSelected ? item.activeIcon : item.icon,
-                        color: Color.lerp(
-                          Colors.white.withOpacity(0.5),
-                          Colors.white,
-                          value,
+      NavigationItem item,
+      bool isSelected,
+      int index,
+      ThemeData theme,
+    ) {
+      return TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: isSelected ? 1.0 : 0.0),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+        builder: (context, value, child) {
+          return GestureDetector(
+            onTap: () => setState(() => _currentIndex = index),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 70,
+              height: 70,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Icône et label
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedScale(
+                        scale: 1.0 + (value * 0.15),
+                        duration: const Duration(milliseconds: 300),
+                        child: Icon(
+                          isSelected ? item.activeIcon : item.icon,
+                          color: Color.lerp(
+                            Colors.white.withOpacity(0.5),
+                            Colors.white,
+                            value,
+                          ),
+                          size: 26,
                         ),
-                        size: 26,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(item.label, style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: Color.lerp(
-                        Colors.white.withOpacity(0.5),
-                        Colors.white,
-                        value,
-                      )!,
-                      letterSpacing: isSelected ? 0.5 : 0,
-                    ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(height: 4),
+                      Text(
+                        item.label,
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: Color.lerp(
+                            Colors.white.withOpacity(0.5),
+                            Colors.white,
+                            value,
+                          )!,
+                          letterSpacing: isSelected ? 0.5 : 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    }
 
-      Widget _buildLiquidGlassBottomBar() {
-    final theme = Theme.of(context);
-    
-    return Padding(
+    Widget _buildLiquidGlassBottomBar() {
+      final theme = Theme.of(context);
+
+      return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: SizedBox(
           height: 75,
-          child: OndesLiquidGlass(child: 
-                 Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: List.generate(
-                      navItems.length,
-                      (index) {
-                        final item = navItems[index];
-                        final isSelected = _currentIndex == index;
-                        
-                        return _buildLiquidGlassNavItem(
-                          item,
-                          isSelected,
-                          index,
-                          theme,
-                        );
-                      },
-                    ),
-                ),
+          child: OndesLiquidGlass(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(navItems.length, (index) {
+                final item = navItems[index];
+                final isSelected = _currentIndex == index;
+
+                return _buildLiquidGlassNavItem(item, isSelected, index, theme);
+              }),
+            ),
           ),
         ),
-      
-    );
-  }
-  
-  return Scaffold(
-    extendBody: true,
-    body: Stack(
-      children: [
-        Positioned.fill(
-          child: screens[_currentIndex]
-          ),
+      );
+    }
+
+    return Scaffold(
+      extendBody: true,
+      body: Stack(
+        children: [
+          Positioned.fill(child: screens[_currentIndex]),
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: _buildLiquidGlassBottomBar(),
           ),
-        ]
+        ],
       ),
     );
   }

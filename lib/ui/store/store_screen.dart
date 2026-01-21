@@ -17,7 +17,8 @@ class StoreScreen extends StatefulWidget {
   State<StoreScreen> createState() => _StoreScreenState();
 }
 
-class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin {
+class _StoreScreenState extends State<StoreScreen>
+    with TickerProviderStateMixin {
   final _storeService = StoreService();
   final _installer = AppInstallerService();
   final _server = LocalServerService();
@@ -29,7 +30,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
   late AnimationController _waveController;
   late AnimationController _popupController;
   late AnimationController _shimmerController;
-  
+
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
 
@@ -52,12 +53,12 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
   int _hoveredAppIndex = -1;
 
   // Design constants - matching ultraDarkTheme from main.dart
-  static const _bgPrimary = Color(0xFF0A0A0A);      // surfaceColor
-  static const _bgSecondary = Color(0xFF1C1C1E);    // primarySurface
-  static const _bgTertiary = Color(0xFF2C2C2E);     // secondarySurface
-  static const _accentPrimary = Color(0xFFFFFFFF);  // textPrimary
+  static const _bgPrimary = Color(0xFF0A0A0A); // surfaceColor
+  static const _bgSecondary = Color(0xFF1C1C1E); // primarySurface
+  static const _bgTertiary = Color(0xFF2C2C2E); // secondarySurface
+  static const _accentPrimary = Color(0xFFFFFFFF); // textPrimary
   static const _accentSecondary = Color(0xFFEBEBF5); // textSecondary
-  static const _accentMuted = Color(0xFF8E8E93);    // textTertiary
+  static const _accentMuted = Color(0xFF8E8E93); // textTertiary
   static const _highlightColor = Color(0xFF007AFF); // accentBlue
   static const _accentTeal = Color(0xFF5AC8FA);
   static const _accentPurple = Color(0xFFAF52DE);
@@ -67,35 +68,35 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    
+
     _floatingController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _waveController = AnimationController(
       duration: const Duration(seconds: 4),
       vsync: this,
     )..repeat();
-    
+
     _popupController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _shimmerController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat();
-    
+
     _loadData();
     _scrollController.addListener(_onScroll);
-    
+
     // Show popups after a delay
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted && _featuredApps.isNotEmpty) {
@@ -148,7 +149,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
         _installedApps = results[3] as List<MiniApp>;
         _isLoading = false;
       });
-      
+
       // Trigger popup after load
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted && _allApps.isNotEmpty) {
@@ -233,7 +234,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
           content: const Text("Lien de téléchargement manquant"),
           backgroundColor: _bgTertiary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
@@ -301,7 +304,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                         Positioned.fill(
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(_highlightColor.withOpacity(0.3)),
+                            valueColor: AlwaysStoppedAnimation(
+                              _highlightColor.withOpacity(0.3),
+                            ),
                           ),
                         ),
                         Positioned.fill(
@@ -310,7 +315,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               value: 0.3,
-                              valueColor: AlwaysStoppedAnimation(_highlightColor),
+                              valueColor: AlwaysStoppedAnimation(
+                                _highlightColor,
+                              ),
                             ),
                           ),
                         ),
@@ -333,7 +340,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                       return Text(
                         'Veuillez patienter...',
                         style: TextStyle(
-                          color: _accentMuted.withOpacity(0.5 + _pulseController.value * 0.5),
+                          color: _accentMuted.withOpacity(
+                            0.5 + _pulseController.value * 0.5,
+                          ),
                           fontSize: 13,
                         ),
                       );
@@ -371,19 +380,22 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
       Navigator.push(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => 
-            AppDetailScreen(appId: app.dbId!, initialApp: app),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              AppDetailScreen(appId: app.dbId!, initialApp: app),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
               child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.05, 0),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeOutCubic,
-                )),
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(0.05, 0),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    ),
                 child: child,
               ),
             );
@@ -402,7 +414,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
         children: [
           // Animated background elements
           _buildAnimatedBackground(),
-          
+
           // Main content
           SafeArea(
             child: Column(
@@ -414,13 +426,13 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                   child: _isLoading
                       ? _buildLoadingState()
                       : _error != null
-                          ? _buildErrorState()
-                          : _buildMainContent(),
+                      ? _buildErrorState()
+                      : _buildMainContent(),
                 ),
               ],
             ),
           ),
-          
+
           // Floating popups
           if (_showNewReleasesPopup) _buildNewReleasesPopup(),
           if (_showTrendingPopup) _buildTrendingPopup(),
@@ -454,7 +466,10 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             animation: _floatingController,
             builder: (context, child) {
               return Transform.translate(
-                offset: Offset(0, math.sin(_floatingController.value * math.pi) * 3),
+                offset: Offset(
+                  0,
+                  math.sin(_floatingController.value * math.pi) * 3,
+                ),
                 child: Container(
                   width: 48,
                   height: 48,
@@ -462,10 +477,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        _highlightColor,
-                        _accentTeal,
-                      ],
+                      colors: [_highlightColor, _accentTeal],
                     ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
@@ -511,10 +523,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                   builder: (context, child) {
                     return Text(
                       '${_allApps.length} apps disponibles',
-                      style: TextStyle(
-                        color: _accentMuted,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: _accentMuted, fontSize: 13),
                     );
                   },
                 ),
@@ -546,9 +555,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
               color: _bgSecondary,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _showTrendingPopup 
-                  ? _highlightColor 
-                  : _accentMuted.withOpacity(0.2),
+                color: _showTrendingPopup
+                    ? _highlightColor
+                    : _accentMuted.withOpacity(0.2),
               ),
             ),
             child: Stack(
@@ -556,7 +565,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                 Center(
                   child: Icon(
                     Icons.local_fire_department_rounded,
-                    color: _showTrendingPopup ? _accentOrange : _accentSecondary,
+                    color: _showTrendingPopup
+                        ? _accentOrange
+                        : _accentSecondary,
                     size: 22,
                   ),
                 ),
@@ -633,18 +644,20 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             color: _bgSecondary,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: _searchController.text.isNotEmpty 
-                  ? _highlightColor.withOpacity(0.5) 
+              color: _searchController.text.isNotEmpty
+                  ? _highlightColor.withOpacity(0.5)
                   : _accentMuted.withOpacity(0.15),
               width: _searchController.text.isNotEmpty ? 2 : 1,
             ),
-            boxShadow: _searchController.text.isNotEmpty ? [
-              BoxShadow(
-                color: _highlightColor.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ] : null,
+            boxShadow: _searchController.text.isNotEmpty
+                ? [
+                    BoxShadow(
+                      color: _highlightColor.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             children: [
@@ -654,9 +667,11 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                 builder: (context, child) {
                   return Icon(
                     Icons.search_rounded,
-                    color: _searchController.text.isNotEmpty 
-                      ? _highlightColor 
-                      : _accentMuted.withOpacity(0.5 + _pulseController.value * 0.3),
+                    color: _searchController.text.isNotEmpty
+                        ? _highlightColor
+                        : _accentMuted.withOpacity(
+                            0.5 + _pulseController.value * 0.3,
+                          ),
                     size: 22,
                   );
                 },
@@ -672,10 +687,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                   ),
                   decoration: InputDecoration(
                     hintText: 'Rechercher une app, un jeu...',
-                    hintStyle: TextStyle(
-                      color: _accentMuted,
-                      fontSize: 15,
-                    ),
+                    hintStyle: TextStyle(color: _accentMuted, fontSize: 15),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
@@ -714,7 +726,8 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
         scrollDirection: Axis.horizontal,
         children: [
           _buildQuickActionChip(
-            '🔥 Tendances',
+            'Tendances',
+            Icons.local_fire_department_rounded,
             _accentOrange,
             () {
               HapticFeedback.selectionClick();
@@ -722,7 +735,8 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             },
           ),
           _buildQuickActionChip(
-            '✨ Nouveautés',
+            'Nouveautés',
+            Icons.auto_awesome_rounded,
             _accentPurple,
             () {
               HapticFeedback.selectionClick();
@@ -730,7 +744,8 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             },
           ),
           _buildQuickActionChip(
-            '⭐ Top Notés',
+            'Top Notés',
+            Icons.star_rounded,
             _accentTeal,
             () async {
               HapticFeedback.selectionClick();
@@ -740,7 +755,8 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             },
           ),
           _buildQuickActionChip(
-            '🎮 Jeux',
+            'Jeux',
+            Icons.sports_esports_rounded,
             _accentPink,
             () {
               HapticFeedback.selectionClick();
@@ -752,7 +768,12 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildQuickActionChip(String label, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionChip(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedBuilder(
@@ -763,21 +784,25 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  color.withOpacity(0.15),
-                  color.withOpacity(0.05),
-                ],
+                colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: color.withOpacity(0.3)),
             ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -862,17 +887,17 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             const SizedBox(height: 8),
             Text(
               _error ?? '',
-              style: TextStyle(
-                color: _accentMuted,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: _accentMuted, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             GestureDetector(
               onTap: _loadData,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [_highlightColor, _accentTeal],
@@ -915,21 +940,30 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
         slivers: [
           // Categories carousel
           SliverToBoxAdapter(child: _buildCategoriesCarousel()),
-          
+
           // Featured section with parallax
           if (_featuredApps.isNotEmpty && _searchQuery.isEmpty) ...[
-            SliverToBoxAdapter(child: _buildSectionHeader('⚡ En vedette', showSeeAll: true)),
+            SliverToBoxAdapter(
+              child: _buildSectionHeader(
+                'En vedette',
+                icon: Icons.bolt_rounded,
+                showSeeAll: true,
+              ),
+            ),
             SliverToBoxAdapter(child: _buildFeaturedCarousel()),
           ],
-          
+
           // Main apps grid
           SliverToBoxAdapter(
             child: _buildSectionHeader(
-              _searchQuery.isNotEmpty ? '🔍 Résultats' : '📱 Toutes les apps',
+              _searchQuery.isNotEmpty ? 'Résultats' : 'Toutes les apps',
+              icon: _searchQuery.isNotEmpty
+                  ? Icons.search_rounded
+                  : Icons.apps_rounded,
               count: displayApps.length,
             ),
           ),
-          
+
           if (_isSearching)
             SliverFillRemaining(child: _buildLoadingState())
           else if (displayApps.isEmpty)
@@ -968,7 +1002,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
           }
           final category = _categories[index - 1];
           return _buildCategoryChip(
-            category.slug, 
+            category.slug,
             category.name,
             _selectedCategory == category.slug,
           );
@@ -993,13 +1027,15 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
           border: Border.all(
             color: isSelected ? _highlightColor : _accentMuted.withOpacity(0.2),
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: _highlightColor.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 2),
-            ),
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: _highlightColor.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           name,
@@ -1013,11 +1049,20 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildSectionHeader(String title, {bool showSeeAll = false, int? count}) {
+  Widget _buildSectionHeader(
+    String title, {
+    IconData? icon,
+    bool showSeeAll = false,
+    int? count,
+  }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 14),
       child: Row(
         children: [
+          if (icon != null) ...[
+            Icon(icon, color: _highlightColor, size: 22),
+            const SizedBox(width: 8),
+          ],
           Text(
             title,
             style: TextStyle(
@@ -1075,11 +1120,20 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
             animation: _floatingController,
             builder: (context, child) {
               return Transform.translate(
-                offset: Offset(0, math.sin((_floatingController.value + index * 0.3) * math.pi) * 2),
+                offset: Offset(
+                  0,
+                  math.sin(
+                        (_floatingController.value + index * 0.3) * math.pi,
+                      ) *
+                      2,
+                ),
                 child: GestureDetector(
                   onTap: () => _navigateToDetail(app),
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
                       gradient: LinearGradient(
@@ -1118,7 +1172,10 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(20),
@@ -1151,17 +1208,24 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(14),
                                       child: app.iconUrl.isNotEmpty
-                                          ? Image.network(app.iconUrl, fit: BoxFit.cover)
+                                          ? Image.network(
+                                              app.iconUrl,
+                                              fit: BoxFit.cover,
+                                            )
                                           : Container(
                                               color: Colors.white24,
-                                              child: const Icon(Icons.apps, color: Colors.white),
+                                              child: const Icon(
+                                                Icons.apps,
+                                                color: Colors.white,
+                                              ),
                                             ),
                                     ),
                                   ),
                                   const SizedBox(width: 14),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           app.name,
@@ -1177,7 +1241,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                                         Text(
                                           app.description,
                                           style: TextStyle(
-                                            color: Colors.white.withOpacity(0.8),
+                                            color: Colors.white.withOpacity(
+                                              0.8,
+                                            ),
                                             fontSize: 13,
                                           ),
                                           maxLines: 2,
@@ -1204,7 +1270,13 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
   }
 
   Color _getGradientColor(int index) {
-    final colors = [_highlightColor, _accentPurple, _accentTeal, _accentOrange, _accentPink];
+    final colors = [
+      _highlightColor,
+      _accentPurple,
+      _accentTeal,
+      _accentOrange,
+      _accentPink,
+    ];
     return colors[index % colors.length];
   }
 
@@ -1234,17 +1306,19 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                     color: isHovered ? _bgTertiary : _bgSecondary,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isHovered 
-                        ? _highlightColor.withOpacity(0.3) 
-                        : _accentMuted.withOpacity(0.1),
+                      color: isHovered
+                          ? _highlightColor.withOpacity(0.3)
+                          : _accentMuted.withOpacity(0.1),
                     ),
-                    boxShadow: isHovered ? [
-                      BoxShadow(
-                        color: _highlightColor.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ] : null,
+                    boxShadow: isHovered
+                        ? [
+                            BoxShadow(
+                              color: _highlightColor.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Column(
                     children: [
@@ -1257,21 +1331,29 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                             height: 64,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
-                              boxShadow: isHovered ? [
-                                BoxShadow(
-                                  color: _highlightColor.withOpacity(0.3),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ] : null,
+                              boxShadow: isHovered
+                                  ? [
+                                      BoxShadow(
+                                        color: _highlightColor.withOpacity(0.3),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
+                                  : null,
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
                               child: app.iconUrl.isNotEmpty
-                                  ? Image.network(app.iconUrl, fit: BoxFit.cover)
+                                  ? Image.network(
+                                      app.iconUrl,
+                                      fit: BoxFit.cover,
+                                    )
                                   : Container(
                                       color: _bgTertiary,
-                                      child: Icon(Icons.apps, color: _accentMuted),
+                                      child: Icon(
+                                        Icons.apps,
+                                        color: _accentMuted,
+                                      ),
                                     ),
                             ),
                           ),
@@ -1285,10 +1367,17 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                                 decoration: BoxDecoration(
                                   color: _accentOrange,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: _bgSecondary, width: 2),
+                                  border: Border.all(
+                                    color: _bgSecondary,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: const Center(
-                                  child: Icon(Icons.arrow_upward, color: Colors.white, size: 10),
+                                  child: Icon(
+                                    Icons.arrow_upward,
+                                    color: Colors.white,
+                                    size: 10,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1309,10 +1398,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                       const SizedBox(height: 4),
                       Text(
                         app.categoryName.isNotEmpty ? app.categoryName : 'App',
-                        style: TextStyle(
-                          color: _accentMuted,
-                          fontSize: 11,
-                        ),
+                        style: TextStyle(color: _accentMuted, fontSize: 11),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1321,7 +1407,11 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.star_rounded, color: _accentOrange, size: 14),
+                            Icon(
+                              Icons.star_rounded,
+                              color: _accentOrange,
+                              size: 14,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               app.averageRating.toStringAsFixed(1),
@@ -1350,19 +1440,32 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
-                            gradient: (!isInstalled || hasUpdate) ? LinearGradient(
-                              colors: hasUpdate 
-                                ? [_accentOrange, _accentOrange.withOpacity(0.8)]
-                                : [_highlightColor, _accentTeal],
-                            ) : null,
-                            color: isInstalled && !hasUpdate ? _bgTertiary : null,
+                            gradient: (!isInstalled || hasUpdate)
+                                ? LinearGradient(
+                                    colors: hasUpdate
+                                        ? [
+                                            _accentOrange,
+                                            _accentOrange.withOpacity(0.8),
+                                          ]
+                                        : [_highlightColor, _accentTeal],
+                                  )
+                                : null,
+                            color: isInstalled && !hasUpdate
+                                ? _bgTertiary
+                                : null,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Center(
                             child: Text(
-                              hasUpdate ? 'Mettre à jour' : isInstalled ? 'Ouvrir' : 'Installer',
+                              hasUpdate
+                                  ? 'Mettre à jour'
+                                  : isInstalled
+                                  ? 'Ouvrir'
+                                  : 'Installer',
                               style: TextStyle(
-                                color: isInstalled && !hasUpdate ? _accentSecondary : Colors.white,
+                                color: isInstalled && !hasUpdate
+                                    ? _accentSecondary
+                                    : Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1386,20 +1489,13 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off_rounded,
-            color: _accentMuted,
-            size: 64,
-          ),
+          Icon(Icons.search_off_rounded, color: _accentMuted, size: 64),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty
                 ? 'Aucun résultat pour "$_searchQuery"'
                 : 'Aucune application',
-            style: TextStyle(
-              color: _accentMuted,
-              fontSize: 15,
-            ),
+            style: TextStyle(color: _accentMuted, fontSize: 15),
           ),
         ],
       ),
@@ -1410,9 +1506,10 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
 
   Widget _buildNewReleasesPopup() {
     final newApps = _allApps.take(3).toList();
-    
+
     return _buildAnimatedPopup(
-      title: '✨ Sorties du moment',
+      title: 'Sorties du moment',
+      icon: Icons.auto_awesome_rounded,
       subtitle: 'Découvrez les dernières nouveautés',
       color: _accentPurple,
       apps: newApps,
@@ -1422,10 +1519,14 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
   }
 
   Widget _buildTrendingPopup() {
-    final trendingApps = _allApps.where((a) => a.ratingsCount > 0).take(3).toList();
-    
+    final trendingApps = _allApps
+        .where((a) => a.ratingsCount > 0)
+        .take(3)
+        .toList();
+
     return _buildAnimatedPopup(
-      title: '🔥 Tendances',
+      title: 'Tendances',
+      icon: Icons.local_fire_department_rounded,
       subtitle: 'Les apps les plus populaires',
       color: _accentOrange,
       apps: trendingApps,
@@ -1436,6 +1537,7 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
 
   Widget _buildAnimatedPopup({
     required String title,
+    required IconData icon,
     required String subtitle,
     required Color color,
     required List<MiniApp> apps,
@@ -1453,7 +1555,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
         builder: (context, value, child) {
           return Transform.translate(
             offset: Offset(
-              position == Alignment.bottomLeft ? -30 * (1 - value) : 30 * (1 - value),
+              position == Alignment.bottomLeft
+                  ? -30 * (1 - value)
+                  : 30 * (1 - value),
               20 * (1 - value),
             ),
             child: Opacity(
@@ -1483,6 +1587,16 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                       children: [
                         Row(
                           children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(icon, color: color, size: 18),
+                            ),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1544,7 +1658,11 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                                       _navigateToDetail(app);
                                     },
                                     child: Container(
-                                      margin: EdgeInsets.only(bottom: index < apps.length - 1 ? 10 : 0),
+                                      margin: EdgeInsets.only(
+                                        bottom: index < apps.length - 1
+                                            ? 10
+                                            : 0,
+                                      ),
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         color: _bgTertiary.withOpacity(0.5),
@@ -1553,7 +1671,9 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                                       child: Row(
                                         children: [
                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                             child: app.iconUrl.isNotEmpty
                                                 ? Image.network(
                                                     app.iconUrl,
@@ -1565,13 +1685,18 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                                                     width: 40,
                                                     height: 40,
                                                     color: _bgTertiary,
-                                                    child: Icon(Icons.apps, color: _accentMuted, size: 20),
+                                                    child: Icon(
+                                                      Icons.apps,
+                                                      color: _accentMuted,
+                                                      size: 20,
+                                                    ),
                                                   ),
                                           ),
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   app.name,
@@ -1581,7 +1706,8 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                                 Text(
                                                   app.categoryName,
@@ -1618,30 +1744,6 @@ class _StoreScreenState extends State<StoreScreen> with TickerProviderStateMixin
       ),
     );
   }
-
-  IconData _getCategoryIcon(String slug) {
-    switch (slug) {
-      case 'games': return Icons.sports_esports_outlined;
-      case 'entertainment': return Icons.movie_outlined;
-      case 'social': return Icons.people_outline;
-      case 'productivity': return Icons.work_outline;
-      case 'utilities': return Icons.build_outlined;
-      case 'education': return Icons.school_outlined;
-      case 'lifestyle': return Icons.favorite_outline;
-      case 'finance': return Icons.account_balance_outlined;
-      case 'health': return Icons.fitness_center_outlined;
-      case 'music': return Icons.music_note_outlined;
-      case 'photo_video': return Icons.photo_camera_outlined;
-      case 'weather': return Icons.cloud_outlined;
-      case 'travel': return Icons.flight_outlined;
-      case 'food': return Icons.restaurant_outlined;
-      case 'sports': return Icons.sports_soccer_outlined;
-      case 'shopping': return Icons.shopping_cart_outlined;
-      case 'news': return Icons.newspaper_outlined;
-      case 'books': return Icons.menu_book_outlined;
-      default: return Icons.apps_outlined;
-    }
-  }
 }
 
 // ==================== CUSTOM PAINTERS ====================
@@ -1664,7 +1766,7 @@ class _BackgroundPainter extends CustomPainter {
       final x = size.width * (0.2 + i * 0.3);
       final y = size.height * (0.3 + math.sin(progress * math.pi * 2) * 0.1);
       final radius = 100.0 + progress * 50;
-      
+
       canvas.drawCircle(Offset(x, y), radius, paint);
     }
   }
@@ -1700,4 +1802,3 @@ class _PatternPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

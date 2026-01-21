@@ -115,6 +115,20 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>?> getDeveloperStats() async {
+    if (_token == null) return null;
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/auth/stats/',
+        options: Options(headers: {'Authorization': 'Token $_token'}),
+      );
+      return response.data;
+    } catch (e) {
+      print("Get Developer Stats Error: $e");
+      return null;
+    }
+  }
+
   Future<void> logout() async {
     _token = null;
     _currentUser = null;

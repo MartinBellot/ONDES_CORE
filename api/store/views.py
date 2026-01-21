@@ -505,6 +505,76 @@ class AppScreenshotsView(APIView):
             return Response({'error': 'Screenshot not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+class ScreenshotDetailView(APIView):
+    """Gestion d'un screenshot individuel (Dev Studio)"""
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, app_id, screenshot_id):
+        """Supprimer un screenshot"""
+        try:
+            app = MiniApp.objects.get(id=app_id, author=request.user)
+        except MiniApp.DoesNotExist:
+            return Response({'error': 'App not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            screenshot = AppScreenshot.objects.get(id=screenshot_id, app=app)
+            screenshot.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except AppScreenshot.DoesNotExist:
+            return Response({'error': 'Screenshot not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    def patch(self, request, app_id, screenshot_id):
+        """Modifier un screenshot (caption, order)"""
+        try:
+            app = MiniApp.objects.get(id=app_id, author=request.user)
+        except MiniApp.DoesNotExist:
+            return Response({'error': 'App not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            screenshot = AppScreenshot.objects.get(id=screenshot_id, app=app)
+        except AppScreenshot.DoesNotExist:
+            return Response({'error': 'Screenshot not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if 'caption' in request.data:
+            screenshot.caption = request.data['caption']
+        if 'order' in request.data:
+            screenshot.order = int(request.data['order'])
+        if 'device_type' in request.data:
+            screenshot.device_type = request.data['device_type']
+        
+        screenshot.save()
+        return Response(AppScreenshotSerializer(screenshot, context={'request': request}).data)
+
+
+class ScreenshotReorderView(APIView):
+    """Réorganiser les screenshots (Dev Studio)"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, app_id):
+        """Réorganiser les screenshots avec une liste d'IDs ordonnés"""
+        try:
+            app = MiniApp.objects.get(id=app_id, author=request.user)
+        except MiniApp.DoesNotExist:
+            return Response({'error': 'App not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        ordered_ids = request.data.get('ordered_ids', [])
+        if not ordered_ids:
+            return Response({'error': 'ordered_ids required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Mettre à jour l'ordre de chaque screenshot
+        for index, screenshot_id in enumerate(ordered_ids):
+            try:
+                screenshot = AppScreenshot.objects.get(id=screenshot_id, app=app)
+                screenshot.order = index
+                screenshot.save()
+            except AppScreenshot.DoesNotExist:
+                continue
+        
+        # Retourner les screenshots mis à jour
+        screenshots = app.screenshots.all().order_by('order')
+        return Response(AppScreenshotSerializer(screenshots, many=True, context={'request': request}).data)
+
+
 class TrackDownloadView(APIView):
     """Incrémenter le compteur de téléchargements"""
     
@@ -518,3 +588,52 @@ class TrackDownloadView(APIView):
             return Response({'error': 'App not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+class DeveloperStatsView(APIView):
+    """Statistiques du développeur pour la page profil"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        
+        # Récupérer toutes les apps de l'utilisateur
+        my_apps = MiniApp.objects.filter(author=user)
+        
+        # Statistiques globales
+        total_apps = my_apps.count()
+        total_downloads = sum(app.downloads_count for app in my_apps)
+        
+        # Note moyenne globale
+        from django.db.models import Avg
+        avg_rating_result = AppReview.objects.filter(app__author=user).aggregate(avg=Avg('rating'))
+        average_rating = round(avg_rating_result['avg'] or 0, 1)
+        
+        # Nombre total d'avis reçus
+        total_reviews = AppReview.objects.filter(app__author=user).count()
+        
+        # Apps sérialisées (les 6 dernières)
+        recent_apps = my_apps.order_by('-updated_at')[:6]
+        apps_data = MiniAppListSerializer(recent_apps, many=True, context={'request': request}).data
+        
+        # Top app (la plus téléchargée)
+        top_app = my_apps.order_by('-downloads_count').first()
+        top_app_data = MiniAppListSerializer(top_app, context={'request': request}).data if top_app else None
+        
+        # Statistiques par mois (downloads des 6 derniers mois) - simplifié
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Catégories utilisées
+        categories_used = list(my_apps.exclude(category__isnull=True).values_list('category__name', flat=True).distinct())
+        
+        return Response({
+            'stats': {
+                'total_apps': total_apps,
+                'total_downloads': total_downloads,
+                'average_rating': average_rating,
+                'total_reviews': total_reviews,
+            },
+            'recent_apps': apps_data,
+            'top_app': top_app_data,
+            'categories_used': categories_used,
+            'member_since': user.date_joined.isoformat(),
+        })

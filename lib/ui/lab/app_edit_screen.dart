@@ -16,15 +16,16 @@ class AppEditScreen extends StatefulWidget {
   State<AppEditScreen> createState() => _AppEditScreenState();
 }
 
-class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProviderStateMixin {
+class _AppEditScreenState extends State<AppEditScreen>
+    with SingleTickerProviderStateMixin {
   final _service = DevStudioService();
   late TabController _tabController;
-  
+
   MiniApp? _app;
   bool _isLoading = true;
   bool _isSaving = false;
   List<AppCategory> _categories = [];
-  
+
   // Controllers for text fields
   late TextEditingController _nameCtrl;
   late TextEditingController _descCtrl;
@@ -35,15 +36,19 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
   late TextEditingController _websiteUrlCtrl;
   late TextEditingController _tagsCtrl;
   late TextEditingController _languagesCtrl;
-  
+
   // Selected values
   int? _selectedCategoryId;
   String _selectedAgeRating = '4+';
-  
+
   // File uploads
   File? _newIcon;
   File? _newBanner;
   List<File> _newScreenshots = [];
+
+  // Reordered screenshots (for drag & drop)
+  List<AppScreenshot> _reorderedScreenshots = [];
+  bool _screenshotsReordered = false;
 
   static const List<String> _ageRatings = ['4+', '9+', '12+', '17+'];
 
@@ -64,21 +69,23 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
     _supportUrlCtrl = TextEditingController(text: widget.app.supportUrl);
     _websiteUrlCtrl = TextEditingController(text: widget.app.websiteUrl);
     _tagsCtrl = TextEditingController(text: widget.app.tags.join(', '));
-    _languagesCtrl = TextEditingController(text: widget.app.languages.join(', '));
+    _languagesCtrl = TextEditingController(
+      text: widget.app.languages.join(', '),
+    );
     _selectedCategoryId = widget.app.category?.id;
     _selectedAgeRating = widget.app.ageRating;
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // Load categories and app detail in parallel
       final results = await Future.wait([
         _service.getCategories(),
         _service.getAppDetail(widget.app.dbId!),
       ]);
-      
+
       setState(() {
         _categories = results[0] as List<AppCategory>;
         _app = results[1] as MiniApp? ?? widget.app;
@@ -106,6 +113,9 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
     _languagesCtrl.text = _app!.languages.join(', ');
     _selectedCategoryId = _app!.category?.id;
     _selectedAgeRating = _app!.ageRating;
+    // Initialize reordered screenshots from app data
+    _reorderedScreenshots = List.from(_app!.screenshots);
+    _screenshotsReordered = false;
   }
 
   @override
@@ -151,7 +161,7 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
 
   Future<void> _saveAll() async {
     if (_app?.dbId == null) return;
-    
+
     setState(() => _isSaving = true);
     HapticFeedback.mediumImpact();
 
@@ -162,7 +172,7 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
           .map((k) => k.trim())
           .where((k) => k.isNotEmpty)
           .toList();
-      
+
       final languages = _languagesCtrl.text
           .split(',')
           .map((l) => l.trim())
@@ -192,7 +202,16 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
         await _service.uploadScreenshot(
           appId: _app!.dbId!,
           screenshot: _newScreenshots[i],
-          order: (_app!.screenshots.length) + i,
+          order: (_reorderedScreenshots.length) + i,
+        );
+      }
+
+      // Save reordered screenshots if changed
+      if (_screenshotsReordered && _reorderedScreenshots.isNotEmpty) {
+        final orderedIds = _reorderedScreenshots.map((s) => s.id).toList();
+        await _service.reorderScreenshots(
+          appId: _app!.dbId!,
+          orderedIds: orderedIds,
         );
       }
 
@@ -209,6 +228,7 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
             _newIcon = null;
             _newBanner = null;
             _newScreenshots.clear();
+            _screenshotsReordered = false;
           });
           // Reload app data
           _loadData();
@@ -292,13 +312,16 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
                       color: Colors.grey.shade800,
                       borderRadius: BorderRadius.circular(22),
                       image: _newIcon != null
-                          ? DecorationImage(image: FileImage(_newIcon!), fit: BoxFit.cover)
+                          ? DecorationImage(
+                              image: FileImage(_newIcon!),
+                              fit: BoxFit.cover,
+                            )
                           : _app?.iconUrl.isNotEmpty == true
-                              ? DecorationImage(
-                                  image: NetworkImage(_app!.iconUrl),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
+                          ? DecorationImage(
+                              image: NetworkImage(_app!.iconUrl),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
                     child: _newIcon == null && (_app?.iconUrl.isEmpty ?? true)
                         ? const Icon(Icons.apps, size: 48, color: Colors.grey)
@@ -313,7 +336,11 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
                         color: Colors.blue,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -324,7 +351,10 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
           Center(
             child: Text(
               'Appuyez pour changer l\'icône',
-              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 12,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -384,23 +414,32 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
                 color: Colors.grey.shade800,
                 borderRadius: BorderRadius.circular(16),
                 image: _newBanner != null
-                    ? DecorationImage(image: FileImage(_newBanner!), fit: BoxFit.cover)
+                    ? DecorationImage(
+                        image: FileImage(_newBanner!),
+                        fit: BoxFit.cover,
+                      )
                     : _app?.bannerUrl.isNotEmpty == true
-                        ? DecorationImage(
-                            image: NetworkImage(_app!.bannerUrl),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
+                    ? DecorationImage(
+                        image: NetworkImage(_app!.bannerUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
               child: _newBanner == null && (_app?.bannerUrl.isEmpty ?? true)
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.add_photo_alternate, size: 48, color: Colors.grey),
+                        const Icon(
+                          Icons.add_photo_alternate,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           'Ajouter une bannière (1200x630 recommandé)',
-                          style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                          ),
                         ),
                       ],
                     )
@@ -415,7 +454,11 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
                               color: Colors.black.withOpacity(0.6),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.edit, size: 18, color: Colors.white),
+                            child: const Icon(
+                              Icons.edit,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ],
@@ -425,67 +468,226 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
           const SizedBox(height: 24),
 
           // Screenshots Section
-          _buildSectionTitle('Captures d\'écran', Icons.screenshot),
+          Row(
+            children: [
+              Expanded(
+                child: _buildSectionTitle(
+                  'Captures d\'écran',
+                  Icons.screenshot,
+                ),
+              ),
+              if (_reorderedScreenshots.isNotEmpty)
+                Text(
+                  '${_reorderedScreenshots.length} capture${_reorderedScreenshots.length > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 12,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (_reorderedScreenshots.isNotEmpty)
+            Text(
+              'Maintenez et glissez pour réorganiser',
+              style: TextStyle(
+                color: Colors.blue.withOpacity(0.8),
+                fontSize: 12,
+              ),
+            ),
           const SizedBox(height: 12),
-          
-          // Existing screenshots
-          if (_app?.screenshots.isNotEmpty ?? false) ...[
+
+          // Existing screenshots with reordering
+          if (_reorderedScreenshots.isNotEmpty) ...[
             SizedBox(
-              height: 220,
-              child: ListView.builder(
+              height: 240,
+              child: ReorderableListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: _app!.screenshots.length,
+                itemCount: _reorderedScreenshots.length,
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (newIndex > oldIndex) newIndex--;
+                    final item = _reorderedScreenshots.removeAt(oldIndex);
+                    _reorderedScreenshots.insert(newIndex, item);
+                    _screenshotsReordered = true;
+                  });
+                },
+                proxyDecorator: (child, index, animation) {
+                  return AnimatedBuilder(
+                    animation: animation,
+                    builder: (context, child) {
+                      return Material(
+                        color: Colors.transparent,
+                        elevation: 8,
+                        shadowColor: Colors.blue.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        child: child,
+                      );
+                    },
+                    child: child,
+                  );
+                },
                 itemBuilder: (context, index) {
-                  final screenshot = _app!.screenshots[index];
+                  final screenshot = _reorderedScreenshots[index];
                   return Container(
-                    width: 120,
+                    key: ValueKey(screenshot.id),
+                    width: 130,
                     margin: const EdgeInsets.only(right: 12),
-                    child: Stack(
+                    child: Column(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            screenshot.imageUrl,
-                            fit: BoxFit.cover,
-                            height: 220,
-                            width: 120,
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              // Screenshot image with tap to preview
+                              GestureDetector(
+                                onTap: () => _showScreenshotPreview(screenshot),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: _screenshotsReordered
+                                          ? Colors.blue.withOpacity(0.5)
+                                          : Colors.white.withOpacity(0.1),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      screenshot.imageUrl,
+                                      fit: BoxFit.cover,
+                                      width: 130,
+                                      height: double.infinity,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return Container(
+                                          color: Colors.grey.shade800,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              value:
+                                                  loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                  : null,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey.shade800,
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.broken_image,
+                                                    color: Colors.grey,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    'Erreur',
+                                                    style: TextStyle(
+                                                      color:
+                                                          Colors.grey.shade500,
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Order badge
+                              Positioned(
+                                top: 6,
+                                left: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Delete button
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: GestureDetector(
+                                  onTap: () => _deleteScreenshot(screenshot),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.9),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Drag handle
+                              Positioned(
+                                bottom: 6,
+                                left: 0,
+                                right: 0,
+                                child: Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.6),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.drag_handle,
+                                      size: 16,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: IconButton(
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.red.withOpacity(0.8),
-                            ),
-                            icon: const Icon(Icons.delete, size: 18, color: Colors.white),
-                            onPressed: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: const Text('Supprimer'),
-                                  content: const Text('Supprimer cette capture ?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(ctx, false),
-                                      child: const Text('Annuler'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(ctx, true),
-                                      child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              if (confirm == true) {
-                                await _service.deleteScreenshot(
-                                  appId: _app!.dbId!,
-                                  screenshotId: screenshot.id,
-                                );
-                                _loadData();
-                              }
-                            },
+                        const SizedBox(height: 4),
+                        Text(
+                          screenshot.caption.isNotEmpty
+                              ? screenshot.caption
+                              : screenshot.deviceType,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.6),
+                            fontSize: 10,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -494,13 +696,80 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
               ),
             ),
             const SizedBox(height: 16),
+            if (_screenshotsReordered)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Colors.blue,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'L\'ordre a été modifié. Cliquez sur "Enregistrer" pour sauvegarder.',
+                        style: TextStyle(color: Colors.blue, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade800.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(0.05)),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.screenshot, size: 48, color: Colors.grey.shade600),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Aucune capture d\'écran',
+                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Ajoutez des captures pour présenter votre app',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.4),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
+
+          const SizedBox(height: 16),
 
           // New screenshots to upload
           if (_newScreenshots.isNotEmpty) ...[
-            Text(
-              'Nouvelles captures (à sauvegarder)',
-              style: TextStyle(color: Colors.amber, fontSize: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cloud_upload, size: 16, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${_newScreenshots.length} nouvelle${_newScreenshots.length > 1 ? 's' : ''} capture${_newScreenshots.length > 1 ? 's' : ''} à uploader',
+                    style: const TextStyle(color: Colors.amber, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             SizedBox(
@@ -536,7 +805,11 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
                                 color: Colors.red.withOpacity(0.8),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.close, size: 14, color: Colors.white),
+                              child: const Icon(
+                                Icons.close,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -563,6 +836,66 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
     );
   }
 
+  void _showScreenshotPreview(AppScreenshot screenshot) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Stack(
+          children: [
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(screenshot.imageUrl, fit: BoxFit.contain),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteScreenshot(AppScreenshot screenshot) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer'),
+        content: const Text('Supprimer cette capture ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && _app?.dbId != null) {
+      final success = await _service.deleteScreenshot(
+        appId: _app!.dbId!,
+        screenshotId: screenshot.id,
+      );
+      if (success) {
+        setState(() {
+          _reorderedScreenshots.removeWhere((s) => s.id == screenshot.id);
+        });
+        _loadData();
+      }
+    }
+  }
+
   Widget _buildMetadataTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -584,15 +917,25 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
               isExpanded: true,
               dropdownColor: Colors.grey.shade900,
               underline: const SizedBox(),
-              hint: Text('Sélectionner une catégorie', style: TextStyle(color: Colors.white.withOpacity(0.5))),
+              hint: Text(
+                'Sélectionner une catégorie',
+                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+              ),
               items: _categories.map((cat) {
                 return DropdownMenuItem<int>(
                   value: cat.id,
                   child: Row(
                     children: [
-                      Icon(_getCategoryIcon(cat.slug), size: 20, color: Colors.white70),
+                      Icon(
+                        _getCategoryIcon(cat.slug),
+                        size: 20,
+                        color: Colors.white70,
+                      ),
                       const SizedBox(width: 12),
-                      Text(cat.name, style: const TextStyle(color: Colors.white)),
+                      Text(
+                        cat.name,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ],
                   ),
                 );
@@ -627,7 +970,10 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
           const SizedBox(height: 8),
           Text(
             _getAgeRatingDescription(_selectedAgeRating),
-            style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -661,7 +1007,7 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
           // URLs Section
           _buildSectionTitle('Liens', Icons.link),
           const SizedBox(height: 12),
-          
+
           _buildTextField(
             controller: _privacyUrlCtrl,
             label: 'Politique de confidentialité (URL)',
@@ -689,7 +1035,10 @@ class _AppEditScreenState extends State<AppEditScreen> with SingleTickerProvider
           _buildInfoRow('Bundle ID', _app?.id ?? ''),
           _buildInfoRow('Version actuelle', _app?.version ?? ''),
           _buildInfoRow('Téléchargements', '${_app?.downloadsCount ?? 0}'),
-          _buildInfoRow('Note moyenne', '${_app?.averageRating.toStringAsFixed(1) ?? "-"} ★'),
+          _buildInfoRow(
+            'Note moyenne',
+            '${_app?.averageRating.toStringAsFixed(1) ?? "-"} ★',
+          ),
           _buildInfoRow('Nombre d\'avis', '${_app?.ratingsCount ?? 0}'),
         ],
       ),

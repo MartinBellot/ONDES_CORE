@@ -228,6 +228,52 @@ class DevStudioService {
     }
   }
 
+  /// Update screenshot (caption, order, device_type)
+  Future<bool> updateScreenshot({
+    required int appId,
+    required int screenshotId,
+    String? caption,
+    int? order,
+    String? deviceType,
+  }) async {
+    if (_token == null) return false;
+    try {
+      final data = <String, dynamic>{};
+      if (caption != null) data['caption'] = caption;
+      if (order != null) data['order'] = order;
+      if (deviceType != null) data['device_type'] = deviceType;
+
+      await _dio.patch(
+        '$_baseUrl/apps/$appId/screenshots/$screenshotId/',
+        data: data,
+        options: Options(headers: {'Authorization': 'Token $_token'}),
+      );
+      return true;
+    } catch (e) {
+      print("Update Screenshot Error: $e");
+      return false;
+    }
+  }
+
+  /// Reorder screenshots
+  Future<bool> reorderScreenshots({
+    required int appId,
+    required List<int> orderedIds,
+  }) async {
+    if (_token == null) return false;
+    try {
+      await _dio.post(
+        '$_baseUrl/apps/$appId/screenshots/reorder/',
+        data: {'ordered_ids': orderedIds},
+        options: Options(headers: {'Authorization': 'Token $_token'}),
+      );
+      return true;
+    } catch (e) {
+      print("Reorder Screenshots Error: $e");
+      return false;
+    }
+  }
+
   /// Get detailed app info (with screenshots, etc.)
   Future<MiniApp?> getAppDetail(int appId) async {
     if (_token == null) return null;
