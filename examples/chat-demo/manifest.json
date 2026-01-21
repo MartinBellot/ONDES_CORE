@@ -1,0 +1,7 @@
+{
+    "id": "com.ondes.chat-demo",
+    "name": "Chat E2EE Demo",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "description": "Application de démonstration du chat chiffré de bout en bout Ondes.Chat"
+}

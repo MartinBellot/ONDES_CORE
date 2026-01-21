@@ -40,6 +40,7 @@ Le SDK JavaScript est divisé en plusieurs modules thématiques :
 - [**Ondes.App**](app.md) : Infos sur l'application et cycle de vie.
 - [**Ondes.Friends**](friends.md) : Gestion des amis et du graphe social.
 - [**Ondes.Social**](social.md) : Fonctionnalités de réseau social (Feed, Posts, Stories).
+- [**Ondes.Chat**](chat.md) : Messagerie instantanée avec chiffrement E2EE automatique.
 - [**Ondes.Websocket**](websocket.md) : Connexions WebSocket temps réel.
 - [**Ondes.UDP**](udp.md) : Sockets UDP pour découverte réseau et communication.
 

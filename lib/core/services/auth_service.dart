@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'configuration_service.dart';
+import 'e2ee_service.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -24,6 +25,8 @@ class AuthService {
     _token = prefs.getString('auth_token');
     if (_token != null) {
       await fetchProfile();
+      // Initialiser E2EE automatiquement après récupération du profil
+      await E2EEService().initialize();
     }
   }
 
@@ -39,6 +42,10 @@ class AuthService {
       await prefs.setString('auth_token', _token!);
       
       await fetchProfile();
+      
+      // Initialiser E2EE automatiquement après login réussi
+      await E2EEService().initialize();
+      
       return true;
     } catch (e) {
       print("Login Error: $e");
@@ -59,6 +66,10 @@ class AuthService {
       await prefs.setString('auth_token', _token!);
       
       await fetchProfile();
+      
+      // Initialiser E2EE automatiquement après inscription réussie
+      await E2EEService().initialize();
+      
       return true;
     } catch (e) {
       print("Register Error: $e");

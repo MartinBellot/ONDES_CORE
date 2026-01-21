@@ -75,6 +75,7 @@ nav:
     - Amis (Friends): sdk/friends.md
     - Social & Médias: sdk/social.md
     - Communication:
+      - Chat E2EE: sdk/chat.md
       - 🔌 WebSocket: sdk/websocket.md
       - 📡 UDP: sdk/udp.md
   - Backend API: backend.md

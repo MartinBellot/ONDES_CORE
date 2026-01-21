@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/', include('store.urls')),
     path('api/friends/', include('friends.urls')),
     path('api/social/', include('social.urls')),
+    path('api/chat/', include('chat.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

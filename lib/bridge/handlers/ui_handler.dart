@@ -9,7 +9,7 @@ class UIHandler extends BaseHandler {
   final Function(Map<String, dynamic>)? onAppBarConfig;
   final Function(Map<String, dynamic>)? onDrawerConfig;
   final Function(String action, Map<String, dynamic>? data)? onDrawerAction;
-  
+
   // Loading overlay state
   OverlayEntry? _loadingOverlay;
 

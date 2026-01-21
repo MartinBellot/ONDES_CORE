@@ -10,18 +10,21 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'daphne',  # Django Channels ASGI server
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',  # Django Channels
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     'store',
     'friends',
     'social',
+    'chat',  # Chat E2EE module
 ]
 
 REST_FRAMEWORK = {
@@ -61,6 +64,19 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ondes_backend.wsgi.application'
+ASGI_APPLICATION = 'ondes_backend.asgi.application'
+
+# Channel Layers Configuration (Redis pour la production, InMemory pour le dev)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        # Pour la production avec Redis:
+        # "BACKEND": "channels_redis.core.RedisChannelLayer",
+        # "CONFIG": {
+        #     "hosts": [("127.0.0.1", 6379)],
+        # },
+    }
+}
 
 DATABASES = {
     'default': {

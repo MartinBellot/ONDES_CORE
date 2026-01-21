@@ -822,12 +822,297 @@ const String ondesBridgeJs = """
                     delete this._handlers[data.socketId];
                 }
             }
+        },
+
+        // ============== 10. Chat E2EE ==============
+        // API simplifiée - Le chiffrement est 100% transparent et géré par le Core
+        Chat: {
+            // Internal state
+            _handlers: {
+                onMessage: [],
+                onTyping: [],
+                onReceipt: [],
+                onConnectionChange: []
+            },
+            _pollingInterval: null,
+            _connected: false,
+            _ready: false,
+
+            // ========== INITIALISATION ==========
+            /**
+             * Initialise et connecte au service de chat E2EE
+             * Cette méthode gère automatiquement:
+             * - La génération des clés de chiffrement
+             * - L'enregistrement de la clé publique
+             * - La connexion WebSocket
+             * @returns {Promise<{success: boolean, userId: number}>}
+             */
+            init: async function() {
+                try {
+                    const result = await callBridge('Ondes.Chat.init');
+                    if (result.success) {
+                        this._connected = true;
+                        this._ready = true;
+                        this._startPolling();
+                        this._notifyConnectionChange('connected');
+                        console.log('[Ondes.Chat] ✅ Initialisé avec E2EE');
+                    }
+                    return result;
+                } catch (e) {
+                    console.error('[Ondes.Chat] Erreur init:', e);
+                    throw e;
+                }
+            },
+
+            /**
+             * Déconnecte du service de chat
+             * @returns {Promise<{success: boolean}>}
+             */
+            disconnect: async function() {
+                this._stopPolling();
+                this._connected = false;
+                this._ready = false;
+                this._notifyConnectionChange('disconnected');
+                return await callBridge('Ondes.Chat.disconnect');
+            },
+
+            /**
+             * Vérifie si le chat est prêt
+             * @returns {boolean}
+             */
+            isReady: function() {
+                return this._ready;
+            },
+
+            // ========== CONVERSATIONS ==========
+            /**
+             * Récupère toutes les conversations
+             * @returns {Promise<Array<Conversation>>}
+             */
+            getConversations: async function() {
+                return await callBridge('Ondes.Chat.getConversations');
+            },
+
+            /**
+             * Récupère une conversation spécifique
+             * @param {string} conversationId - UUID de la conversation
+             * @returns {Promise<Conversation>}
+             */
+            getConversation: async function(conversationId) {
+                return await callBridge('Ondes.Chat.getConversation', conversationId);
+            },
+
+            /**
+             * Démarre une conversation privée avec un utilisateur
+             * Le chiffrement E2EE est configuré automatiquement
+             * @param {string|number} user - Nom d'utilisateur ou ID
+             * @returns {Promise<Conversation>}
+             */
+            startChat: async function(user) {
+                const options = typeof user === 'string' ? { username: user } : { userId: user };
+                return await callBridge('Ondes.Chat.startPrivate', options);
+            },
+
+            /**
+             * Crée un groupe de discussion
+             * Le chiffrement E2EE est configuré automatiquement pour tous les membres
+             * @param {string} name - Nom du groupe
+             * @param {Array<string|number>} members - Noms d'utilisateurs ou IDs
+             * @returns {Promise<Conversation>}
+             */
+            createGroup: async function(name, members) {
+                return await callBridge('Ondes.Chat.createGroup', { name, members });
+            },
+
+            // ========== MESSAGES ==========
+            /**
+             * Envoie un message dans une conversation
+             * Le message est chiffré automatiquement avant envoi
+             * @param {string} conversationId - UUID de la conversation
+             * @param {string} message - Contenu du message (texte clair)
+             * @param {Object} options - Options optionnelles { replyTo, type }
+             * @returns {Promise<{success: boolean, messageId: string}>}
+             */
+            send: async function(conversationId, message, options = {}) {
+                return await callBridge('Ondes.Chat.send', {
+                    conversationId,
+                    message,
+                    replyTo: options.replyTo,
+                    type: options.type || 'text'
+                });
+            },
+
+            /**
+             * Récupère les messages d'une conversation
+             * Les messages sont automatiquement déchiffrés
+             * @param {string} conversationId - UUID de la conversation
+             * @param {Object} options - { limit: 50, before: messageId }
+             * @returns {Promise<Array<Message>>}
+             */
+            getMessages: async function(conversationId, options = {}) {
+                return await callBridge('Ondes.Chat.getMessages', conversationId, options);
+            },
+
+            /**
+             * Modifie un message existant
+             * @param {string} messageId - UUID du message
+             * @param {string} newContent - Nouveau contenu
+             * @param {string} conversationId - UUID de la conversation (optionnel, pour le chiffrement)
+             * @returns {Promise<{success: boolean}>}
+             */
+            editMessage: async function(messageId, newContent, conversationId) {
+                return await callBridge('Ondes.Chat.editMessage', messageId, newContent, conversationId);
+            },
+
+            /**
+             * Supprime un message
+             * @param {string} messageId - UUID du message
+             * @returns {Promise<{success: boolean}>}
+             */
+            deleteMessage: async function(messageId) {
+                return await callBridge('Ondes.Chat.deleteMessage', messageId);
+            },
+
+            /**
+             * Marque des messages comme lus
+             * @param {string|Array<string>} messageIds - UUID(s) des messages
+             * @returns {Promise<{success: boolean}>}
+             */
+            markAsRead: async function(messageIds) {
+                const ids = Array.isArray(messageIds) ? messageIds : [messageIds];
+                return await callBridge('Ondes.Chat.markAsRead', ids);
+            },
+
+            // ========== INDICATEURS ==========
+            /**
+             * Envoie un indicateur de frappe
+             * @param {string} conversationId - UUID de la conversation
+             * @param {boolean} isTyping - true si en train d'écrire
+             */
+            setTyping: async function(conversationId, isTyping = true) {
+                return await callBridge('Ondes.Chat.typing', conversationId, isTyping);
+            },
+
+            // ========== ÉVÉNEMENTS ==========
+            /**
+             * Écoute les nouveaux messages
+             * Les messages reçus sont automatiquement déchiffrés
+             * @param {Function} callback - Fonction appelée avec le message
+             * @returns {Function} - Fonction pour se désabonner
+             * @example
+             * Ondes.Chat.onMessage((msg) => {
+             *   console.log(msg.sender + ': ' + msg.content);
+             * });
+             */
+            onMessage: function(callback) {
+                this._handlers.onMessage.push(callback);
+                return () => {
+                    const i = this._handlers.onMessage.indexOf(callback);
+                    if (i > -1) this._handlers.onMessage.splice(i, 1);
+                };
+            },
+
+            /**
+             * Écoute les indicateurs de frappe
+             * @param {Function} callback - ({ conversationId, userId, username, isTyping })
+             * @returns {Function} - Fonction pour se désabonner
+             */
+            onTyping: function(callback) {
+                this._handlers.onTyping.push(callback);
+                return () => {
+                    const i = this._handlers.onTyping.indexOf(callback);
+                    if (i > -1) this._handlers.onTyping.splice(i, 1);
+                };
+            },
+
+            /**
+             * Écoute les accusés de lecture
+             * @param {Function} callback - ({ messageId, userId, readAt })
+             * @returns {Function} - Fonction pour se désabonner
+             */
+            onReceipt: function(callback) {
+                this._handlers.onReceipt.push(callback);
+                return () => {
+                    const i = this._handlers.onReceipt.indexOf(callback);
+                    if (i > -1) this._handlers.onReceipt.splice(i, 1);
+                };
+            },
+
+            /**
+             * Écoute les changements de connexion
+             * @param {Function} callback - (status: 'connected'|'disconnected'|'error')
+             * @returns {Function} - Fonction pour se désabonner
+             */
+            onConnectionChange: function(callback) {
+                this._handlers.onConnectionChange.push(callback);
+                return () => {
+                    const i = this._handlers.onConnectionChange.indexOf(callback);
+                    if (i > -1) this._handlers.onConnectionChange.splice(i, 1);
+                };
+            },
+
+            // ========== INTERNE ==========
+            _startPolling: function() {
+                if (this._pollingInterval) return;
+                
+                const poll = async () => {
+                    try {
+                        // Messages (déjà déchiffrés par le Core)
+                        const msgResult = await callBridge('Ondes.Chat.pollMessages');
+                        if (msgResult?.messages?.length > 0) {
+                            for (const msg of msgResult.messages) {
+                                this._handlers.onMessage.forEach(cb => {
+                                    try { cb(msg); } catch(e) { console.error(e); }
+                                });
+                            }
+                        }
+                        
+                        // Typing
+                        const typingResult = await callBridge('Ondes.Chat.pollTyping');
+                        if (typingResult?.typing?.length > 0) {
+                            for (const t of typingResult.typing) {
+                                this._handlers.onTyping.forEach(cb => {
+                                    try { cb(t); } catch(e) { console.error(e); }
+                                });
+                            }
+                        }
+                        
+                        // Receipts
+                        const receiptResult = await callBridge('Ondes.Chat.pollReceipts');
+                        if (receiptResult?.receipts?.length > 0) {
+                            for (const r of receiptResult.receipts) {
+                                this._handlers.onReceipt.forEach(cb => {
+                                    try { cb(r); } catch(e) { console.error(e); }
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        // Silently ignore polling errors
+                    }
+                };
+                
+                this._pollingInterval = setInterval(poll, 100);
+                poll();
+            },
+
+            _stopPolling: function() {
+                if (this._pollingInterval) {
+                    clearInterval(this._pollingInterval);
+                    this._pollingInterval = null;
+                }
+            },
+
+            _notifyConnectionChange: function(status) {
+                this._handlers.onConnectionChange.forEach(cb => {
+                    try { cb(status); } catch(e) {}
+                });
+            }
         }
     };
 
     // Event ready
     const event = new Event('OndesReady');
     document.dispatchEvent(event);
-    console.log("✅ Ondes Core Bridge v2.3 Ready !");
+    console.log("✅ Ondes Core Bridge v3.0 Ready with E2EE Chat!");
 })();
 """;

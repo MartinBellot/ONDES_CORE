@@ -11,3 +11,4 @@ export 'friends_handler.dart';
 export 'social_handler.dart';
 export 'websocket_handler.dart';
 export 'udp_handler.dart';
+export 'chat_handler.dart';

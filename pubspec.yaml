@@ -56,6 +56,7 @@ dependencies:
   url_launcher: ^6.3.2
   liquid_glass_renderer: ^0.2.0-dev.4
   web_socket_channel: ^3.0.3
+  cryptography: ^2.7.0  # E2EE: X25519 + AES-256-GCM
 
 dev_dependencies:
   flutter_test:
