@@ -121,9 +121,6 @@ if (await Ondes.user.isAuthenticated()) {
   // Get user profile
   final profile = await Ondes.user.getProfile();
   print("Hello, ${profile?.username}!");
-  
-  // Get auth token for API requests
-  final token = await Ondes.user.getAuthToken();
 }
 ```
 

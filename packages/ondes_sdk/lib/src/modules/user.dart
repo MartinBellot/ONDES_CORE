@@ -11,8 +11,6 @@ import '../models/user_profile.dart';
 ///   final profile = await Ondes.user.getProfile();
 ///   print("Hello, ${profile?.username}!");
 ///
-///   final token = await Ondes.user.getAuthToken();
-///   // Use token for API requests
 /// }
 /// ```
 class OndesUser {
@@ -27,14 +25,6 @@ class OndesUser {
     final result = await _bridge.call<Map<String, dynamic>>('Ondes.User.getProfile');
     if (result == null) return null;
     return UserProfile.fromJson(result);
-  }
-
-  /// Gets the authentication token for API requests.
-  ///
-  /// Returns `null` if not authenticated.
-  Future<String?> getAuthToken() async {
-    final result = await _bridge.call<String>('Ondes.User.getAuthToken');
-    return result;
   }
 
   /// Checks if the user is authenticated.

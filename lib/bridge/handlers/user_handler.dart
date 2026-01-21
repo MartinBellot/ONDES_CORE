@@ -10,7 +10,6 @@ class UserHandler extends BaseHandler {
   @override
   void registerHandlers() {
     _registerGetProfile();
-    _registerGetAuthToken();
     _registerIsAuthenticated();
   }
 
@@ -33,12 +32,6 @@ class UserHandler extends BaseHandler {
         };
       }
       return null;
-    });
-  }
-
-  void _registerGetAuthToken() {
-    addSyncHandler('Ondes.User.getAuthToken', (args) {
-      return AuthService().token;
     });
   }
 

@@ -24,26 +24,6 @@ document.getElementById('welcome').innerText = `Bonjour, ${user.username}`;
 
 ---
 
-## `getAuthToken()`
-Récupère le token d'authentification (JWT/Bearer) pour effectuer des appels API sécurisés vers le backend Ondes.
-
-> ⚠️ Ne partagez jamais ce token avec des services tiers non approuvés.
-
-**Retourne** : `Promise<String>` - Le token brut.
-
-```javascript
-const token = await Ondes.User.getAuthToken();
-
-// Exemple d'utilisation avec fetch
-fetch('https://api.mondomaine.com/private-data', {
-    headers: {
-        'Authorization': `Token ${token}`
-    }
-});
-```
-
----
-
 ## `isAuthenticated()`
 Vérifie rapidement si une session utilisateur est active.
 

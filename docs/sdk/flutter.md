@@ -312,10 +312,6 @@ if (await Ondes.user.isAuthenticated()) {
   print("Utilisateur: ${profile?.username}");
   print("Email: ${profile?.email}");
   print("Avatar: ${profile?.avatar}");
-  
-  // Récupérer le token pour vos propres APIs
-  final token = await Ondes.user.getAuthToken();
-}
 ```
 
 ### 📱 Device - Matériel

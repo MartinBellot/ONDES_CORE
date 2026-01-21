@@ -415,7 +415,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final bool isAuth = AuthService().isAuthenticated;
 
     final List<Widget> screens = [
-      const LabScreen(),
+      
       const MyAppsScreen(),
       const StoreScreen(),
       // Profile Tab Logic
@@ -424,10 +424,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
          : LoginScreen(onLoginSuccess: () {
             setState(() {}); // Rebuild to switch to ProfileScreen
          }),
+      const LabScreen(),
     ];
 
     final List<NavigationItem> navItems = [
-      NavigationItem(icon: Icons.science_outlined, activeIcon: Icons.science, label: "Lab"),
       NavigationItem(icon: Icons.grid_view, activeIcon: Icons.grid_view_rounded, label: "Apps"),
       NavigationItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: "Store"),
       NavigationItem(
@@ -435,6 +435,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
           activeIcon: isAuth ? Icons.person : Icons.login, 
           label: isAuth ? "Profil" : "Compte"
       ),
+      NavigationItem(icon: Icons.science_outlined, activeIcon: Icons.science, label: "Lab"),
     ];
 
     Widget _buildLiquidGlassNavItem(

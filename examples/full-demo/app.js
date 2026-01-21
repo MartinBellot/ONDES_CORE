@@ -50,9 +50,6 @@ function closeApp() {
 async function getUserToken() {
     if (!window.Ondes) return;
     try {
-        const token = await Ondes.User.getAuthToken();
-        document.getElementById('tokenDisplay').innerText = token ? (token.substring(0, 20) + "...") : "No Token";
-        
         // Load Profile too
         const user = await Ondes.User.getProfile();
         const html = `

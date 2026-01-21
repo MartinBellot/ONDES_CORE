@@ -86,18 +86,7 @@ class _LabScreenState extends State<LabScreen> {
   Widget build(BuildContext context) {
     // Cyber/Abstract Background
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background
-          Positioned.fill(
-            child: Image.network(
-              "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop", 
-              fit: BoxFit.cover,
-            ),
-          ),
-          
-          // Content
-          SingleChildScrollView(
+      body: SingleChildScrollView(
             child: Column(
               children: [
                 OndesLiquidGlass(
@@ -195,8 +184,6 @@ class _LabScreenState extends State<LabScreen> {
                 ),
               ],
             ),
-          )
-        ],
       ),
     );
   }

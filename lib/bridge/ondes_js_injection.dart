@@ -97,9 +97,6 @@ const String ondesBridgeJs = """
             getProfile: async function() {
                 return await callBridge('Ondes.User.getProfile');
             },
-            getAuthToken: async function() {
-                return await callBridge('Ondes.User.getAuthToken');
-            },
             isAuthenticated: async function() {
                 return await callBridge('Ondes.User.isAuthenticated');
             }

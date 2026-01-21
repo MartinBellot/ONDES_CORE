@@ -238,11 +238,6 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
                 child: const Text("OK", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
-          if (!_isEditMode)
-             IconButton(
-               icon: const Icon(Icons.refresh, color: Colors.white70),
-               onPressed: _loadApps,
-             )
         ],
       ),
       body: Container(
@@ -257,7 +252,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
           ? const Center(child: CircularProgressIndicator(color: Colors.white54))
           : Column(
             children: [
-              const SizedBox(height: 100), // Space for AppBar
+              const SizedBox(height: 50), // Space for AppBar
               Expanded(
                 child: PageView.builder(
                   onPageChanged: (index) => setState(() => _currentPage = index),
@@ -388,9 +383,12 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
 
   Widget _buildAppIcon(MiniApp app, {bool isFeedback = false}) {
     ImageProvider image;
+    bool haveIconFile = false;
     if (app.iconUrl.isNotEmpty && File(app.iconUrl).existsSync()) {
+      haveIconFile = true;
       image = FileImage(File(app.iconUrl));
     } else {
+      haveIconFile = false;
       image = const NetworkImage("https://placehold.co/200/png");
     }
 
@@ -406,16 +404,16 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
             boxShadow: [
               if (!isFeedback)
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 )
             ],
             border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5)
           ),
         ),
         const SizedBox(height: 8),
-        if (!isFeedback)
+        if (!isFeedback && !haveIconFile)
           Text(
             app.name,
             style: const TextStyle(
