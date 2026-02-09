@@ -36,7 +36,7 @@ class AppInstallerService {
 
       // 4. Unzip
       final inputStream = InputFileStream(zipPath);
-      final archive = ZipDecoder().decodeBuffer(inputStream);
+      final archive = ZipDecoder().decodeStream(inputStream);
       extractArchiveToDisk(archive, installPath);
       
       return installPath;

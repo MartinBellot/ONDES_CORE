@@ -38,21 +38,21 @@ dependencies:
   # Ondes Core Dependencies
   flutter_inappwebview: ^6.1.5
   dio: ^5.7.0
-  archive: ^3.6.1
+  archive: ^4.0.7
   path_provider: ^2.1.5
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
   shelf: ^1.4.1
   shelf_static: ^1.1.2
   provider: ^6.1.2
   google_fonts: ^6.2.1
-  mobile_scanner: ^6.0.0
+  mobile_scanner: ^7.1.4
   uuid: ^4.5.1
-  mime: ^1.0.6
+  mime: ^2.0.0
   geolocator: ^14.0.2
   shared_preferences: ^2.5.3
   image_picker: ^1.2.1
   file_picker: ^10.3.8
-  intl: ^0.19.0
+  intl: ^0.20.2
   url_launcher: ^6.3.2
   liquid_glass_renderer: ^0.2.0-dev.4
   web_socket_channel: ^3.0.3
