@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/auth_service.dart';
 import 'dev_studio_screen.dart';
-import '../widgets/liquid_glass.dart';
 import '../webview_screen.dart';
 import '../common/scanner_screen.dart';
 
@@ -89,8 +88,7 @@ class _LabScreenState extends State<LabScreen> {
       body: SingleChildScrollView(
             child: Column(
               children: [
-                OndesLiquidGlass(
-                  child: Padding(
+                Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +179,6 @@ class _LabScreenState extends State<LabScreen> {
                       ],
                     ),
                   ),
-                ),
               ],
             ),
       ),

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ondes_core/ui/widgets/liquid_glass.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'ui/lab/lab_screen.dart';
 import 'ui/store/store_screen.dart';
@@ -530,8 +529,7 @@ class AuthWrapperState extends State<AuthWrapper> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: SizedBox(
           height: 75,
-          child: OndesLiquidGlass(
-            child: Row(
+          child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(navItems.length, (index) {
                 final item = navItems[index];
@@ -540,7 +538,6 @@ class AuthWrapperState extends State<AuthWrapper> {
                 return _buildLiquidGlassNavItem(item, isSelected, index, theme);
               }),
             ),
-          ),
         ),
       );
     }
