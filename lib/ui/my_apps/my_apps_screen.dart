@@ -8,6 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/models/mini_app.dart';
 import '../../core/services/app_library_service.dart';
 import '../../core/services/local_server_service.dart';
+import '../../core/services/permission_manager_service.dart';
+import '../common/permission_request_screen.dart';
 import '../webview_screen.dart';
 
 class MyAppsScreen extends StatefulWidget {
@@ -61,14 +63,8 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
   }
 
   Future<void> _openApp(MiniApp app) async {
-    // If we are in delete mode, clicking an app (even the focused one) should probably just exit delete mode
-    // unless we specifically want to allow opening while in edit mode.
-    // Let's standard behavior: if focused, just clearing focus is handled by background tap, 
-    // but tapping the focused app again usually opens it or toggles.
-    // Let's say: If an app is focused, we can't open ANY app. We must clear focus first.
     if (_focusedAppId != null) {
       if (_focusedAppId == app.id) {
-         // Tapping the focused app again -> clear focus?
          setState(() => _focusedAppId = null);
          return;
       }
@@ -76,6 +72,41 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
       return; 
     }
 
+    // Permission Check Phase (Modern UX)
+    final permissions = app.permissions;
+    final bool hasGranted = PermissionManagerService().hasAcceptedManifest(app.id);
+    
+    // Si l'app demande des permissions et que l'user n'a pas encore validé
+    if (permissions.isNotEmpty && !hasGranted) {
+      // Afficher l'écran de demande
+      await showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black.withOpacity(0.5),
+        pageBuilder: (context, anim1, anim2) {
+          return FadeTransition(
+            opacity: anim1,
+            child: PermissionRequestScreen(
+              app: app,
+              onAccepted: () {
+                Navigator.of(context).pop();
+                _launchApp(app);
+              },
+              onDenied: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          );
+        },
+      );
+      return;
+    }
+
+    // Launch directly if no permissions required or already granted
+    await _launchApp(app);
+  }
+
+  Future<void> _launchApp(MiniApp app) async {
     try {
       await _server.startServer(appId: app.id);
       final url = _server.localUrl;
@@ -84,6 +115,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
           MaterialPageRoute(
             builder: (context) => WebViewScreen(
               url: url,
+              appId: app.id, // Pass AppID for Sandboxing
             ),
           ),
         );
@@ -91,7 +123,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: \$e')),
+          SnackBar(content: Text('Erreur: $e')),
         );
       }
     }
@@ -135,6 +167,9 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
     );
 
     if (confirm == true) {
+      // Also remove permissions
+      await PermissionManagerService().revokePermissions(app.id);
+      
       await _library.uninstallApp(app.id);
       setState(() {
         _focusedAppId = null;
@@ -272,6 +307,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
   List<Widget> _buildBubbleGalaxy(Offset center, double universeSize) {
     List<Widget> backgroundBubbles = [];
     Widget? foregroundBubble;
+    Widget? deleteButton;
     
     // Hexagonal Packing / Honeycomb-like spiral
     double bubbleSize = 88.0; 
@@ -323,16 +359,44 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
 
         if (_apps[i].id == _focusedAppId) {
             foregroundBubble = bubble;
+            deleteButton = Positioned(
+              left: left + bubbleSize - 26, 
+              top: top - 10,
+              child: GestureDetector(
+                  onTap: () => _uninstallApp(_apps[i]),
+                  child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black26, 
+                                  blurRadius: 4, 
+                                  offset: Offset(0, 2)
+                              )
+                          ]
+                      ),
+                      child: const Icon(
+                          Icons.delete_forever, 
+                          color: Colors.white, 
+                          size: 20
+                      ),
+                  ),
+              ),
+            );
         } else {
             backgroundBubbles.add(bubble);
         }
     }
     
-    // Return list with focused bubble LAST (on top)
-    if (foregroundBubble != null) {
-        return [...backgroundBubbles, foregroundBubble];
-    }
-    return backgroundBubbles;
+    // Return list with focused bubble AND delete button LAST (on top)
+    List<Widget> layers = [...backgroundBubbles];
+    if (foregroundBubble != null) layers.add(foregroundBubble);
+    if (deleteButton != null) layers.add(deleteButton);
+    
+    return layers;
   }
 }
 
@@ -498,36 +562,6 @@ class _BubbleAppNodeState extends State<BubbleAppNode> with SingleTickerProvider
                         ),
                     ),
                 ),
-
-                // Delete Button overlay (only when focused)
-                if (widget.isFocused)
-                    Positioned(
-                        top: -10,
-                        right: -10,
-                        child: GestureDetector(
-                            onTap: widget.onDelete,
-                            child: Container(
-                                width: 36,
-                                height: 36,
-                                decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                        BoxShadow(
-                                            color: Colors.black26, 
-                                            blurRadius: 4, 
-                                            offset: Offset(0, 2)
-                                        )
-                                    ]
-                                ),
-                                child: const Icon(
-                                    Icons.delete_forever, 
-                                    color: Colors.white, 
-                                    size: 20
-                                ),
-                            ),
-                        ),
-                    )
              ],
           ),
         ),

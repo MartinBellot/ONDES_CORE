@@ -7,7 +7,9 @@ import '../../core/services/store_service.dart';
 import '../../core/services/app_installer_service.dart';
 import '../../core/services/local_server_service.dart';
 import '../../core/services/app_library_service.dart';
+import '../../core/services/permission_manager_service.dart';
 import '../webview_screen.dart';
+import '../common/permission_request_screen.dart';
 import 'app_detail_screen.dart';
 
 class StoreScreen extends StatefulWidget {
@@ -256,16 +258,71 @@ class _StoreScreenState extends State<StoreScreen>
     await _installer.installApp(app, (p) {});
     await Future.delayed(const Duration(milliseconds: 300));
     await _refreshLocalApps();
-    await _server.startServer(appId: app.id);
-
+    
     if (mounted) {
-      Navigator.pop(context);
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (c) => WebViewScreen(url: _server.localUrl)),
-      );
-      _refreshLocalApps();
+      Navigator.pop(context); // Close "Installing" dialog
+
+      // 1. Get the Fresh "Installed" version of the app (from disk) to get correct Permissions
+      // The 'app' object from Store might not match local manifest exactly or format
+      final installedList = await _library.getInstalledApps();
+      MiniApp? localApp;
+      try {
+         localApp = installedList.firstWhere((a) => a.id == app.id);
+      } catch (_) {}
+
+      if (localApp == null) {
+        // Fallback (Should not happen if install success)
+        _launch(app); 
+        return;
+      }
+
+      // 2. Permission Check Logic
+      final permissions = localApp.permissions;
+      final bool hasGranted = PermissionManagerService().hasAcceptedManifest(localApp.id);
+      
+      if (permissions.isNotEmpty && !hasGranted) {
+        // Show Permission Screen
+        await showGeneralDialog(
+          context: context,
+          barrierDismissible: false,
+          barrierColor: Colors.black.withOpacity(0.5),
+          pageBuilder: (context, anim1, anim2) {
+            return FadeTransition(
+              opacity: anim1,
+              child: PermissionRequestScreen(
+                app: localApp!,
+                onAccepted: () {
+                  Navigator.of(context).pop();
+                  _launch(localApp!);
+                },
+                onDenied: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          },
+        );
+      } else {
+        // Direct launch
+        _launch(localApp);
+      }
     }
+  }
+
+  Future<void> _launch(MiniApp app) async {
+    await _server.startServer(appId: app.id);
+    if (!mounted) return;
+    
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (c) => WebViewScreen(
+          url: _server.localUrl,
+          appId: app.id, // IMPORTANT: Pass ID for Sandbox
+        ),
+      ),
+    );
+    _refreshLocalApps();
   }
 
   Widget _buildInstallDialog(MiniApp app) {

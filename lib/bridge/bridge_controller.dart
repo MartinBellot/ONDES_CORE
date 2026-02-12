@@ -61,6 +61,20 @@ class OndesBridgeController {
     _websocketHandler = WebsocketHandler(context);
     _udpHandler = UdpHandler(context);
     _chatHandler = ChatHandler(context);
+
+    // Propagate App ID for Sandbox Security
+    _uiHandler.setAppId(appBundleId);
+    _userHandler.setAppId(appBundleId);
+    _deviceHandler.setAppId(appBundleId);
+    _friendsHandler.setAppId(appBundleId);
+    _socialHandler.setAppId(appBundleId);
+    _websocketHandler.setAppId(appBundleId);
+    _udpHandler.setAppId(appBundleId);
+    _chatHandler.setAppId(appBundleId);
+    
+    // Storage & App handlers already took it in constructor, but ensuring consistency:
+    _storageHandler.setAppId(appBundleId);
+    _appHandler.setAppId(appBundleId);
   }
 
   void setController(InAppWebViewController controller) {

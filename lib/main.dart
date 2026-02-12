@@ -9,12 +9,16 @@ import 'ui/auth/login_screen.dart';
 import 'ui/profile/profile_screen.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/webview_pool_service.dart';
+import 'core/services/permission_manager_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Init Service de Pool WebView (Warmer)
-  WebViewPoolService().init();
+  await WebViewPoolService().init();
+  
+  // Init Permissions
+  await PermissionManagerService().init();
 
   // Init Auth
   await AuthService().init();

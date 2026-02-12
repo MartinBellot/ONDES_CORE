@@ -189,6 +189,9 @@ class MiniApp {
   bool isInstalled;
   String? localPath;
   
+  // Permissions (Sandbox)
+  final List<String> permissions;
+  
   // Dates
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -227,6 +230,7 @@ class MiniApp {
     required this.downloadUrl,
     this.isInstalled = false,
     this.localPath,
+    this.permissions = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -249,6 +253,7 @@ class MiniApp {
       ratingsCount: json['ratings_count'] ?? 0,
       featured: json['featured'] ?? false,
       downloadUrl: json['download_url'] ?? '',
+      permissions: (json['permissions'] as List?)?.map((e) => e.toString()).toList() ?? [],
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
     );
   }

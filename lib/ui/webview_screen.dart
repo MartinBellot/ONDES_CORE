@@ -8,7 +8,8 @@ import '../core/services/webview_pool_service.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String url;
-  const WebViewScreen({Key? key, required this.url}) : super(key: key);
+  final String? appId;
+  const WebViewScreen({Key? key, required this.url, this.appId}) : super(key: key);
 
   @override
   State<WebViewScreen> createState() => _WebViewScreenState();
@@ -50,6 +51,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
     _keepAlive = WebViewPoolService().getAvailableKeepAlive();
 
     _bridge = OndesBridgeController(
+      appBundleId: widget.appId, // Sandbox ID
       context, 
       onAppBarConfig: _updateAppBar,
       onDrawerConfig: _updateDrawer,

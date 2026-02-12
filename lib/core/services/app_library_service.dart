@@ -60,6 +60,7 @@ class AppLibraryService {
               downloadUrl: "", // Not needed for installed
               isInstalled: true,
               localPath: entity.path,
+              permissions: (json['permissions'] as List?)?.map((e) => e.toString()).toList() ?? [],
             ));
           } catch (e) {
             print("Error parsing manifest for ${entity.path}: $e");

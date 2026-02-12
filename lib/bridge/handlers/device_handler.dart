@@ -55,6 +55,8 @@ class DeviceHandler extends BaseHandler {
 
   void _registerScanQRCode() {
     addHandler('Ondes.Device.scanQRCode', (args) async {
+      await requirePermission('camera'); // Sandbox Check
+
       final result = await Navigator.push<String>(
         context,
         MaterialPageRoute(builder: (context) => const CodeScannerScreen()),
@@ -70,6 +72,8 @@ class DeviceHandler extends BaseHandler {
 
   void _registerGetGPSPosition() {
     addHandler('Ondes.Device.getGPSPosition', (args) async {
+      await requirePermission('location'); // Sandbox Check
+
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Location services are disabled.');
