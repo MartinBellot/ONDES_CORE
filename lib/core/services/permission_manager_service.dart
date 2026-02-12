@@ -72,4 +72,14 @@ class PermissionManagerService {
     
     return _grantedPermissions[appId]!.contains(permission);
   }
+
+  /// Retourne la liste des IDs d'apps qui ont des permissions accordées
+  List<String> getGrantedApps() {
+    return _grantedPermissions.keys.toList();
+  }
+
+  /// Retourne les permissions accordées pour une app
+  List<String> getPermissionsForApp(String appId) {
+    return _grantedPermissions[appId] ?? [];
+  }
 }

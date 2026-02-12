@@ -39,11 +39,69 @@ class AppInstallerService {
       final archive = ZipDecoder().decodeStream(inputStream);
       extractArchiveToDisk(archive, installPath);
       
-      return installPath;
+      // 5. Flatten if necessary
+      await _flattenIfNecessary(installDir);
 
+      return installPath;
     } catch (e) {
       print("❌ Install Error: $e");
       return null;
+    }
+  }
+
+  /// Checks if the directory contains only one folder (ignoring system files) and no manifest at root.
+  /// If so, moves everything up one level.
+  Future<void> _flattenIfNecessary(Directory dir) async {
+    final List<FileSystemEntity> entities = dir.listSync();
+    
+    // Ignore macOS system files
+    final validEntities = entities.where((e) {
+      final name = e.uri.pathSegments.last; // Using uri segments safest for cross-platform
+      if (name.isEmpty) { // Trailing slash case
+         final parts = e.path.split(Platform.pathSeparator);
+         final last = parts.last.isEmpty ? parts[parts.length - 2] : parts.last;
+         return !last.startsWith('.') && last != '__MACOSX';
+      }
+      return !name.startsWith('.') && name != '__MACOSX';
+    }).toList();
+
+    // If we have a manifest.json at root, it's correct.
+    bool hasManifest = validEntities.any((e) => e.path.toLowerCase().endsWith('manifest.json'));
+    if (hasManifest) return;
+
+    // If no manifest, and only 1 directory (ignoring junk), move it up
+    final dirs = validEntities.whereType<Directory>().toList();
+    if (dirs.length == 1) {
+      final subDir = dirs.first;
+      print("📂 Detected nested root folder '${subDir.path}', flattening...");
+      
+      final subEntities = subDir.listSync();
+      for (final entity in subEntities) {
+        final segments = entity.uri.pathSegments;
+        // Last segment might be empty if path ends with separator
+        String name = segments.last;
+        if (name.isEmpty && segments.length > 1) name = segments[segments.length - 2];
+        
+        final newPath = "${dir.path}${Platform.pathSeparator}$name";
+        // Handle files and directories rename
+        try {
+           entity.renameSync(newPath);
+        } catch(e) {
+           // Fallback for cross-device/partition rename issues (copy & delete)
+           if (entity is File) {
+             entity.copySync(newPath);
+             entity.deleteSync();
+           } else if (entity is Directory) {
+             // Basic directory move (recursive copy) - naive implementation sufficient for flattening
+             // actually for folders we can just try rename, usually works on same volume
+             print("Could not rename dir: $e");
+           }
+        }
+      }
+      // Delete empty subdir
+      try {
+        subDir.deleteSync(recursive: true);
+      } catch (_) {}
     }
   }
 

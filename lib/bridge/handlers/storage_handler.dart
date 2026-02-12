@@ -29,6 +29,8 @@ class StorageHandler extends BaseHandler {
 
   void _registerSet() {
     addHandler('Ondes.Storage.set', (args) async {
+      await requirePermission('storage');
+      
       if (args.isEmpty) return false;
       
       final params = args[0] as List;
@@ -46,6 +48,8 @@ class StorageHandler extends BaseHandler {
 
   void _registerGet() {
     addHandler('Ondes.Storage.get', (args) async {
+      await requirePermission('storage');
+
       if (args.isEmpty) return null;
       
       final key = args[0].toString();
@@ -65,6 +69,8 @@ class StorageHandler extends BaseHandler {
 
   void _registerRemove() {
     addHandler('Ondes.Storage.remove', (args) async {
+      await requirePermission('storage');
+
       if (args.isEmpty) return false;
       
       final key = args[0].toString();
@@ -76,6 +82,8 @@ class StorageHandler extends BaseHandler {
 
   void _registerClear() {
     addHandler('Ondes.Storage.clear', (args) async {
+      await requirePermission('storage');
+
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys();
       final prefix = appBundleId != null ? 'ondes_app_${appBundleId}_' : 'ondes_storage_';
@@ -91,6 +99,8 @@ class StorageHandler extends BaseHandler {
 
   void _registerGetKeys() {
     addHandler('Ondes.Storage.getKeys', (args) async {
+      await requirePermission('storage');
+      
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys();
       final prefix = appBundleId != null ? 'ondes_app_${appBundleId}_' : 'ondes_storage_';

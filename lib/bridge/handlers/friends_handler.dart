@@ -29,6 +29,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.list() - Récupère la liste des amis
   void _registerGetFriends() {
     addHandler('Ondes.Friends.list', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -49,6 +51,8 @@ class FriendsHandler extends BaseHandler {
   /// options: { username: string } ou { userId: number }
   void _registerSendRequest() {
     addHandler('Ondes.Friends.request', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -78,6 +82,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.getPendingRequests() - Récupère les demandes reçues en attente
   void _registerGetPendingRequests() {
     addHandler('Ondes.Friends.getPendingRequests', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }

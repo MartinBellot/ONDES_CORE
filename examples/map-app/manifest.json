@@ -1,7 +1,8 @@
 {
     "id": "com.ondes.map",
     "name": "Cartes",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "icon": "icon.png",
-    "description": "Exploration cartographique design."
+    "description": "Exploration cartographique design.",
+    "permissions": ["location"]
 }

@@ -20,6 +20,7 @@ Ondes Core adopte un modèle de sécurité "Sandbox" strict pour protéger la vi
 | `location` | Géolocalisation GPS précise | `Ondes.Device.getGPSPosition` | 🔴 Élevé |
 | `storage` | Accès aux fichiers du téléphone | `Ondes.Storage.readFile` | 🟠 Moyen |
 | `contacts` | Lecture du carnet d'adresses | - | 🔴 Élevé |
+| `friends` | Accès à la liste d'amis et graphe social | `Ondes.Friends.*` | 🟠 Moyen |
 | `notifications` | Envoi de notifications push | - | 🟢 Faible |
 | `bluetooth` | Scan et connexion périphériques | - | 🟠 Moyen |
 | `social` | Interactions sociales (Like, Follow) | `Ondes.Social.*` | 🟢 Faible |

@@ -22,8 +22,8 @@ class SocialHandler extends BaseHandler {
     _registerGetFollowing();
 
     // Posts
-    _registerPublish();
-    _registerGetFeed();
+    _registerPublish(); // requires social
+    _registerGetFeed(); // requires social
     _registerGetPost();
     _registerDeletePost();
     _registerGetUserPosts();
@@ -64,6 +64,7 @@ class SocialHandler extends BaseHandler {
   /// Ondes.Social.follow(options)
   void _registerFollow() {
     addHandler('Ondes.Social.follow', (args) async {
+      await requirePermission('social');
       _requireAuth();
 
       final options = args.isNotEmpty ? args[0] as Map<String, dynamic> : {};
@@ -144,6 +145,7 @@ class SocialHandler extends BaseHandler {
   /// Ondes.Social.publish(options)
   void _registerPublish() {
     addHandler('Ondes.Social.publish', (args) async {
+      await requirePermission('social');
       _requireAuth();
 
       final options = args.isNotEmpty ? args[0] as Map<String, dynamic> : {};
@@ -169,6 +171,7 @@ class SocialHandler extends BaseHandler {
   /// Ondes.Social.getFeed(options?)
   void _registerGetFeed() {
     addHandler('Ondes.Social.getFeed', (args) async {
+      await requirePermission('social');
       _requireAuth();
 
       final options = args.isNotEmpty ? args[0] as Map<String, dynamic> : {};

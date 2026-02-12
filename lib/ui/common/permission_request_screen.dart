@@ -18,7 +18,10 @@ class PermissionRequestScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Material(
+      color: Colors.transparent,
+      child:
+    Stack(
       children: [
         // Background Blur
         BackdropFilter(
@@ -113,7 +116,7 @@ class PermissionRequestScreen extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
+                          backgroundColor: Colors.green,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -124,7 +127,7 @@ class PermissionRequestScreen extends StatelessWidget {
                            onAccepted();
                         },
                         child: const Text(
-                          "Continuer",
+                          "Accepter",
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
@@ -136,6 +139,7 @@ class PermissionRequestScreen extends StatelessWidget {
           ),
         ),
       ],
+    )
     );
   }
 

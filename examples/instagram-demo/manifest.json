@@ -5,5 +5,5 @@
     "description": "Application sociale style Instagram avec feed, stories, posts et interactions",
     "icon": "assets/icon.png",
     "author": "Ondes Team",
-    "permissions": ["camera", "storage"]
+    "permissions": ["camera", "storage", "social"]
 }

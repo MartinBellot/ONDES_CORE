@@ -1,7 +1,8 @@
 {
     "id": "com.ondes.meteo",
     "name": "Météo",
-    "version": "3.2.6",
+    "version": "3.3.0",
     "icon": "icon.png",
-    "description": "Prévisions météo hyper-locales réelles avec design moderne."
+    "description": "Prévisions météo hyper-locales réelles avec design moderne.",
+    "permissions": ["location"]
 }

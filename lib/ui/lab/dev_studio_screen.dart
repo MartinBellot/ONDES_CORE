@@ -388,20 +388,35 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
         final tempDir = await getTemporaryDirectory();
         final zipPath = '${tempDir.path}/${newApp.id}_v$initialVersion.zip';
         
-        final encoder = ZipFileEncoder();
-        encoder.create(zipPath);
-        
+        final archive = Archive();
         final dir = Directory(folderPath);
-        final List<FileSystemEntity> files = dir.listSync(recursive: true);
+        
+        if (dir.existsSync()) {
+          final files = dir.listSync(recursive: true);
+          for (var file in files) {
+            if (file is File) {
+              final filename = file.uri.pathSegments.last;
+              if (filename == '.DS_Store' || filename.startsWith('._')) continue;
 
-        for (var file in files) {
-          if (file is File) {
-            String relPath = file.path.substring(dir.path.length + 1);
-            if (Platform.isWindows) relPath = relPath.replaceAll(Platform.pathSeparator, '/');
-            encoder.addFile(file, relPath);
+              String relPath = file.path.substring(dir.path.length);
+              if (relPath.startsWith(Platform.pathSeparator)) {
+                relPath = relPath.substring(1);
+              }
+              String zipEntryName = relPath.replaceAll(Platform.pathSeparator, '/');
+              
+              final bytes = await file.readAsBytes();
+              final archiveFile = ArchiveFile(zipEntryName, bytes.lengthInBytes, bytes);
+              archive.addFile(archiveFile);
+            }
           }
         }
-        encoder.close();
+        
+        final zipEncoder = ZipEncoder();
+        final encodedBytes = zipEncoder.encode(archive);
+        if (encodedBytes == null) throw Exception("Failed to encode zip");
+        
+        final zipFile = File(zipPath);
+        await zipFile.writeAsBytes(encodedBytes);
 
         final success = await _service.uploadVersion(
           appId: newApp.dbId!,
@@ -605,20 +620,38 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
        final tempDir = await getTemporaryDirectory();
        final zipPath = '${tempDir.path}/${app.id}_v$version.zip';
        
-       final encoder = ZipFileEncoder();
-       encoder.create(zipPath);
-       
+       // Create Archive in memory
+       final archive = Archive();
        final dir = Directory(sourcePath);
-       final List<FileSystemEntity> files = dir.listSync(recursive: true);
+       
+       if (dir.existsSync()) {
+         final files = dir.listSync(recursive: true);
+         for (var file in files) {
+           if (file is File) {
+             final filename = file.uri.pathSegments.last;
+             if (filename == '.DS_Store' || filename.startsWith('._')) continue;
 
-       for (var file in files) {
-         if (file is File) {
-            String relPath = file.path.substring(dir.path.length + 1);
-            if (Platform.isWindows) relPath = relPath.replaceAll(Platform.pathSeparator, '/');
-            encoder.addFile(file, relPath);
+             String relPath = file.path.substring(dir.path.length);
+             if (relPath.startsWith(Platform.pathSeparator)) {
+               relPath = relPath.substring(1);
+             }
+             String zipEntryName = relPath.replaceAll(Platform.pathSeparator, '/');
+             
+             final bytes = await file.readAsBytes();
+             final archiveFile = ArchiveFile(zipEntryName, bytes.lengthInBytes, bytes);
+             archive.addFile(archiveFile);
+           }
          }
        }
-       encoder.close();
+       
+       // Encode to Zip
+       final zipEncoder = ZipEncoder();
+       final encodedBytes = zipEncoder.encode(archive);
+       if (encodedBytes == null) throw Exception("Failed to encode zip");
+       
+       // Write to disk
+       final zipFile = File(zipPath);
+       await zipFile.writeAsBytes(encodedBytes);
 
        final success = await _service.uploadVersion(
          appId: app.dbId!,

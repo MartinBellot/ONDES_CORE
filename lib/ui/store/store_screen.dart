@@ -255,7 +255,19 @@ class _StoreScreenState extends State<StoreScreen>
       _storeService.trackDownload(app.dbId!);
     }
 
-    await _installer.installApp(app, (p) {});
+    final installPath = await _installer.installApp(app, (p) {});
+    debugPrint("Install path: $installPath");
+    // If install failed (returned null), stop here and show error.
+    if (installPath == null) {
+      if (mounted) {
+         Navigator.pop(context); // Close dialog
+         ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Échec de l'installation. Vérifiez le paquet."), backgroundColor: Colors.red),
+         );
+      }
+      return;
+    }
+
     await Future.delayed(const Duration(milliseconds: 300));
     await _refreshLocalApps();
     

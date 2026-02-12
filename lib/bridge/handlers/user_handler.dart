@@ -14,7 +14,8 @@ class UserHandler extends BaseHandler {
   }
 
   void _registerGetProfile() {
-    addSyncHandler('Ondes.User.getProfile', (args) {
+    addHandler('Ondes.User.getProfile', (args) async {
+      // Basic profile info is public for installed apps
       final user = AuthService().currentUser;
       if (user != null) {
         String? avatarUrl = user['avatar'];

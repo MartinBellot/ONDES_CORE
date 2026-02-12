@@ -10,6 +10,8 @@ import '../../core/services/dev_studio_service.dart';
 import '../../core/models/mini_app.dart';
 import '../../main.dart' show authWrapperKey;
 
+import 'permission_management_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -1018,6 +1020,16 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           child: Column(
             children: [
+              _buildActionTile(
+                icon: Icons.security_rounded,
+                title: "Gestion des permissions",
+                subtitle: "Voir et révoquer les accès",
+                iconColor: Colors.blue,
+                onTap: () {
+                   Navigator.push(context, MaterialPageRoute(builder: (c) => const PermissionManagementScreen()));
+                },
+              ),
+              Divider(color: Colors.white.withOpacity(0.1), height: 1),
               _buildActionTile(
                 icon: Icons.delete_sweep_rounded,
                 title: "Supprimer les apps locales",

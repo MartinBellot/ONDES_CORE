@@ -32,6 +32,8 @@ Voici les clés de permissions supportées par le système :
 | `location` | Accès à la position GPS |
 | `storage` | Lecture/Écriture de fichiers |
 | `contacts` | Accès au carnet d'adresses |
+| `friends` | Accès à la liste d'amis et au graphe social |
+| `social` | Interactions sociales (Like, Follow, Feed) |
 | `notifications` | Droit d'envoyer des notifications |
 | `bluetooth` | Accès Bluetooth |
 
