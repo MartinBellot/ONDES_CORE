@@ -66,8 +66,8 @@ nav:
     - Exemples: examples.md
   - Référence SDK:
     - Introduction SDK: sdk/index.md
-    - �️ Permissions & Sécurité: sdk/permissions.md
-    - �💙 SDK Flutter: sdk/flutter.md
+    - Permissions & Sécurité: sdk/permissions.md
+    - SDK Flutter: sdk/flutter.md
     - Interface (UI): sdk/ui.md
     - Utilisateur (User): sdk/user.md
     - Matériel (Device): sdk/device.md
@@ -76,7 +76,7 @@ nav:
     - Amis (Friends): sdk/friends.md
     - Social & Médias: sdk/social.md
     - Communication:
-      - Chat E2EE: sdk/chat.md
+      - 💬 Chat E2EE: sdk/chat.md
       - 🔌 WebSocket: sdk/websocket.md
       - 📡 UDP: sdk/udp.md
   - Backend API: backend.md

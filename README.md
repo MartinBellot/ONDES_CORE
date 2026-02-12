@@ -25,6 +25,7 @@ Sinon, naviguez dans les fichiers Markdown directement ici :
 
 ### 👨‍💻 Créer une Mini-App
 - **[Guide du développeur](docs/mini_app_guide.md)** : Créer sa première app, structure, manifest.json.
+- **[🔒 Sécurité & Permissions](SECURITY.md)** : Modèle de permissions "Sandbox", cycle de vie et bonnes pratiques.
 - **[🧪 Ondes Lab](docs/lab.md)** : Environnement de développement, serveur local, debugging.
 - **[Exemples](docs/examples.md)** : Liste des applications de démonstration fournies.
 

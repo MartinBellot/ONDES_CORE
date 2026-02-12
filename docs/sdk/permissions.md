@@ -8,7 +8,7 @@ Chaque Mini-App doit déclarer ses besoins dans son fichier `manifest.json`. Si 
 
 ### Exemple de manifest.json
 
-```json Appareil photo et Localisation
+```json
 {
     "id": "com.monapp.explore",
     "name": "Explorateur",
