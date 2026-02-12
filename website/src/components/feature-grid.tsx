@@ -14,12 +14,12 @@ import { FadeIn } from "./fade-in";
 import { CodeWindow } from "./code-window";
 
 const sdkModules = [
-  { icon: Layers, label: "Interface (UI)", desc: "Toasts, Modals, Navigation" },
-  { icon: Users, label: "Social Graph", desc: "Feed, Posts, Stories" },
-  { icon: MessageCircle, label: "E2EE Chat", desc: "X25519 + AES-256-GCM" },
-  { icon: Wifi, label: "WebSocket", desc: "Real-time connections" },
-  { icon: Shield, label: "Permissions", desc: "Manifest-based sandbox" },
-  { icon: Zap, label: "Device APIs", desc: "Camera, GPS, Haptics" },
+  { icon: Layers, label: "Interface", desc: "Notifications, popups, navigation" },
+  { icon: Users, label: "Réseau Social", desc: "Fil d'actu, posts, stories" },
+  { icon: MessageCircle, label: "Messagerie", desc: "Chat chiffré de bout en bout" },
+  { icon: Wifi, label: "Temps Réel", desc: "Données en direct" },
+  { icon: Shield, label: "Sécurité", desc: "Contrôle des accès" },
+  { icon: Zap, label: "Téléphone", desc: "Caméra, GPS, vibrations" },
 ];
 
 export function FeatureGrid() {
@@ -30,14 +30,14 @@ export function FeatureGrid() {
         <FadeIn>
           <div className="text-center mb-16">
             <span className="inline-block text-xs font-mono text-[#7c3aed] tracking-widest uppercase mb-4">
-              Architecture
+              Comment ça marche
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Built for <span className="gradient-text">Interconnection</span>
+              Tout est <span className="gradient-text">connecté</span>
             </h2>
             <p className="mt-4 text-white/40 max-w-xl mx-auto">
-              A modular architecture where every layer communicates seamlessly
-              through the ONDES Bridge.
+              Les mini-apps communiquent entre elles et avec le téléphone
+              comme les apps d&apos;un même smartphone — mais à l&apos;intérieur d&apos;une seule application.
             </p>
           </div>
         </FadeIn>
@@ -53,16 +53,17 @@ export function FeatureGrid() {
                   <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-[#7c3aed]/10 border border-[#7c3aed]/20">
                     <ArrowLeftRight className="h-5 w-5 text-[#7c3aed]" />
                   </div>
-                  <h3 className="text-lg font-semibold">The Symbiotic Bridge</h3>
+                  <h3 className="text-lg font-semibold">Le Pont entre Web et Natif</h3>
                 </div>
                 <p className="text-white/40 text-sm leading-relaxed mb-6">
-                  Bidirectional communication. The Guest asks, the Host delivers.
-                  Zero latency. The <code className="text-[#7c3aed] font-mono text-xs">window.Ondes</code> object
-                  is injected into every WebView, exposing 10+ native modules.
+                  Vos mini-apps sont créées en HTML/JS, mais elles peuvent
+                  utiliser la caméra, le GPS ou les vibrations du téléphone
+                  comme une app native. Le pont <code className="text-[#7c3aed] font-mono text-xs">Ondes</code>{" "}
+                  connecte les deux mondes automatiquement.
                 </p>
                 <CodeWindow title="guest_app.js" className="max-w-lg">
                   <code>
-                    <span className="code-comment">{"// Access native from web"}</span>
+                    <span className="code-comment">{"// Récupérer le profil de l'utilisateur"}</span>
                     {"\n"}
                     <span className="code-keyword">const</span>{" "}
                     <span className="code-variable">user</span>{" "}
@@ -97,13 +98,13 @@ export function FeatureGrid() {
                 <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-[#06b6d4]/10 border border-[#06b6d4]/20 mb-4">
                   <Users className="h-5 w-5 text-[#06b6d4]" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Social Mesh</h3>
+                <h3 className="text-lg font-semibold mb-2">Réseau Social Intégré</h3>
                 <p className="text-white/40 text-sm leading-relaxed">
-                  Identity & Graph built-in. Users carry their profile, friends list,
-                  and social feed across every mini-app. No auth setup needed.
+                  Chaque utilisateur a déjà un profil, des amis et un fil d&apos;actualité.
+                  Les mini-apps y accèdent directement — pas besoin de recréer un compte.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {["Feed", "Friends", "Stories", "Posts"].map((tag) => (
+                  {["Feed", "Amis", "Stories", "Posts"].map((tag) => (
                     <span
                       key={tag}
                       className="px-2.5 py-1 text-xs font-mono rounded-md bg-[#06b6d4]/5 text-[#06b6d4]/70 border border-[#06b6d4]/10"
@@ -124,10 +125,10 @@ export function FeatureGrid() {
                 <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-[#06b6d4]/10 border border-[#06b6d4]/20 mb-4">
                   <Layers className="h-5 w-5 text-[#06b6d4]" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Native Delegation</h3>
+                <h3 className="text-lg font-semibold mb-2">Notifications & Popups</h3>
                 <p className="text-white/40 text-sm leading-relaxed">
-                  Delegate UI complexity — Modals, Toasts, Navigation — to the Host
-                  engine. Your mini-app stays lightweight, the Shell handles the rest.
+                  Besoin d&apos;afficher un message, une fenêtre ou de naviguer entre écrans ?
+                  L&apos;app principale s&apos;en charge — votre mini-app reste simple et légère.
                 </p>
                 <div className="mt-6 space-y-2">
                   {["showToast()", "showModal()", "navigate()"].map((fn) => (
@@ -154,20 +155,20 @@ export function FeatureGrid() {
                     <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-[#7c3aed]/10 border border-[#7c3aed]/20">
                       <Rocket className="h-5 w-5 text-[#7c3aed]" />
                     </div>
-                    <h3 className="text-lg font-semibold">Instant Deployment</h3>
+                    <h3 className="text-lg font-semibold">Disponible en un clic</h3>
                   </div>
                   <p className="text-white/40 text-sm leading-relaxed">
-                    Push updates to thousands of devices instantly. No app store
-                    delays, no recompilation. Upload a .zip, it&apos;s live. The Dev Studio
-                    handles versioning and distribution through the internal Store.
+                    Pas besoin de passer par l&apos;App Store ou Google Play. Publiez
+                    votre mini-app et elle est instantanément disponible pour tous
+                    les utilisateurs. Les mises à jour aussi — en temps réel.
                   </p>
                 </div>
                 <div className="flex-shrink-0 grid grid-cols-2 gap-3">
                   {[
-                    { value: "0s", label: "Store delay" },
-                    { value: "∞", label: "Hot updates" },
-                    { value: ".zip", label: "Deploy format" },
-                    { value: "10+", label: "SDK modules" },
+                    { value: "0s", label: "Délai de publication" },
+                    { value: "∞", label: "Mises à jour" },
+                    { value: ".zip", label: "Un seul fichier" },
+                    { value: "10+", label: "Fonctionnalités" },
                   ].map((stat) => (
                     <div
                       key={stat.label}
@@ -191,7 +192,7 @@ export function FeatureGrid() {
         <FadeIn delay={0.5}>
           <div id="ecosystem" className="mt-16">
             <h3 className="text-center text-sm font-mono text-white/30 mb-6 tracking-widest uppercase">
-              SDK Modules
+              Fonctionnalités intégrées
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
               {sdkModules.map((mod, i) => (

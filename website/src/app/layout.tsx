@@ -15,22 +15,22 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ONDES_CORE — The Protocol for Interconnected Super Apps",
+  title: "ONDES_CORE — Une app, des milliers de services",
   description:
-    "Orchestrate a mesh of native-capable mini-apps. One Host, infinite Guests, seamless communication via the ONDES Bridge.",
+    "Créez un écosystème d'applications légères qui partagent le même réseau social, la même identité, et les mêmes fonctionnalités du téléphone.",
   keywords: [
     "super app",
     "mini apps",
     "flutter",
-    "webview",
-    "bridge",
-    "native",
-    "ecosystem",
+    "plateforme",
+    "écosystème",
+    "applications modulaires",
+    "réseau social",
   ],
   openGraph: {
-    title: "ONDES_CORE — The Protocol for Interconnected Super Apps",
+    title: "ONDES_CORE — Une app, des milliers de services",
     description:
-      "Orchestrate a mesh of native-capable mini-apps. One Host, infinite Guests, seamless communication via the ONDES Bridge.",
+      "Créez un écosystème d'applications légères qui partagent le même réseau social, la même identité, et les mêmes fonctionnalités du téléphone.",
     type: "website",
   },
 };
@@ -41,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="fr" className="dark">
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased noise`}
       >

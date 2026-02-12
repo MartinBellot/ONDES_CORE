@@ -5,24 +5,24 @@ import { Github } from "lucide-react";
 
 const footerLinks = [
   {
-    title: "Resources",
+    title: "Ressources",
     links: [
       { label: "Documentation", href: "https://martinbellot.github.io/ONDES_CORE/" },
-      { label: "Mini-App Guide", href: "https://martinbellot.github.io/ONDES_CORE/mini_app_guide/" },
-      { label: "SDK Reference", href: "https://martinbellot.github.io/ONDES_CORE/sdk/" },
-      { label: "Examples", href: "https://martinbellot.github.io/ONDES_CORE/examples/" },
+      { label: "Créer une mini-app", href: "https://martinbellot.github.io/ONDES_CORE/mini_app_guide/" },
+      { label: "Référence technique", href: "https://martinbellot.github.io/ONDES_CORE/sdk/" },
+      { label: "Exemples", href: "https://martinbellot.github.io/ONDES_CORE/examples/" },
     ],
   },
   {
-    title: "Ecosystem",
+    title: "Écosystème",
     links: [
       { label: "Architecture", href: "https://martinbellot.github.io/ONDES_CORE/architecture/" },
       { label: "Ondes Lab", href: "https://martinbellot.github.io/ONDES_CORE/lab/" },
-      { label: "Backend API", href: "https://martinbellot.github.io/ONDES_CORE/backend/" },
+      { label: "API Backend", href: "https://martinbellot.github.io/ONDES_CORE/backend/" },
     ],
   },
   {
-    title: "Community",
+    title: "Communauté",
     links: [
       { label: "GitHub", href: "https://github.com/MartinBellot/ONDES_CORE" },
     ],
@@ -46,7 +46,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-xs text-white/30 leading-relaxed max-w-[200px]">
-              Empowering the next generation of modular apps.
+              L&apos;app qui fait tourner vos idées.
             </p>
             <Link
               href="https://github.com/MartinBellot/ONDES_CORE"
@@ -86,7 +86,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-[11px] text-white/20">
-            &copy; {new Date().getFullYear()} ONDES_CORE. Open source under MIT.
+            &copy; {new Date().getFullYear()} ONDES_CORE. Open source sous licence MIT.
           </p>
         </div>
       </div>

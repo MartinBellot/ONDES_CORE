@@ -13,35 +13,35 @@ interface CompRow {
 
 const rows: CompRow[] = [
   {
-    feature: "Distribution",
+    feature: "Comment distribuer",
     capacitor: "App Stores",
     flutter: "App Stores",
-    pwa: "Web URL",
-    ondes: "Internal Store",
+    pwa: "Lien web",
+    ondes: "Store intégré",
   },
   {
-    feature: "Update Speed",
-    capacitor: "Slow (validation)",
-    flutter: "Slow (validation)",
-    pwa: "Instant",
-    ondes: "Instant & Hot",
+    feature: "Mises à jour",
+    capacitor: "Lente (validation)",
+    flutter: "Lente (validation)",
+    pwa: "Instantanée",
+    ondes: "Instantanée",
   },
   {
-    feature: "App Isolation",
+    feature: "Apps isolées entre elles",
     capacitor: false,
     flutter: false,
     pwa: true,
     ondes: true,
   },
   {
-    feature: "Social Graph",
+    feature: "Réseau social intégré",
     capacitor: false,
     flutter: false,
     pwa: false,
     ondes: true,
   },
   {
-    feature: "Native Bridge",
+    feature: "Accès au téléphone",
     capacitor: true,
     flutter: true,
     pwa: false,
@@ -55,7 +55,7 @@ const rows: CompRow[] = [
     ondes: true,
   },
   {
-    feature: "Multi-App Ecosystem",
+    feature: "Plusieurs apps ensemble",
     capacitor: false,
     flutter: false,
     pwa: false,
@@ -81,14 +81,14 @@ export function ComparisonSection() {
         <FadeIn>
           <div className="text-center mb-12">
             <span className="inline-block text-xs font-mono text-[#7c3aed] tracking-widest uppercase mb-4">
-              Comparison
+              Comparatif
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Why <span className="gradient-text">ONDES_CORE</span>?
+              Pourquoi <span className="gradient-text">ONDES_CORE</span> ?
             </h2>
             <p className="mt-4 text-white/40 max-w-xl mx-auto">
-              Not just an alternative — a paradigm shift. You don&apos;t build an App,
-              you build an Ecosystem.
+              Les solutions classiques créent des apps isolées.
+              ONDES_CORE crée un écosystème vivant où tout communique.
             </p>
           </div>
         </FadeIn>
@@ -100,7 +100,7 @@ export function ComparisonSection() {
                 <thead>
                   <tr className="border-b border-white/[0.06]">
                     <th className="text-left px-5 py-4 text-xs font-medium text-white/30 uppercase tracking-wider">
-                      Feature
+                      Critère
                     </th>
                     <th className="text-center px-4 py-4 text-xs font-medium text-white/20">
                       Capacitor
@@ -164,18 +164,18 @@ export function ComparisonSection() {
             {[
               {
                 emoji: "🤝",
-                title: "Network Effect",
-                desc: "Mini-apps are born connected to the Social Graph. Identity, friends, and feed come for free.",
+                title: "Tout est déjà connecté",
+                desc: "Profil, amis, fil d'actu — chaque mini-app y accède dès le premier jour, sans rien coder en plus.",
               },
               {
                 emoji: "🧩",
-                title: "Decentralized Dev",
-                desc: "Multiple teams build independent mini-apps. The Shell stays untouched — true modularity.",
+                title: "Travaillez en équipe",
+                desc: "Chaque équipe crée sa propre mini-app sans toucher au reste. Comme des LEGO qui s'emboîtent.",
               },
               {
                 emoji: "⚡",
-                title: "Zero Time-to-Market",
-                desc: "No native compilation, no store validation. Upload a .zip and it's live on every device.",
+                title: "En ligne immédiatement",
+                desc: "Pas d'attente Apple ou Google. Publiez votre app et elle est disponible pour tout le monde en quelques secondes.",
               },
             ].map((reason) => (
               <div

@@ -22,7 +22,7 @@ export function Hero() {
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs text-white/50 font-mono">
               <span className="h-1.5 w-1.5 rounded-full bg-[#7c3aed] animate-pulse" />
-              Flutter Super App Engine
+              Plateforme d'applications
             </span>
           </motion.div>
 
@@ -33,9 +33,9 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-8 text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] max-w-4xl"
           >
-            The Protocol for{" "}
-            <span className="gradient-text">Interconnected</span>{" "}
-            Super Apps.
+            Une app,{" "}
+            <span className="gradient-text">des milliers</span>{" "}
+            de services.
           </motion.h1>
 
           {/* Subheadline */}
@@ -45,9 +45,10 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.35 }}
             className="mt-6 text-base sm:text-lg text-white/40 max-w-2xl leading-relaxed"
           >
-            Orchestrate a mesh of native-capable mini-apps. One Host, infinite
-            Guests, seamless communication via the{" "}
-            <span className="text-[#7c3aed]">ONDES Bridge</span>.
+            Imaginez une seule application qui héberge des dizaines de
+            services — météo, chat, jeux, outils — tous connectés entre eux,
+            avec accès à la caméra, au GPS et au{" "}
+            <span className="text-[#7c3aed]">réseau social intégré</span>.
           </motion.p>
 
           {/* CTAs */}
@@ -63,7 +64,7 @@ export function Hero() {
               rel="noopener noreferrer"
               className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:shadow-lg hover:shadow-[#7c3aed]/20"
             >
-              Explore the Ecosystem
+              Découvrir la plateforme
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
@@ -73,7 +74,7 @@ export function Hero() {
               className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-medium text-white/70 hover:text-white hover:border-white/20 transition-all duration-200"
             >
               <BookOpen className="h-4 w-4" />
-              Build a Mini-App
+              Créer ma première app
             </Link>
           </motion.div>
 

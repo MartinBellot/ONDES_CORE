@@ -190,15 +190,15 @@ export function NetworkAnimation() {
       <div className="flex items-center justify-center gap-6 py-3 border-t border-white/[0.04]">
         <div className="flex items-center gap-2 text-xs text-white/30">
           <span className="h-2 w-2 rounded-full bg-[#7c3aed]" />
-          Host Shell
+          App principale
         </div>
         <div className="flex items-center gap-2 text-xs text-white/30">
           <span className="h-2 w-2 rounded-full bg-[#06b6d4]" />
-          Guest Apps
+          Mini-apps
         </div>
         <div className="flex items-center gap-2 text-xs text-white/30">
           <span className="h-2 w-2 rounded-full bg-[#34d399]" />
-          Native APIs
+          Fonctions du téléphone
         </div>
       </div>
     </div>

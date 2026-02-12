@@ -14,14 +14,14 @@ export function InteractiveDemo() {
         <FadeIn>
           <div className="text-center mb-12">
             <span className="inline-block text-xs font-mono text-[#06b6d4] tracking-widest uppercase mb-4">
-              Interactive Demo
+              En pratique
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              The <span className="gradient-text">&quot;Aha!&quot;</span> Moment
+              Simple comme <span className="gradient-text">bonjour</span>
             </h2>
             <p className="mt-4 text-white/40 max-w-xl mx-auto">
-              See how a Mini-App interacts with the Host Shell and Hardware in
-              just a few lines of code.
+              En quelques lignes, votre mini-app reconnaît l&apos;utilisateur,
+              fait vibrer le téléphone et affiche un message. Tout ça sans rien installer.
             </p>
           </div>
         </FadeIn>
@@ -46,7 +46,7 @@ export function InteractiveDemo() {
                   <span className="code-punctuation">() =&gt; {"{"}</span>
                   {"\n\n"}
                   {"  "}
-                  <span className="code-comment">{"// 1. Connect to the Social Mesh"}</span>
+                  <span className="code-comment">{"// 1. Récupérer le profil de l'utilisateur"}</span>
                   {"\n"}
                   {"  "}
                   <span className="code-keyword">const</span>
@@ -65,7 +65,7 @@ export function InteractiveDemo() {
                   <span className="code-punctuation">();</span>
                   {"\n\n"}
                   {"  "}
-                  <span className="code-comment">{"// 2. Trigger Native Hardware"}</span>
+                  <span className="code-comment">{"// 2. Faire vibrer le téléphone"}</span>
                   {"\n"}
                   {"  "}
                   <span className="code-function">Ondes</span>
@@ -78,7 +78,7 @@ export function InteractiveDemo() {
                   <span className="code-punctuation">);</span>
                   {"\n\n"}
                   {"  "}
-                  <span className="code-comment">{"// 3. Delegate UI to Host"}</span>
+                  <span className="code-comment">{"// 3. Afficher un message de bienvenue"}</span>
                   {"\n"}
                   {"  "}
                   <span className="code-function">Ondes</span>
@@ -108,20 +108,20 @@ export function InteractiveDemo() {
               {[
                 {
                   step: "01",
-                  title: "Social Mesh",
-                  desc: "Instantly access the user's identity, friends, and social graph — no auth setup required.",
+                  title: "L'utilisateur est déjà connu",
+                  desc: "Pas besoin de formulaire d'inscription. Le profil, les amis, le fil d'actu — tout est déjà là.",
                   color: "#7c3aed",
                 },
                 {
                   step: "02",
-                  title: "Native Hardware",
-                  desc: "Trigger haptics, access camera, GPS, QR scanner — all with a single API call from JS.",
+                  title: "Accès au téléphone",
+                  desc: "Vibrations, caméra, GPS, scanner QR — votre mini-app peut tout utiliser en une seule ligne.",
                   color: "#06b6d4",
                 },
                 {
                   step: "03",
-                  title: "Host UI Delegation",
-                  desc: "Let the Shell handle native Toasts, Modals, and Navigation. Your app stays lightweight.",
+                  title: "Messages et fenêtres",
+                  desc: "Affichez des notifications, des popups ou naviguez entre écrans sans gérer la complexité.",
                   color: "#34d399",
                 },
               ].map((item) => (
@@ -160,8 +160,8 @@ export function InteractiveDemo() {
                   </h4>
                 </div>
                 <p className="text-xs text-white/35 leading-relaxed">
-                  Dev environment with Hot Reload over WiFi.
-                  Code on your machine, test live on device — no recompilation needed.
+                  Testez vos apps en temps réel sur votre téléphone.
+                  Modifiez le code sur votre ordi, le résultat s&apos;affiche instantanément sur l&apos;écran.
                 </p>
               </div>
             </div>

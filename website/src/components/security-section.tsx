@@ -4,11 +4,11 @@ import { Shield, Lock, KeyRound, Fingerprint } from "lucide-react";
 import { FadeIn } from "./fade-in";
 
 const permissions = [
-  { key: "camera", label: "Camera & QR" },
-  { key: "location", label: "GPS Position" },
-  { key: "storage", label: "File Storage" },
-  { key: "friends", label: "Social Graph" },
-  { key: "social", label: "Feed & Posts" },
+  { key: "camera", label: "Caméra & Scanner" },
+  { key: "location", label: "Localisation" },
+  { key: "storage", label: "Fichiers" },
+  { key: "friends", label: "Amis" },
+  { key: "social", label: "Publications" },
   { key: "bluetooth", label: "Bluetooth" },
 ];
 
@@ -21,14 +21,14 @@ export function SecuritySection() {
         <FadeIn>
           <div className="text-center mb-16">
             <span className="inline-block text-xs font-mono text-[#06b6d4] tracking-widest uppercase mb-4">
-              Security
+              Sécurité
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Sandboxed by <span className="gradient-text">Design</span>
+              Vos données sont <span className="gradient-text">protégées</span>
             </h2>
             <p className="mt-4 text-white/40 max-w-xl mx-auto">
-              Every Mini-App runs in an isolated WebView with manifest-based
-              permissions. The Bridge enforces access at runtime.
+              Chaque mini-app est isolée dans sa propre bulle. Elle ne peut accéder
+              qu&apos;aux fonctions que vous avez autorisées — comme les permissions sur votre smartphone.
             </p>
           </div>
         </FadeIn>
@@ -39,29 +39,29 @@ export function SecuritySection() {
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8 h-full">
               <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
                 <Shield className="h-5 w-5 text-[#06b6d4]" />
-                Permission Flow
+                Comment ça fonctionne
               </h3>
               <div className="space-y-4">
                 {[
                   {
                     icon: KeyRound,
-                    title: "Manifest Declaration",
-                    desc: "Mini-Apps declare required permissions in manifest.json before installation.",
+                    title: "L'app annonce ses besoins",
+                    desc: "Avant l'installation, chaque mini-app indique ce à quoi elle a besoin d'accéder (caméra, position, etc.).",
                   },
                   {
                     icon: Fingerprint,
-                    title: "User Consent",
-                    desc: "A native Glassmorphism modal lists all requested permissions. Accept or deny.",
+                    title: "Vous décidez",
+                    desc: "Une fenêtre vous montre clairement les accès demandés. Vous acceptez ou vous refusez — c'est vous le patron.",
                   },
                   {
                     icon: Shield,
-                    title: "Runtime Enforcement",
-                    desc: "The Bridge checks authorization on every API call. Undeclared access returns PERMISSION_DENIED.",
+                    title: "Vérification permanente",
+                    desc: "Chaque action est vérifiée en temps réel. Si une app essaie d'accéder à quelque chose de non autorisé, c'est bloqué.",
                   },
                   {
                     icon: Lock,
-                    title: "E2EE Chat",
-                    desc: "Messages encrypted with X25519 key exchange + AES-256-GCM. Private keys never leave the device.",
+                    title: "Messagerie chiffrée",
+                    desc: "Les messages sont chiffrés sur votre appareil avant d'être envoyés. Personne — même pas le serveur — ne peut les lire.",
                   },
                 ].map((item, i) => (
                   <div key={item.title} className="flex gap-4">
@@ -89,7 +89,7 @@ export function SecuritySection() {
           <FadeIn delay={0.2}>
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8 h-full">
               <h3 className="text-lg font-semibold mb-6">
-                Manifest Permissions
+                Accès contrôlés
               </h3>
 
               {/* Mock manifest */}

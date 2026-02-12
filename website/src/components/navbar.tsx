@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 const navLinks = [
-  { label: "Architecture", href: "#architecture" },
-  { label: "Ecosystem", href: "#ecosystem" },
-  { label: "Docs", href: "https://martinbellot.github.io/ONDES_CORE/" },
+  { label: "Comment ça marche", href: "#architecture" },
+  { label: "Fonctionnalités", href: "#ecosystem" },
+  { label: "Documentation", href: "https://martinbellot.github.io/ONDES_CORE/" },
 ];
 
 export function Navbar() {
