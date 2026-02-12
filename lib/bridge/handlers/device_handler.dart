@@ -76,6 +76,7 @@ class DeviceHandler extends BaseHandler {
 
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+      debugPrint("🚫 [Sandbox] Location services are disabled.");
         throw Exception('Location services are disabled.');
       }
 
@@ -83,13 +84,16 @@ class DeviceHandler extends BaseHandler {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
+          debugPrint("🚫 [Sandbox] Location permission denied by user.");
           throw Exception('Location permissions are denied');
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
+        debugPrint("🚫 [Sandbox] Location permissions are permanently denied.");
         throw Exception('Location permissions are permanently denied.');
       }
+      debugPrint("✅ [Sandbox] Location permission granted, fetching position...");
 
       final position = await Geolocator.getCurrentPosition();
       return {
