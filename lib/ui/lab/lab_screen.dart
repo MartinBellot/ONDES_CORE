@@ -1,6 +1,8 @@
-import 'package:url_launcher/url_launcher.dart'; // Ensure url_launcher is in pubspec, otherwise use simple webview push or check imports.
+import 'package:url_launcher/url_launcher.dart'; 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import '../../core/services/auth_service.dart';
 import 'dev_studio_screen.dart';
 import '../webview_screen.dart';
@@ -37,11 +39,60 @@ class _LabScreenState extends State<LabScreen> {
     await prefs.setString('lab_url', url);
   }
 
-  void _launchLiveServer() {
+  Future<List<String>?> _fetchManifestPermissions(String baseUrl) async {
+    try {
+      // Remove trailing slash if present
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      }
+      
+      final manifestUrl = '$baseUrl/manifest.json';
+      print("🔍 Lab: Fetching manifest from $manifestUrl");
+      
+      final dio = Dio();
+      final response = await dio.get(manifestUrl);
+      
+      if (response.statusCode == 200) {
+        var data = response.data;
+        if (data is String) {
+          try {
+             data = jsonDecode(data);
+          } catch (_) {}
+        }
+        
+        if (data is Map && data.containsKey('permissions')) {
+          final perms = data['permissions'];
+          if (perms is List) {
+            return perms.map((e) => e.toString()).toList();
+          }
+        }
+        return []; // Manifest found but no permissions key or empty
+      }
+    } catch (e) {
+      print("⚠️ Lab: Failed to fetch manifest: $e");
+    }
+    return null; // Failed to fetch (no manifest or network error)
+  }
+
+  void _launchLiveServer() async {
     final url = _ipController.text.trim();
     if (url.isNotEmpty) {
-      _saveUrl(url);
-      Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: url)));
+      _saveUrl(url); // Don't await, UI responsiveness
+      
+      // Attempt to valid permissions
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Connexion au serveur..."), duration: Duration(seconds: 1)));
+      
+      final permissions = await _fetchManifestPermissions(url);
+      
+      if (!mounted) return;
+      
+      if (permissions == null) {
+         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("⚠️ Manifest introuvable. Vérification permissions désactivée."), backgroundColor: Colors.orange));
+      } else {
+         //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("✅ Manifest chargé (${permissions.length} permissions déclarées)"), backgroundColor: Colors.green));
+      }
+      
+      Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: url, labPermissions: permissions)));
     }
   }
 

@@ -16,6 +16,7 @@ class OndesBridgeController {
   final String? appBundleId;
   final String? appVersion;
   final String? appName;
+  final List<String>? labPermissions;
 
   // Handlers
   late final UIHandler _uiHandler;
@@ -38,6 +39,7 @@ class OndesBridgeController {
     this.appBundleId,
     this.appVersion,
     this.appName,
+    this.labPermissions,
   }) {
     // Initialize handlers
     _uiHandler = UIHandler(
@@ -71,10 +73,22 @@ class OndesBridgeController {
     _websocketHandler.setAppId(appBundleId);
     _udpHandler.setAppId(appBundleId);
     _chatHandler.setAppId(appBundleId);
-    
-    // Storage & App handlers already took it in constructor, but ensuring consistency:
     _storageHandler.setAppId(appBundleId);
     _appHandler.setAppId(appBundleId);
+
+    // Propagate Lab Permissions if present
+    if (labPermissions != null) {
+      _uiHandler.setLabPermissions(labPermissions);
+      _userHandler.setLabPermissions(labPermissions);
+      _deviceHandler.setLabPermissions(labPermissions);
+      _friendsHandler.setLabPermissions(labPermissions);
+      _socialHandler.setLabPermissions(labPermissions);
+      _websocketHandler.setLabPermissions(labPermissions);
+      _udpHandler.setLabPermissions(labPermissions);
+      _chatHandler.setLabPermissions(labPermissions);
+      _storageHandler.setLabPermissions(labPermissions);
+      _appHandler.setLabPermissions(labPermissions);
+    }
   }
 
   void setController(InAppWebViewController controller) {

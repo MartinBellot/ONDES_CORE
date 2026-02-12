@@ -90,7 +90,7 @@ class LocalFeedAlgorithm:
             list[Post]: Liste de posts triés par score de pertinence
         """
         now = timezone.now()
-        cutoff_date = now - timedelta(days=7)  # Posts des 7 derniers jours
+        cutoff_date = now - timedelta(days=90)  # Posts des 90 derniers jours (étendu pour la démo)
         
         # Construire le queryset de base
         posts = Post.objects.filter(

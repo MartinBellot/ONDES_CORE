@@ -9,7 +9,8 @@ import '../core/services/webview_pool_service.dart';
 class WebViewScreen extends StatefulWidget {
   final String url;
   final String? appId;
-  const WebViewScreen({Key? key, required this.url, this.appId}) : super(key: key);
+  final List<String>? labPermissions;
+  const WebViewScreen({super.key, required this.url, this.appId, this.labPermissions});
 
   @override
   State<WebViewScreen> createState() => _WebViewScreenState();
@@ -56,6 +57,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       onAppBarConfig: _updateAppBar,
       onDrawerConfig: _updateDrawer,
       onDrawerAction: _handleDrawerAction,
+      labPermissions: widget.labPermissions,
     );
   }
 

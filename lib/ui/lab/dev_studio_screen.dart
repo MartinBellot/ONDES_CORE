@@ -413,7 +413,7 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
         
         final zipEncoder = ZipEncoder();
         final encodedBytes = zipEncoder.encode(archive);
-        if (encodedBytes == null) throw Exception("Failed to encode zip");
+        if (encodedBytes.isEmpty) throw Exception("Failed to encode zip");
         
         final zipFile = File(zipPath);
         await zipFile.writeAsBytes(encodedBytes);
@@ -647,7 +647,7 @@ class _DevStudioScreenState extends State<DevStudioScreen> {
        // Encode to Zip
        final zipEncoder = ZipEncoder();
        final encodedBytes = zipEncoder.encode(archive);
-       if (encodedBytes == null) throw Exception("Failed to encode zip");
+       if (encodedBytes.isEmpty) throw Exception("Failed to encode zip");
        
        // Write to disk
        final zipFile = File(zipPath);

@@ -10,11 +10,16 @@ abstract class BaseHandler {
   
   // Sandbox Security
   String? _currentAppId;
+  List<String>? _labPermissions;
   
   BaseHandler(this.context);
 
   void setAppId(String? appId) {
     _currentAppId = appId;
+  }
+
+  void setLabPermissions(List<String>? permissions) {
+    _labPermissions = permissions;
   }
 
   /// Set the WebView controller and register handlers
@@ -26,7 +31,46 @@ abstract class BaseHandler {
   /// Helper to enforce permission (Sandbox)
   /// Throws an error if permission is missing
   Future<void> requirePermission(String permission) async {
-    if (_currentAppId == null) return; // Mode Lab/Debug
+    // Mode Lab/Debug avec permissions définies
+    if (_currentAppId == null) {
+        if (_labPermissions != null && !_labPermissions!.contains(permission)) {
+           debugPrint("⚠️ [Lab] Permission missing: $permission in manifest");
+           await showDialog(
+             context: context, 
+             builder: (ctx) => AlertDialog(
+               title: const Text("⚠️ Permission manquante (Lab)"),
+               content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Votre code tente d'utiliser :"),
+                    const SizedBox(height: 8),
+                    Chip(label: Text(permission, style: const TextStyle(fontWeight: FontWeight.bold))),
+                    const SizedBox(height: 16),
+                    const Text("Cette permission n'est PAS déclarée dans le manifest.json de votre serveur de dev."),
+                    const SizedBox(height: 8),
+                    const Text("Ajoutez-la pour que cela fonctionne en production :"),
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.grey.shade200,
+                      child: Text('"permissions": [\n  ...,\n  "$permission"\n]', style: const TextStyle(fontFamily: 'Courier', fontSize: 12)),
+                    )
+                  ],
+               ),
+               actions: [
+                 TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK, je vais l'ajouter"))
+               ],
+             )
+           );
+           // On ne bloque pas forcément en Lab, mais ici l'utilisateur a demandé d'indiquer les permissions manquantes.
+           // On bloque pour forcer la bonne pratique ? 
+           // Le prompt dit "indique les permissions qu'il doit ajouter".
+           // Une popup c'est bien. On peut throw pour stopper l'exécution aussi, comme ça le dev voit que ça casse.
+           throw Exception("Lab Error: Permission '$permission' missing in server manifest.json");
+        }
+        return; 
+    }
     
     final isGranted = PermissionManagerService().isPermissionGranted(_currentAppId!, permission);
     if (!isGranted) {

@@ -535,8 +535,9 @@ class AuthWrapperState extends State<AuthWrapper> {
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: SizedBox(
+        child: Container(
           height: 75,
+          decoration: BoxDecoration( color: theme.colorScheme.surface.withOpacity(0.6), borderRadius: BorderRadius.circular(30), border: Border.all( color: theme.colorScheme.outline.withOpacity(0.3), width: 1, ), boxShadow: [ BoxShadow( color: theme.colorScheme.shadow.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 10), ), ], ),
           child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(navItems.length, (index) {

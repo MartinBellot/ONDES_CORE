@@ -486,20 +486,13 @@ class _StoreScreenState extends State<StoreScreen>
 
           // Main content
           SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(),
-                _buildSearchArea(),
-                _buildQuickActions(),
-                Expanded(
-                  child: _isLoading
-                      ? _buildLoadingState()
-                      : _error != null
-                      ? _buildErrorState()
-                      : _buildMainContent(),
-                ),
-              ],
-            ),
+            child:  _isLoading
+                ? _buildLoadingState()
+                : _error != null
+                ? _buildErrorState()
+                : _buildMainContent(),
+              
+
           ),
 
           // Floating popups
@@ -530,54 +523,11 @@ class _StoreScreenState extends State<StoreScreen>
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       child: Row(
         children: [
-          // Animated logo
-          AnimatedBuilder(
-            animation: _floatingController,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(
-                  0,
-                  math.sin(_floatingController.value * math.pi) * 3,
-                ),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [_highlightColor, _accentTeal],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _highlightColor.withOpacity(0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.rocket_launch_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
-                    colors: [_accentPrimary, _accentTeal],
-                  ).createShader(bounds),
-                  child: const Text(
+                const Text(
                     'Découvrir',
                     style: TextStyle(
                       color: Colors.white,
@@ -586,7 +536,6 @@ class _StoreScreenState extends State<StoreScreen>
                       letterSpacing: -0.5,
                     ),
                   ),
-                ),
                 AnimatedBuilder(
                   animation: _shimmerController,
                   builder: (context, child) {
@@ -703,87 +652,40 @@ class _StoreScreenState extends State<StoreScreen>
 
   Widget _buildSearchArea() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-      child: GestureDetector(
-        onTap: () => HapticFeedback.selectionClick(),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          height: 52,
-          decoration: BoxDecoration(
-            color: _bgSecondary,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _searchController.text.isNotEmpty
-                  ? _highlightColor.withOpacity(0.5)
-                  : _accentMuted.withOpacity(0.15),
-              width: _searchController.text.isNotEmpty ? 2 : 1,
+      height: 80,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: TextField(
+          controller: _searchController,
+          textAlignVertical: TextAlignVertical.center,
+          style: TextStyle(
+            color: _accentPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: _bgSecondary,
+            prefixIcon: const Icon(Icons.search, color: _accentMuted),
+            hintText: 'Rechercher une app, un jeu...',
+            hintStyle: TextStyle(color: _accentMuted, fontSize: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
             ),
-            boxShadow: _searchController.text.isNotEmpty
-                ? [
-                    BoxShadow(
-                      color: _highlightColor.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _highlightColor, width: 1),
+            ),
+            isDense: false,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  return Icon(
-                    Icons.search_rounded,
-                    color: _searchController.text.isNotEmpty
-                        ? _highlightColor
-                        : _accentMuted.withOpacity(
-                            0.5 + _pulseController.value * 0.3,
-                          ),
-                    size: 22,
-                  );
-                },
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  style: TextStyle(
-                    color: _accentPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher une app, un jeu...',
-                    hintStyle: TextStyle(color: _accentMuted, fontSize: 15),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  onChanged: (value) => _search(value),
-                ),
-              ),
-              if (_searchController.text.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    _searchController.clear();
-                    _search('');
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.close_rounded,
-                      color: _accentMuted,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 8),
-            ],
-          ),
+          onChanged: (value) => _search(value),
         ),
-      ),
     );
   }
 
@@ -1007,6 +909,9 @@ class _StoreScreenState extends State<StoreScreen>
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
+          SliverToBoxAdapter(child: _buildHeader()),
+          SliverToBoxAdapter(child: _buildSearchArea()),
+          SliverToBoxAdapter(child: _buildQuickActions()),
           // Categories carousel
           SliverToBoxAdapter(child: _buildCategoriesCarousel()),
 
@@ -1021,6 +926,8 @@ class _StoreScreenState extends State<StoreScreen>
             ),
             SliverToBoxAdapter(child: _buildFeaturedCarousel()),
           ],
+          //spacer:
+          SliverToBoxAdapter(child: const SizedBox(height: 20)),
 
           // Main apps grid
           SliverToBoxAdapter(
@@ -1179,7 +1086,7 @@ class _StoreScreenState extends State<StoreScreen>
 
   Widget _buildFeaturedCarousel() {
     return SizedBox(
-      height: 220,
+      height: 200,
       child: PageView.builder(
         controller: PageController(viewportFraction: 0.88),
         itemCount: _featuredApps.length,
@@ -1189,13 +1096,7 @@ class _StoreScreenState extends State<StoreScreen>
             animation: _floatingController,
             builder: (context, child) {
               return Transform.translate(
-                offset: Offset(
-                  0,
-                  math.sin(
-                        (_floatingController.value + index * 0.3) * math.pi,
-                      ) *
-                      2,
-                ),
+                offset: Offset(0, math.sin((_floatingController.value + index * 0.3) * math.pi,) *2),
                 child: GestureDetector(
                   onTap: () => _navigateToDetail(app),
                   child: Container(
