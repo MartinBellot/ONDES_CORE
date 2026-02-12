@@ -4,6 +4,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../bridge/bridge_controller.dart';
 import '../bridge/ondes_js_injection.dart';
+import '../core/services/webview_pool_service.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String url;
@@ -39,16 +40,28 @@ class _WebViewScreenState extends State<WebViewScreen> {
   Map<String, dynamic>? _endDrawerConfig;
 
   InAppWebViewController? _webController;
+  InAppWebViewKeepAlive? _keepAlive;
 
   @override
   void initState() {
     super.initState();
+    
+    // Tentative de récupération d'une WebView chaude
+    _keepAlive = WebViewPoolService().getAvailableKeepAlive();
+
     _bridge = OndesBridgeController(
       context, 
       onAppBarConfig: _updateAppBar,
       onDrawerConfig: _updateDrawer,
       onDrawerAction: _handleDrawerAction,
     );
+  }
+
+  @override
+  void dispose() {
+    // On signale au pool qu'on a fini, pour qu'il en prépare une nouvelle fraîche
+    WebViewPoolService().releaseAndRefill();
+    super.dispose();
   }
 
   void _updateAppBar(Map<String, dynamic> config) {
@@ -575,6 +588,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       body: Stack(
         children: [
           InAppWebView(
+            keepAlive: _keepAlive,
             initialUrlRequest: URLRequest(url: WebUri(widget.url)),
             initialSettings: InAppWebViewSettings(
               isInspectable: true, // Specific for debugging/Lab
@@ -589,6 +603,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
             onWebViewCreated: (controller) {
               _webController = controller;
               _bridge.setController(controller);
+
+              if (_keepAlive != null) {
+                 // Si c'est une vue recyclée, on doit charger l'URL manuellement
+                 // car initialUrlRequest peut être ignoré si la vue est restaurée.
+                 controller.loadUrl(urlRequest: URLRequest(url: WebUri(widget.url)));
+              }
             },
             onLoadStart: (controller, url) {
               // Reinject just in case, though UserScript is better

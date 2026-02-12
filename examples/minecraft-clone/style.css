@@ -1,0 +1,230 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    touch-action: none;
+}
+
+canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 0;
+    pointer-events: none;
+    touch-action: none;
+}
+
+/* ── HUD ─────────────────────────────────────────── */
+#hud {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#crosshair {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    font-weight: 100;
+    opacity: 0.7;
+    text-shadow: 0 0 3px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
+
+/* ── Hotbar ──────────────────────────────────────── */
+#hotbar {
+    position: fixed;
+    bottom: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    background: rgba(0,0,0,0.6);
+    padding: 4px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.2);
+    pointer-events: all;
+    z-index: 20;
+}
+
+.slot {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border-radius: 6px;
+    background: rgba(80,80,80,0.5);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.slot.selected {
+    border-color: #fff;
+    background: rgba(255,255,255,0.15);
+}
+
+/* ── Mobile controls ─────────────────────────────── */
+#controls {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 150px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 16px 24px;
+    pointer-events: none;
+    z-index: 15;
+}
+
+/* Joystick */
+#joystick-zone {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    pointer-events: all;
+    touch-action: none;
+}
+
+#joystick-base {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.25);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#joystick-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    position: absolute;
+    transition: none;
+}
+
+/* Right controls */
+#right-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: all;
+}
+
+#action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+#right-controls button {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: rgba(0,0,0,0.4);
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#right-controls button:active {
+    background: rgba(255,255,255,0.2);
+}
+
+/* ── Look zone (touch to look) ───────────────────── */
+#look-zone {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    touch-action: none;
+}
+
+/* ── Loading screen ──────────────────────────────── */
+#loading {
+    position: fixed;
+    inset: 0;
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.5s;
+}
+
+#loading.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#loading-content {
+    text-align: center;
+    color: #fff;
+}
+
+#loading-content h1 {
+    font-family: monospace;
+    font-size: 32px;
+    margin-bottom: 24px;
+    letter-spacing: 4px;
+}
+
+#loading-bar-container {
+    width: 240px;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 auto 12px;
+}
+
+#loading-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #4ade80, #22d3ee);
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+
+#loading-text {
+    font-size: 14px;
+    opacity: 0.6;
+    font-family: monospace;
+}

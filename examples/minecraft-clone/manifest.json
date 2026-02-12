@@ -1,0 +1,9 @@
+{
+    "id": "com.example.minecraft",
+    "name": "MiniCraft",
+    "version": "1.0.0",
+    "description": "Un clone de Minecraft en Three.js avec génération procédurale, grottes, nuages et joystick mobile.",
+    "icon": "icon.png",
+    "author": "Ondes Examples",
+    "permissions": []
+}

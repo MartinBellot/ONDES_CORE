@@ -72,7 +72,7 @@ class _LabScreenState extends State<LabScreen> {
   }
 
   void _openDocumentation() async {
-     const url = 'https://martinbellot.github.io/ONDES_CORE/';
+     const url = 'https://martinbellot.github.io/ONDES_CORE/mini_app_guide/';
      final uri = Uri.parse(url);
      if (await canLaunchUrl(uri)) {
        await launchUrl(uri, mode: LaunchMode.externalApplication);

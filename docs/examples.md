@@ -12,6 +12,7 @@ Le dossier `examples/` à la racine du dépôt contient plusieurs projets de dé
 | **`friends-demo/`** | Gestion d'amis. | `Ondes.Friends`. |
 | **`instagram-demo/`** | Clone Instagram. | `Ondes.Social` : Feed photo, Likes, Commentaires. |
 | **`tiktok-demo/`** | Clone TikTok. | `Ondes.Social` : Feed vidéo vertical, Streaming HLS. |
+| **`minecraft-clone/`** | Clone Minecraft en Three.js. | Three.js, génération procédurale (Perlin), grottes, arbres, nuages, joystick mobile. |
 
 ## Comment tester un exemple ?
 

@@ -1,7 +1,10 @@
+// ignore_for_file: unused_field, unused_element
+
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/models/mini_app.dart';
 import '../../core/services/app_library_service.dart';
 import '../../core/services/local_server_service.dart';
@@ -17,435 +20,556 @@ class MyAppsScreen extends StatefulWidget {
 class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderStateMixin {
   final AppLibraryService _library = AppLibraryService();
   final LocalServerService _server = LocalServerService();
-
-  List<MiniApp?> _apps = [];
+  final TransformationController _transformController = TransformationController();
+  
+  List<MiniApp> _apps = [];
   bool _isLoading = true;
-  bool _isEditMode = false;
-  int _currentPage = 0;
-  late AnimationController _shakeController;
-
-  static const int _columns = 4;
-  static const int _rows = 5;
-  static const int _itemsPerPage = _columns * _rows;
+  bool _hasCentered = false;
+  String? _focusedAppId; // Track which app is long-pressed
+  
+  // Animation for the 'breathing' effect of the universe
+  late AnimationController _breathingController;
 
   @override
   void initState() {
     super.initState();
-    _shakeController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
     _loadApps();
+    
+    _breathingController = AnimationController(
+        vsync: this, 
+        duration: const Duration(seconds: 4)
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _shakeController.dispose();
+    _breathingController.dispose();
+    _transformController.dispose();
     super.dispose();
   }
 
   Future<void> _loadApps() async {
     setState(() => _isLoading = true);
     final installedApps = await _library.getInstalledApps();
-    final prefs = await SharedPreferences.getInstance();
-    final savedOrder = prefs.getStringList('app_order') ?? [];
-
-    // Create a map for quick lookup
-    final appMap = {for (var app in installedApps) app.id: app};
     
-    // Determine the size of the grid. 
-    // It should be at least (savedOrder.length) or (installedApps.length) rounded up to full pages.
-    // Actually we just use a loose list and fill gaps with nulls.
-    //int maxIndex = 0;
-    // savedOrder may contain "NULL" strings for empty slots
-    
-    // First, reconstruct the grid based on saved order
-    List<MiniApp?> reconstructedGrid = [];
-    
-    // We treat savedOrder as the grid state.
-    
-    // Rebuild grid from saved order
-    final processedIds = <String>{}; // Track processed IDs to prevent duplicates
-    
-    for (String id in savedOrder) {
-        if (id == "NULL") {
-            reconstructedGrid.add(null);
-        } else if (appMap.containsKey(id) && !processedIds.contains(id)) {
-            reconstructedGrid.add(appMap[id]);
-            processedIds.add(id);
-            appMap.remove(id); // Mark as placed
-        } else {
-            // ID in config but not installed OR already processed?
-            if (!processedIds.contains(id)) {
-               reconstructedGrid.add(null);
-            }
-        }
+    if (mounted) {
+      setState(() {
+        _apps = installedApps;
+        _isLoading = false;
+      });
     }
-
-    // Append any newly installed apps that weren't in the saved config
-    if (appMap.isNotEmpty) {
-         reconstructedGrid.addAll(appMap.values);
-         // If we added new apps, we should probably save the order so they are persisted immediately?
-         // But we can't do that easily inside initState/build lifecycle without care.
-         // Let's defer or just accept they are at the end.
-    }
-
-    // Ensure the list is a multiple of _itemsPerPage so we have full pages
-    int totalSlots = reconstructedGrid.length;
-    int neededSlots = (totalSlots / _itemsPerPage).ceil() * _itemsPerPage;
-    if (neededSlots == 0) neededSlots = _itemsPerPage; // Minimum 1 page
-    
-    while (reconstructedGrid.length < neededSlots) {
-        reconstructedGrid.add(null);
-    }
-
-    // Evict icon cache to ensure updates are reflected
-    for (var app in reconstructedGrid) {
-      if (app != null && app.iconUrl.isNotEmpty) {
-        final file = File(app.iconUrl);
-        if (file.existsSync()) {
-          FileImage(file).evict();
-        }
-      }
-    }
-
-    setState(() {
-      _apps = reconstructedGrid;
-      _isLoading = false;
-    });
-  }
-
-  Future<void> _saveOrder() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Save list of IDs, using "NULL" for empty slots.
-    // We should trim trailing nulls to avoid infinite growth, but keep internal gaps.
-    
-    // Find last non-null index
-    int lastNonNullIndex = _apps.lastIndexWhere((element) => element != null);
-    if (lastNonNullIndex == -1) {
-        await prefs.setStringList('app_order', []);
-        return;
-    }
-
-    List<String> orderToSave = _apps.sublist(0, lastNonNullIndex + 1)
-        .map((app) => app?.id ?? "NULL")
-        .toList();
-        
-    await prefs.setStringList('app_order', orderToSave);
-  }
-
-  void _enterEditMode() {
-    setState(() => _isEditMode = true);
-    _shakeController.repeat();
-  }
-
-  void _exitEditMode() {
-    setState(() => _isEditMode = false);
-    _shakeController.reset();
-    _saveOrder(); // Save on exit
   }
 
   Future<void> _openApp(MiniApp app) async {
-    if (_isEditMode) return;
-    
-    // Start Server
-    await _server.startServer(appId: app.id, appPath: app.localPath);
-    // Navigate
-    if (mounted) {
-       Navigator.push(context, MaterialPageRoute(builder: (c) => WebViewScreen(url: _server.localUrl)));
+    // If we are in delete mode, clicking an app (even the focused one) should probably just exit delete mode
+    // unless we specifically want to allow opening while in edit mode.
+    // Let's standard behavior: if focused, just clearing focus is handled by background tap, 
+    // but tapping the focused app again usually opens it or toggles.
+    // Let's say: If an app is focused, we can't open ANY app. We must clear focus first.
+    if (_focusedAppId != null) {
+      if (_focusedAppId == app.id) {
+         // Tapping the focused app again -> clear focus?
+         setState(() => _focusedAppId = null);
+         return;
+      }
+      setState(() => _focusedAppId = null);
+      return; 
+    }
+
+    try {
+      await _server.startServer(appId: app.id);
+      final url = _server.localUrl;
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => WebViewScreen(
+              url: url,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: \$e')),
+        );
+      }
     }
   }
 
-  Future<void> _deleteApp(MiniApp app) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
+  void _centerGalaxy() {
+    const double universeSize = 3000;
+    const Offset center = Offset(universeSize / 2, universeSize / 2);
+    final size = MediaQuery.of(context).size;
+    final double initialScale = 1.0; 
+    
+    final x = (size.width / 2) - (center.dx * initialScale);
+    final y = (size.height / 2) - (center.dy * initialScale);
+    
+    final Matrix4 endMatrix = Matrix4.identity()
+      ..translate(x, y)
+      ..scale(initialScale);
+    
+    // Animate to center
+    // For simplicity we just set it, or we could animate _transformController value.
+    // Let's just set it directly for the button action to be instant/snappy or use a simple animation loop.
+    // Since _breathingController is user for stars, let's just set value for now to keep it simple and robust.
+    _transformController.value = endMatrix;
+  }
+
+  Future<void> _uninstallApp(MiniApp app) async {
+    final confirm = await showDialog<bool>(
+      context: context, 
       builder: (ctx) => AlertDialog(
-        title: Text("Supprimer ${app.name} ?"),
-        content: const Text("Cette action est irréversible."),
+        title: Text('Supprimer ${app.name} ?'),
+        content: const Text('Cette action est irréversible.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Annuler")),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Supprimer", style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Supprimer'),
+          ),
         ],
       )
     );
 
-    if (confirmed == true) {
+    if (confirm == true) {
       await _library.uninstallApp(app.id);
-      
-      // Update UI locally to avoid full reload flicker and state issues
       setState(() {
-         final index = _apps.indexOf(app);
-         if (index != -1) {
-           // Should we leave a hole (null) or remove?
-           // Apple behavior: remove and shift back.
-           // _apps[index] = null; // Leaves hole
-           _apps.removeAt(index); // Removes and shifts
-           _apps.add(null); // Maintain page size if needed? 
-           // Actually, _loadApps ensures padding. If we remove, we might shrink the list.
-           // Let's rely on re-padding logic if we were to reload, but here let's just remove to be clean.
-         }
+        _focusedAppId = null;
       });
-      await _saveOrder();
+      _loadApps();
     }
-  }
-
-  void _moveApp(int oldIndex, int newIndex) {
-    if (oldIndex == newIndex) return;
-    
-    // Ensure both indices are within bounds
-    // Since we pad with nulls for full pages, if newIndex is outside, we might need to expand grid?
-    // In this UI, newIndex comes from a visible slot, so it should be within the generated pages.
-    if (oldIndex < 0 || oldIndex >= _apps.length) return;
-    if (newIndex < 0 || newIndex >= _apps.length) return;
-
-    setState(() {
-      // Logic: Swap or Insert?
-      // "Place anywhere" typically means you can move an item to an empty slot without shifting others.
-      // But if you move to an occupied slot, what happens? Swap?
-      // Let's implement Swap for flexibility.
-
-      final itemToMove = _apps[oldIndex];
-      final targetItem = _apps[newIndex];
-
-      _apps[newIndex] = itemToMove;
-      _apps[oldIndex] = targetItem;
-    });
-    _saveOrder();
   }
 
   @override
   Widget build(BuildContext context) {
-    final int pageCount = (_apps.length / _itemsPerPage).ceil();
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: _isEditMode 
-          ? const Text("Modifier l'écran d'accueil", style: TextStyle(color: Colors.white, fontSize: 16))
-          : const SizedBox(),
-        actions: [
-          if (_isEditMode)
-            TextButton(
-              onPressed: _exitEditMode,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20)
-                ),
-                child: const Text("OK", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
+    if (_apps.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.bubble_chart_outlined, size: 64, color: Theme.of(context).colorScheme.tertiary),
+            const SizedBox(height: 16),
+            Text(
+              'Votre univers est vide',
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-        ],
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1c1c1e), Color(0xFF000000)],
-          ),
-        ),
-        child: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white54))
-          : Column(
-            children: [
-              const SizedBox(height: 50), // Space for AppBar
-              Expanded(
-                child: PageView.builder(
-                  onPageChanged: (index) => setState(() => _currentPage = index),
-                  itemCount: pageCount == 0 ? 1 : pageCount,
-                  physics: _isEditMode ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
-                  itemBuilder: (context, pageIndex) {
-                    return _buildGridPage(pageIndex);
-                  },
-                ),
-              ),
-              _buildPageIndicator(pageCount),
-              const SizedBox(height: 30),
-            ],
-          ),
-      ),
-    );
-  }
-
-  Widget _buildGridPage(int pageIndex) {
-    final startIndex = pageIndex * _itemsPerPage;
-    // For "Place anywhere", we always show full page of slots
-    // final endIndex = min(startIndex + _itemsPerPage, _apps.length);
-    // Ensure we don't go out of bounds if something is wrong, but we padded _apps so it should be fine.
-    
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      physics: const NeverScrollableScrollPhysics(), // Handled by PageView
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: _columns,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: _itemsPerPage, 
-      itemBuilder: (context, slotIndex) {
-        final globalIndex = startIndex + slotIndex;
-        // Safety check
-        if (globalIndex >= _apps.length) return const SizedBox(); 
-
-        final app = _apps[globalIndex];
-        
-        if (app != null) {
-          return SizedBox(
-            key: ValueKey("app_${app.id}"),
-            child: _buildDraggableAppIcon(app, globalIndex),
-          );
-        } else {
-          return DragTarget<int>(
-            key: ValueKey("slot_$globalIndex"),
-            onWillAccept: (data) => _isEditMode,
-            onAccept: (fromIndex) {
-              _moveApp(fromIndex, globalIndex);
-            },
-            builder: (context, candidateData, rejectedData) {
-              return Container(
-                 decoration: BoxDecoration(
-                   color: candidateData.isNotEmpty ? Colors.white.withOpacity(0.1) : Colors.transparent,
-                   borderRadius: BorderRadius.circular(16)
-                 ),
-              );
-            },
-          );
-        }
-      },
-    );
-  }
-
-  Widget _buildDraggableAppIcon(MiniApp app, int globalIndex) {
-    Widget appIcon = _buildAppIcon(app);
-
-    if (_isEditMode) {
-      return LongPressDraggable<int>(
-        data: globalIndex,
-        feedback: Transform.scale(
-          scale: 1.1,
-          child: Opacity(opacity: 0.9, child: _buildAppIcon(app, isFeedback: true)),
-        ),
-        childWhenDragging: Opacity(opacity: 0.0, child: const SizedBox()), // Hide original when dragging
-        onDragStarted: () {},
-        child: DragTarget<int>(
-          onWillAccept: (data) => _isEditMode && data != globalIndex,
-          onAccept: (fromIndex) => _moveApp(fromIndex, globalIndex),
-          builder: (context, candidateData, rejectedData) {
-            return AnimatedBuilder(
-              animation: _shakeController,
-              builder: (context, child) {
-                final double offset = 2.0 * sin(_shakeController.value * 2 * pi * 3);
-                return Transform.rotate(
-                  angle: offset * pi / 180,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      child!,
-                      Positioned(
-                        left: -8,
-                        top: -8,
-                        child: GestureDetector(
-                          onTap: () => _deleteApp(app),
-                          child: Container(
-                             width: 24,
-                             height: 24,
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.grey,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.remove, size: 16, color: Colors.white),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                );
-              },
-              child: appIcon,
-            );
-          },
+            const SizedBox(height: 8),
+            const Text('Installez des apps pour créer votre galaxie')
+          ],
         ),
       );
-    } else {
-      return GestureDetector(
-        onLongPress: _enterEditMode,
-        onTap: () => _openApp(app),
-        child: appIcon,
-      );
-    }
-  }
-
-  Widget _buildAppIcon(MiniApp app, {bool isFeedback = false}) {
-    ImageProvider image;
-    bool haveIconFile = false;
-    if (app.iconUrl.isNotEmpty && File(app.iconUrl).existsSync()) {
-      haveIconFile = true;
-      image = FileImage(File(app.iconUrl));
-    } else {
-      haveIconFile = false;
-      image = const NetworkImage("https://placehold.co/200/png");
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    // Canvas size for our universe
+    const double universeSize = 3000;
+    const Offset center = Offset(universeSize / 2, universeSize / 2);
+
+    // Center on arrival
+    if (!_hasCentered) {
+       WidgetsBinding.instance.addPostFrameCallback((_) {
+          _centerGalaxy();
+       });
+      _hasCentered = true;
+    }
+
+    return Stack(
       children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            image: DecorationImage(image: image, fit: BoxFit.cover),
-            boxShadow: [
-              if (!isFeedback)
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                )
-            ],
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5)
+        // Background Color
+        Positioned.fill(
+          child: Container(
+            color: const Color(0xFF1E1E1E),
           ),
         ),
-        const SizedBox(height: 8),
-        if (!isFeedback && !haveIconFile)
-          Text(
-            app.name,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+
+        // Universe of Bubbles
+        InteractiveViewer(
+          transformationController: _transformController,
+          boundaryMargin: const EdgeInsets.all(universeSize), 
+          minScale: 0.1,
+          maxScale: 4.0,
+          constrained: false, 
+          child: GestureDetector(
+            onTap: () {
+               if (_focusedAppId != null) {
+                 setState(() => _focusedAppId = null);
+               }
+            },
+            behavior: HitTestBehavior.translucent, // Catch taps on empty space
+            child: SizedBox(
+                width: universeSize,
+                height: universeSize,
+                child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                    // Grid that moves with the content
+                    Positioned.fill(
+                        child: CustomPaint(
+                            painter: GridBackgroundPainter(),
+                        ),
+                    ),
+                    ..._buildBubbleGalaxy(center, universeSize),
+                ],
+                ),
             ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
+        ),
+        
+        // Navigation / Hint overlay
+        Positioned(
+          bottom: 120,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: 0.5,
+                duration: const Duration(milliseconds: 500),
+                child: Column(
+                  children: [
+                    Icon(Icons.touch_app, color: Colors.white.withOpacity(0.3), size: 20),
+                    const SizedBox(height: 4),
+                    Text(
+                      'EXPLORER L\'UNIVERS',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 10,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w600
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        
+        // Re-center Button
+        Positioned(
+            top: 64, // Below standard status bar/pill area
+            right: 20,
+            child: FloatingActionButton(
+                mini: true,
+                heroTag: 'center_galaxy',
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black87,
+                elevation: 3,
+                onPressed: _centerGalaxy,
+                child: const Icon(Icons.center_focus_strong_outlined, size: 20),
+            ),
+        ),
       ],
     );
   }
 
-  Widget _buildPageIndicator(int pageCount) {
-    if (pageCount <= 1) return const SizedBox.shrink();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(pageCount, (index) {
-        final isActive = index == _currentPage;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: isActive ? 8 : 6,
-          height: isActive ? 8 : 6,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive ? Colors.white : Colors.white.withOpacity(0.3),
-          ),
-        );
-      }),
+  List<Widget> _buildBubbleGalaxy(Offset center, double universeSize) {
+    List<Widget> backgroundBubbles = [];
+    Widget? foregroundBubble;
+    
+    // Hexagonal Packing / Honeycomb-like spiral
+    double bubbleSize = 88.0; 
+    double gap = 12.0; 
+    double unit = bubbleSize + gap;
+    
+    // Positions (q, r) in axial coordinates
+    // Spiral generator
+    List<Offset> hexPositions = [const Offset(0, 0)];
+    int count = _apps.length;
+    
+    // If more than 1, generate rings
+    if (count > 1) {
+        int radius = 1;
+        while (hexPositions.length < count) {
+            int itemsInThisRing = radius * 6;
+            for (int i = 0; i < itemsInThisRing; i++) {
+                double angle = (2 * pi / itemsInThisRing) * i;
+                double r = radius * unit;
+                hexPositions.add(Offset(r * cos(angle), r * sin(angle)));
+                
+                if (hexPositions.length >= count) break;
+            }
+            radius++;
+        }
+    }
+
+    for (int i = 0; i < _apps.length; i++) {
+        Offset pos = hexPositions[i];
+        // Convert local relative pos to universe center
+        double left = center.dx + pos.dx - (bubbleSize / 2);
+        double top = center.dy + pos.dy - (bubbleSize / 2);
+        
+        final bubble = Positioned(
+                left: left,
+                top: top,
+                child: BubbleAppNode(
+                    app: _apps[i],
+                    size: bubbleSize,
+                    isFocused: _apps[i].id == _focusedAppId,
+                    onTap: () => _openApp(_apps[i]),
+                    onFocus: () {
+                        HapticFeedback.heavyImpact();
+                        setState(() => _focusedAppId = _apps[i].id);
+                    },
+                    onDelete: () => _uninstallApp(_apps[i]),
+                ),
+            );
+
+        if (_apps[i].id == _focusedAppId) {
+            foregroundBubble = bubble;
+        } else {
+            backgroundBubbles.add(bubble);
+        }
+    }
+    
+    // Return list with focused bubble LAST (on top)
+    if (foregroundBubble != null) {
+        return [...backgroundBubbles, foregroundBubble];
+    }
+    return backgroundBubbles;
+  }
+}
+
+class BubbleAppNode extends StatefulWidget {
+  final MiniApp app;
+  final double size;
+  final VoidCallback onTap;
+  final VoidCallback onFocus; // Long press trigger
+  final VoidCallback onDelete;
+  final bool isFocused;
+
+  const BubbleAppNode({
+    super.key,
+    required this.app,
+    required this.size,
+    required this.onTap,
+    required this.onFocus,
+    required this.onDelete,
+    this.isFocused = false,
+  });
+
+  @override
+  State<BubbleAppNode> createState() => _BubbleAppNodeState();
+}
+
+class _BubbleAppNodeState extends State<BubbleAppNode> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 150));
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.85).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad)
     );
   }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  ImageProvider _getImageProvider(String url) {
+    if (url.isEmpty) return const AssetImage('assets/placeholder.png'); 
+    
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return NetworkImage(url);
+    }
+    
+    // Everything else is treated as file
+    String path = url;
+    if (url.startsWith('file://')) {
+      try {
+        path = Uri.parse(url).toFilePath();
+      } catch (e) {
+        path = url.replaceFirst('file://', '');
+      }
+    }
+    
+    // Decode URI if needed
+    path = Uri.decodeFull(path);
+    return FileImage(File(path));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Basic scale animation for tap
+    final double tapScale = _scaleAnim.value;
+    // Focus scale (pop out)
+    final double focusScale = widget.isFocused ? 1.3 : 1.0;
+    final double totalScale = tapScale * focusScale;
+
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) => _controller.reverse(),
+      onTapCancel: () => _controller.reverse(),
+      onLongPress: widget.onFocus,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        widget.onTap();
+      },
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_scaleAnim]),
+        builder: (context, child) => Transform.scale(
+            scale: totalScale,
+            alignment: Alignment.center,
+            child: child,
+        ),
+        child: SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: Stack(
+             clipBehavior: Clip.none,
+             children: [
+                // The Bubble
+                Container(
+                    width: widget.size,
+                    height: widget.size,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black, // Base
+                        boxShadow: [
+                        BoxShadow(
+                            color: widget.isFocused 
+                                ? Colors.red.withOpacity(0.4) 
+                                : Colors.white.withOpacity(0.1),
+                            blurRadius: widget.isFocused ? 20 : 10,
+                            spreadRadius: widget.isFocused ? 5 : 1,
+                        )
+                        ]
+                    ),
+                    child: ClipOval(
+                        child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                                // Icon
+                                widget.app.iconUrl.isNotEmpty 
+                                ? Image(
+                                    image: _getImageProvider(widget.app.iconUrl),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                        return _buildFallbackIcon();
+                                    },
+                                )
+                                : _buildFallbackIcon(),
+                                
+                                // Glass Gloss (Apple Watch bubble style shine)
+                                Positioned(
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    height: widget.size * 0.4,
+                                    child: Container(
+                                        decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                    Colors.white.withOpacity(0.3),
+                                                    Colors.transparent
+                                                ]
+                                            )
+                                        ),
+                                    ),
+                                ),
+                                
+                                // Border Ring
+                                Container(
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: widget.isFocused 
+                                                ? Colors.red.withOpacity(0.8)
+                                                : Colors.white.withOpacity(0.15),
+                                            width: widget.isFocused ? 3.0 : 1.5,
+                                        )
+                                    ),
+                                )
+                            ],
+                        ),
+                    ),
+                ),
+
+                // Delete Button overlay (only when focused)
+                if (widget.isFocused)
+                    Positioned(
+                        top: -10,
+                        right: -10,
+                        child: GestureDetector(
+                            onTap: widget.onDelete,
+                            child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                        BoxShadow(
+                                            color: Colors.black26, 
+                                            blurRadius: 4, 
+                                            offset: Offset(0, 2)
+                                        )
+                                    ]
+                                ),
+                                child: const Icon(
+                                    Icons.delete_forever, 
+                                    color: Colors.white, 
+                                    size: 20
+                                ),
+                            ),
+                        ),
+                    )
+             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackIcon() {
+    return Container(
+        color: const Color(0xFF1C1C1E),
+        child: Center(
+            child: Text(
+                widget.app.name.isNotEmpty ? widget.app.name[0].toUpperCase() : '?',
+                style: GoogleFonts.inter(
+                    fontSize: 32, 
+                    fontWeight: FontWeight.w700, 
+                    color: Colors.white
+                ),
+            ),
+        ),
+    );
+  }
+}
+
+class GridBackgroundPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.05)
+      ..strokeWidth = 1.0;
+
+    const double step = 40.0;
+
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

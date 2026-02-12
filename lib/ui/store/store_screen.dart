@@ -1327,8 +1327,8 @@ class _StoreScreenState extends State<StoreScreen>
                         children: [
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
-                            width: 64,
-                            height: 64,
+                            width: 100,
+                            height: 100,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: isHovered
