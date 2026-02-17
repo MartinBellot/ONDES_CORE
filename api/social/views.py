@@ -248,6 +248,8 @@ class GetFeedView(APIView):
         
         if feed_type == 'discover':
             posts = algorithm.get_discover_feed(limit=limit, offset=offset)
+        elif feed_type == 'friends':
+            posts = algorithm.get_friends_feed(limit=limit, offset=offset)
         elif feed_type == 'video':
             posts = algorithm.get_video_feed(limit=limit, offset=offset)
         else:

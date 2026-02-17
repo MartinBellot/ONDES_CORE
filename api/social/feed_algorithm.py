@@ -178,6 +178,42 @@ class LocalFeedAlgorithm:
         
         return score
     
+    def get_friends_feed(self, limit=50, offset=0):
+        """
+        Feed réservé aux amis (Friendship bidirectionnelle uniquement).
+        Exclut les posts des simples following.
+        """
+        now = timezone.now()
+        cutoff_date = now - timedelta(days=90)
+        
+        if not self.friends_ids:
+            return []
+        
+        posts = Post.objects.filter(
+            is_deleted=False,
+            created_at__gte=cutoff_date,
+            author_id__in=self.friends_ids,
+            visibility__in=['public', 'followers']
+        ).select_related('author', 'author__profile').prefetch_related('media')
+        
+        # Trier par fraîcheur + engagement
+        scored_posts = []
+        for post in posts.distinct():
+            age_hours = (now - post.created_at).total_seconds() / 3600
+            engagement = post.likes_count + (post.comments_count * 2) + post.shares_count
+            recency = max(0, (96 - age_hours)) * 2  # Décroissance sur 4 jours
+            score = engagement * 0.1 + recency
+            scored_posts.append((post, score))
+        
+        scored_posts.sort(key=lambda x: x[1], reverse=True)
+        
+        result = []
+        for post, score in scored_posts[offset:offset + limit]:
+            post.relevance_score = score
+            result.append(post)
+        
+        return result
+
     def get_discover_feed(self, limit=50, offset=0):
         """
         Feed de découverte (posts publics populaires d'utilisateurs non suivis).
@@ -219,7 +255,7 @@ class LocalFeedAlgorithm:
         Feed vidéo style TikTok (vidéos verticales populaires).
         """
         now = timezone.now()
-        cutoff_date = now - timedelta(days=7)
+        cutoff_date = now - timedelta(days=90)
         
         # Posts avec des vidéos
         posts = Post.objects.filter(

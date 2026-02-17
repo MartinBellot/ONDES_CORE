@@ -190,23 +190,19 @@ class _ProfileScreenState extends State<ProfileScreen>
           _loadData();
         }
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? "Photo de profil mise à jour !"
-                : "Erreur lors de la mise à jour",
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erreur lors de la mise à jour",
+            ),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor: Colors.red.shade600,
           ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          backgroundColor: success
-              ? Colors.green.shade600
-              : Colors.red.shade600,
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -386,57 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       pinned: true,
       backgroundColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Gradient background
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.deepPurple.shade900,
-                    Colors.indigo.shade900,
-                    Colors.black,
-                  ],
-                ),
-              ),
-            ),
-            // Decorative circles
-            Positioned(
-              top: -50,
-              right: -50,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.purple.withOpacity(0.3),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 50,
-              left: -30,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [Colors.blue.withOpacity(0.2), Colors.transparent],
-                  ),
-                ),
-              ),
-            ),
-            // Content
-            SafeArea(
+        background: SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -447,15 +393,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                       children: [
                         Container(
                           padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.purple.shade400,
-                                Colors.blue.shade400,
-                              ],
-                            ),
-                          ),
                           child: CircleAvatar(
                             radius: 55,
                             backgroundColor: Colors.grey.shade900,
@@ -508,8 +445,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ],
               ),
             ),
-          ],
-        ),
       ),
       actions: [
         IconButton(

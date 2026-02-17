@@ -1,0 +1,8 @@
+{
+    "id": "com.ondes.social-media",
+    "name": "Ondes Social",
+    "version": "1.0.0",
+    "description": "Réseau social ultra complet pour l'écosystème Ondes",
+    "icon": "icon.png",
+    "permissions": ["social", "friends", "storage", "device"]
+}
