@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'auth_service.dart';
+import '../utils/logger.dart';
 
 // ==================== MODELS ====================
 
@@ -327,7 +328,7 @@ class SocialService {
       );
       return response.data;
     } catch (e) {
-      print('SocialService.follow Error: $e');
+      AppLogger.error('SocialService', 'follow failed', e);
       rethrow;
     }
   }
@@ -346,7 +347,7 @@ class SocialService {
       );
       return response.data;
     } catch (e) {
-      print('SocialService.unfollow Error: $e');
+      AppLogger.error('SocialService', 'unfollow failed', e);
       rethrow;
     }
   }
@@ -364,7 +365,7 @@ class SocialService {
           .map((json) => SocialUser.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getFollowers Error: $e');
+      AppLogger.error('SocialService', 'getFollowers failed', e);
       rethrow;
     }
   }
@@ -382,7 +383,7 @@ class SocialService {
           .map((json) => SocialUser.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getFollowing Error: $e');
+      AppLogger.error('SocialService', 'getFollowing failed', e);
       rethrow;
     }
   }
@@ -416,7 +417,7 @@ class SocialService {
 
       return Post.fromJson(response.data['post']);
     } catch (e) {
-      print('SocialService.publish Error: $e');
+      AppLogger.error('SocialService', 'publish failed', e);
       rethrow;
     }
   }
@@ -442,7 +443,7 @@ class SocialService {
           .map((json) => Post.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getFeed Error: $e');
+      AppLogger.error('SocialService', 'getFeed failed', e);
       rethrow;
     }
   }
@@ -457,7 +458,7 @@ class SocialService {
 
       return Post.fromJson(response.data);
     } catch (e) {
-      print('SocialService.getPost Error: $e');
+      AppLogger.error('SocialService', 'getPost failed', e);
       rethrow;
     }
   }
@@ -471,7 +472,7 @@ class SocialService {
       );
       return true;
     } catch (e) {
-      print('SocialService.deletePost Error: $e');
+      AppLogger.error('SocialService', 'deletePost failed', e);
       rethrow;
     }
   }
@@ -493,7 +494,7 @@ class SocialService {
           .map((json) => Post.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getUserPosts Error: $e');
+      AppLogger.error('SocialService', 'getUserPosts failed', e);
       rethrow;
     }
   }
@@ -509,7 +510,7 @@ class SocialService {
       );
       return response.data;
     } catch (e) {
-      print('SocialService.likePost Error: $e');
+      AppLogger.error('SocialService', 'likePost failed', e);
       rethrow;
     }
   }
@@ -523,7 +524,7 @@ class SocialService {
       );
       return response.data;
     } catch (e) {
-      print('SocialService.unlikePost Error: $e');
+      AppLogger.error('SocialService', 'unlikePost failed', e);
       rethrow;
     }
   }
@@ -540,7 +541,7 @@ class SocialService {
           .map((json) => SocialUser.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getPostLikers Error: $e');
+      AppLogger.error('SocialService', 'getPostLikers failed', e);
       rethrow;
     }
   }
@@ -562,7 +563,7 @@ class SocialService {
 
       return PostComment.fromJson(response.data['comment']);
     } catch (e) {
-      print('SocialService.addComment Error: $e');
+      AppLogger.error('SocialService', 'addComment failed', e);
       rethrow;
     }
   }
@@ -584,7 +585,7 @@ class SocialService {
           .map((json) => PostComment.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getComments Error: $e');
+      AppLogger.error('SocialService', 'getComments failed', e);
       rethrow;
     }
   }
@@ -601,7 +602,7 @@ class SocialService {
           .map((json) => PostComment.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getCommentReplies Error: $e');
+      AppLogger.error('SocialService', 'getCommentReplies failed', e);
       rethrow;
     }
   }
@@ -615,7 +616,7 @@ class SocialService {
       );
       return true;
     } catch (e) {
-      print('SocialService.deleteComment Error: $e');
+      AppLogger.error('SocialService', 'deleteComment failed', e);
       rethrow;
     }
   }
@@ -629,7 +630,7 @@ class SocialService {
       );
       return response.data;
     } catch (e) {
-      print('SocialService.likeComment Error: $e');
+      AppLogger.error('SocialService', 'likeComment failed', e);
       rethrow;
     }
   }
@@ -645,7 +646,7 @@ class SocialService {
       );
       return true;
     } catch (e) {
-      print('SocialService.bookmarkPost Error: $e');
+      AppLogger.error('SocialService', 'bookmarkPost failed', e);
       rethrow;
     }
   }
@@ -659,7 +660,7 @@ class SocialService {
       );
       return true;
     } catch (e) {
-      print('SocialService.unbookmarkPost Error: $e');
+      AppLogger.error('SocialService', 'unbookmarkPost failed', e);
       rethrow;
     }
   }
@@ -680,7 +681,7 @@ class SocialService {
           .map((json) => Post.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getBookmarks Error: $e');
+      AppLogger.error('SocialService', 'getBookmarks failed', e);
       rethrow;
     }
   }
@@ -708,7 +709,7 @@ class SocialService {
 
       return Story.fromJson(response.data['story']);
     } catch (e) {
-      print('SocialService.createStory Error: $e');
+      AppLogger.error('SocialService', 'createStory failed', e);
       rethrow;
     }
   }
@@ -725,7 +726,7 @@ class SocialService {
           .map((json) => UserStories.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.getStories Error: $e');
+      AppLogger.error('SocialService', 'getStories failed', e);
       rethrow;
     }
   }
@@ -739,7 +740,7 @@ class SocialService {
       );
       return response.data['views_count'] ?? 0;
     } catch (e) {
-      print('SocialService.viewStory Error: $e');
+      AppLogger.error('SocialService', 'viewStory failed', e);
       rethrow;
     }
   }
@@ -753,7 +754,7 @@ class SocialService {
       );
       return true;
     } catch (e) {
-      print('SocialService.deleteStory Error: $e');
+      AppLogger.error('SocialService', 'deleteStory failed', e);
       rethrow;
     }
   }
@@ -775,7 +776,7 @@ class SocialService {
       final response = await _dio.get(url, options: _authOptions);
       return response.data;
     } catch (e) {
-      print('SocialService.getProfile Error: $e');
+      AppLogger.error('SocialService', 'getProfile failed', e);
       rethrow;
     }
   }
@@ -793,7 +794,7 @@ class SocialService {
           .map((json) => SocialUser.fromJson(json))
           .toList();
     } catch (e) {
-      print('SocialService.searchUsers Error: $e');
+      AppLogger.error('SocialService', 'searchUsers failed', e);
       rethrow;
     }
   }

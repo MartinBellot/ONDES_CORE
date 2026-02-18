@@ -1113,6 +1113,6 @@ const String ondesBridgeJs = """
     // Event ready
     const event = new Event('OndesReady');
     document.dispatchEvent(event);
-    console.log("✅ Ondes Core Bridge v3.0 Ready with E2EE Chat!");
+    console.log("✅ Ondes Core Bridge v3.0 Ready!");
 })();
 """;

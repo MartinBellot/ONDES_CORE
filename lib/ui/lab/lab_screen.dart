@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/utils/logger.dart';
 import 'dev_studio_screen.dart';
 import '../webview_screen.dart';
 import '../common/scanner_screen.dart';
@@ -47,7 +48,7 @@ class _LabScreenState extends State<LabScreen> {
       }
       
       final manifestUrl = '$baseUrl/manifest.json';
-      print("🔍 Lab: Fetching manifest from $manifestUrl");
+      AppLogger.debug('Lab', 'Fetching manifest from $manifestUrl');
       
       final dio = Dio();
       final response = await dio.get(manifestUrl);
@@ -69,7 +70,7 @@ class _LabScreenState extends State<LabScreen> {
         return []; // Manifest found but no permissions key or empty
       }
     } catch (e) {
-      print("⚠️ Lab: Failed to fetch manifest: $e");
+      AppLogger.error('Lab', 'Failed to fetch manifest', e);
     }
     return null; // Failed to fetch (no manifest or network error)
   }

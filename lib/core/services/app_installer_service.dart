@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive_io.dart';
 import '../models/mini_app.dart';
+import '../utils/logger.dart';
 
 class AppInstallerService {
   final Dio _dio = Dio();
@@ -34,9 +35,19 @@ class AppInstallerService {
       }
       await installDir.create(recursive: true);
 
-      // 4. Unzip
+      // 4. Unzip avec validation de sécurité (anti path-traversal)
       final inputStream = InputFileStream(zipPath);
       final archive = ZipDecoder().decodeStream(inputStream);
+      
+      // Vérifier chaque entrée avant extraction
+      for (final file in archive.files) {
+        final normalizedPath = Uri.parse(file.name).normalizePath().path;
+        if (normalizedPath.contains('..') || normalizedPath.startsWith('/')) {
+          AppLogger.error('AppInstaller', 'Blocked malicious ZIP entry: ${file.name}');
+          throw Exception('ZIP archive contient un chemin dangereux: ${file.name}');
+        }
+      }
+      
       extractArchiveToDisk(archive, installPath);
       
       // 5. Flatten if necessary
@@ -44,7 +55,7 @@ class AppInstallerService {
 
       return installPath;
     } catch (e) {
-      print("❌ Install Error: $e");
+      AppLogger.error('AppInstaller', 'Install failed', e);
       return null;
     }
   }
@@ -73,7 +84,7 @@ class AppInstallerService {
     final dirs = validEntities.whereType<Directory>().toList();
     if (dirs.length == 1) {
       final subDir = dirs.first;
-      print("📂 Detected nested root folder '${subDir.path}', flattening...");
+      AppLogger.info('AppInstaller', 'Detected nested root folder, flattening: ${subDir.path}');
       
       final subEntities = subDir.listSync();
       for (final entity in subEntities) {
@@ -94,7 +105,7 @@ class AppInstallerService {
            } else if (entity is Directory) {
              // Basic directory move (recursive copy) - naive implementation sufficient for flattening
              // actually for folders we can just try rename, usually works on same volume
-             print("Could not rename dir: $e");
+             AppLogger.error('AppInstaller', 'Could not rename dir', e);
            }
         }
       }

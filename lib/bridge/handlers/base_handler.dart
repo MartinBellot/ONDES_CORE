@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../../core/services/permission_manager_service.dart';
+import '../../core/utils/logger.dart';
 
 /// Base class for all Ondes Bridge handlers
 /// Each handler type (UI, User, Device, etc.) extends this class
@@ -33,7 +34,12 @@ abstract class BaseHandler {
   Future<void> requirePermission(String permission) async {
     // Mode Lab/Debug avec permissions définies
     if (_currentAppId == null) {
-        if (_labPermissions != null && !_labPermissions!.contains(permission)) {
+        // Si pas de permissions Lab définies, refuser par défaut (deny all)
+        if (_labPermissions == null) {
+           debugPrint("⚠️ [Lab] No permissions defined — denying '$permission'. Add a manifest.json with permissions.");
+           throw Exception("Lab Error: No permissions defined. Add a manifest.json with a 'permissions' array.");
+        }
+        if (!_labPermissions!.contains(permission)) {
            debugPrint("⚠️ [Lab] Permission missing: $permission in manifest");
            await showDialog(
              context: context, 
@@ -74,7 +80,7 @@ abstract class BaseHandler {
     
     final isGranted = PermissionManagerService().isPermissionGranted(_currentAppId!, permission);
     if (!isGranted) {
-      print("🚫 [Sandbox] Permission denied: $permission for app $_currentAppId");
+      AppLogger.warning('Sandbox', 'Permission denied: $permission for app $_currentAppId');
       
       // UX: Show Popup explanation
       // We run this in a microtask or just await it if we want to block

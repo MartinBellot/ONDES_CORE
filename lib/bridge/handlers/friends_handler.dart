@@ -101,6 +101,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.getSentRequests() - Récupère les demandes envoyées
   void _registerGetSentRequests() {
     addHandler('Ondes.Friends.getSentRequests', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -118,6 +120,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.accept(friendshipId) - Accepte une demande
   void _registerAcceptRequest() {
     addHandler('Ondes.Friends.accept', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -143,6 +147,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.reject(friendshipId) - Refuse une demande
   void _registerRejectRequest() {
     addHandler('Ondes.Friends.reject', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -161,6 +167,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.remove(friendshipId) - Supprime un ami
   void _registerRemoveFriend() {
     addHandler('Ondes.Friends.remove', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -180,6 +188,8 @@ class FriendsHandler extends BaseHandler {
   /// options: { username: string } ou { userId: number }
   void _registerBlockUser() {
     addHandler('Ondes.Friends.block', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -201,6 +211,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.unblock(userId) - Débloque un utilisateur
   void _registerUnblockUser() {
     addHandler('Ondes.Friends.unblock', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -219,6 +231,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.getBlocked() - Récupère les utilisateurs bloqués
   void _registerGetBlockedUsers() {
     addHandler('Ondes.Friends.getBlocked', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }
@@ -235,6 +249,8 @@ class FriendsHandler extends BaseHandler {
   /// Ondes.Friends.search(query) - Recherche des utilisateurs
   void _registerSearchUsers() {
     addHandler('Ondes.Friends.search', (args) async {
+      await requirePermission('friends');
+
       if (!AuthService().isAuthenticated) {
         throw Exception('User not authenticated');
       }

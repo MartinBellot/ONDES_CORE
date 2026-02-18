@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'configuration_service.dart';
 import 'e2ee_service.dart';
+import 'secure_storage_service.dart';
+import '../utils/logger.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -21,8 +22,7 @@ class AuthService {
   bool get isAuthenticated => _token != null;
 
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token');
+    _token = await SecureStorageService().getAuthToken();
     if (_token != null) {
       await fetchProfile();
       // Initialiser E2EE automatiquement après récupération du profil
@@ -38,8 +38,7 @@ class AuthService {
       });
       
       _token = response.data['token'];
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', _token!);
+      await SecureStorageService().setAuthToken(_token!);
       
       await fetchProfile();
       
@@ -48,7 +47,7 @@ class AuthService {
       
       return true;
     } catch (e) {
-      print("Login Error: $e");
+      AppLogger.error('AuthService', 'Login failed', e);
       return false;
     }
   }
@@ -62,8 +61,7 @@ class AuthService {
       });
       
       _token = response.data['token'];
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', _token!);
+      await SecureStorageService().setAuthToken(_token!);
       
       await fetchProfile();
       
@@ -72,7 +70,7 @@ class AuthService {
       
       return true;
     } catch (e) {
-      print("Register Error: $e");
+      AppLogger.error('AuthService', 'Register failed', e);
       return false;
     }
   }
@@ -86,7 +84,7 @@ class AuthService {
       );
       _currentUser = response.data;
     } catch (e) {
-      print("Profile Error: $e");
+      AppLogger.error('AuthService', 'Profile fetch failed', e);
     }
   }
 
@@ -110,7 +108,7 @@ class AuthService {
       _currentUser = response.data;
       return true;
     } catch (e) {
-      print("Update Profile Error: $e");
+      AppLogger.error('AuthService', 'Update profile failed', e);
       return false;
     }
   }
@@ -124,7 +122,7 @@ class AuthService {
       );
       return response.data;
     } catch (e) {
-      print("Get Developer Stats Error: $e");
+      AppLogger.error('AuthService', 'Get developer stats failed', e);
       return null;
     }
   }
@@ -132,7 +130,10 @@ class AuthService {
   Future<void> logout() async {
     _token = null;
     _currentUser = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    await SecureStorageService().deleteAuthToken();
+    // Nettoyer les clés E2EE et les clés de conversation
+    await E2EEService().clear();
+    await SecureStorageService().deleteE2EEKeys();
+    await SecureStorageService().deleteAllConversationKeys();
   }
 }

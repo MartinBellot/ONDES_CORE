@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/app_library_service.dart';
+import '../../core/services/configuration_service.dart';
 import '../../core/services/dev_studio_service.dart';
 import '../../core/models/mini_app.dart';
 import '../../main.dart' show authWrapperKey;
@@ -369,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       avatarProvider = FileImage(_newAvatar!);
     } else if (_user!['avatar'] != null) {
       String url = _user!['avatar'];
-      if (!url.startsWith('http')) url = "http://127.0.0.1:8000$url";
+      if (!url.startsWith('http')) url = "${ConfigurationService().baseUrl}$url";
       avatarProvider = NetworkImage(url);
     } else {
       avatarProvider = const NetworkImage(
@@ -757,7 +758,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildAppCard(MiniApp app) {
     String iconUrl = app.iconUrl;
     if (iconUrl.isNotEmpty && !iconUrl.startsWith('http')) {
-      iconUrl = "http://127.0.0.1:8000$iconUrl";
+      iconUrl = "${ConfigurationService().baseUrl}$iconUrl";
     }
 
     return Container(

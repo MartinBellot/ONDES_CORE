@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'auth_service.dart';
+import '../utils/logger.dart';
 
 /// Model représentant un ami
 class Friend {
@@ -124,7 +125,7 @@ class FriendsService {
           .map((json) => Friend.fromJson(json))
           .toList();
     } catch (e) {
-      print('FriendsService.getFriends Error: $e');
+      AppLogger.error('FriendsService', 'getFriends failed', e);
       rethrow;
     }
   }
@@ -144,7 +145,7 @@ class FriendsService {
       
       return FriendshipRequest.fromJson(response.data['friendship']);
     } catch (e) {
-      print('FriendsService.sendRequest Error: $e');
+      AppLogger.error('FriendsService', 'sendRequest failed', e);
       rethrow;
     }
   }
@@ -161,7 +162,7 @@ class FriendsService {
           .map((json) => FriendshipRequest.fromJson(json))
           .toList();
     } catch (e) {
-      print('FriendsService.getPendingRequests Error: $e');
+      AppLogger.error('FriendsService', 'getPendingRequests failed', e);
       rethrow;
     }
   }
@@ -178,7 +179,7 @@ class FriendsService {
           .map((json) => FriendshipRequest.fromJson(json))
           .toList();
     } catch (e) {
-      print('FriendsService.getSentRequests Error: $e');
+      AppLogger.error('FriendsService', 'getSentRequests failed', e);
       rethrow;
     }
   }
@@ -193,7 +194,7 @@ class FriendsService {
       
       return FriendshipRequest.fromJson(response.data['friendship']);
     } catch (e) {
-      print('FriendsService.acceptRequest Error: $e');
+      AppLogger.error('FriendsService', 'acceptRequest failed', e);
       rethrow;
     }
   }
@@ -206,7 +207,7 @@ class FriendsService {
         options: _authOptions,
       );
     } catch (e) {
-      print('FriendsService.rejectRequest Error: $e');
+      AppLogger.error('FriendsService', 'rejectRequest failed', e);
       rethrow;
     }
   }
@@ -219,7 +220,7 @@ class FriendsService {
         options: _authOptions,
       );
     } catch (e) {
-      print('FriendsService.removeFriend Error: $e');
+      AppLogger.error('FriendsService', 'removeFriend failed', e);
       rethrow;
     }
   }
@@ -237,7 +238,7 @@ class FriendsService {
         options: _authOptions,
       );
     } catch (e) {
-      print('FriendsService.blockUser Error: $e');
+      AppLogger.error('FriendsService', 'blockUser failed', e);
       rethrow;
     }
   }
@@ -251,7 +252,7 @@ class FriendsService {
         options: _authOptions,
       );
     } catch (e) {
-      print('FriendsService.unblockUser Error: $e');
+      AppLogger.error('FriendsService', 'unblockUser failed', e);
       rethrow;
     }
   }
@@ -268,7 +269,7 @@ class FriendsService {
           .map((json) => FriendshipRequest.fromJson(json))
           .toList();
     } catch (e) {
-      print('FriendsService.getBlockedUsers Error: $e');
+      AppLogger.error('FriendsService', 'getBlockedUsers failed', e);
       rethrow;
     }
   }
@@ -286,7 +287,7 @@ class FriendsService {
           .map((json) => UserSearchResult.fromJson(json))
           .toList();
     } catch (e) {
-      print('FriendsService.searchUsers Error: $e');
+      AppLogger.error('FriendsService', 'searchUsers failed', e);
       rethrow;
     }
   }

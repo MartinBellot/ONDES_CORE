@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../core/utils/logger.dart';
 import 'base_handler.dart';
 
 /// Handler for Ondes.UDP namespace
@@ -14,6 +15,9 @@ class UdpHandler extends BaseHandler {
 
   /// Counter for generating unique socket IDs
   int _socketCounter = 0;
+
+  /// Maximum concurrent UDP sockets per mini-app
+  static const int _maxSockets = 5;
 
   @override
   void registerHandlers() {
@@ -35,6 +39,12 @@ class UdpHandler extends BaseHandler {
   /// Bind to a UDP port and start listening
   void _registerBind() {
     addHandler('Ondes.UDP.bind', (args) async {
+      await requirePermission('network');
+
+      if (_sockets.length >= _maxSockets) {
+        throw Exception('Maximum UDP sockets reached ($_maxSockets). Close existing sockets first.');
+      }
+
       final options = args.isNotEmpty && args[0] is Map
           ? Map<String, dynamic>.from(args[0] as Map)
           : <String, dynamic>{};
@@ -74,7 +84,7 @@ class UdpHandler extends BaseHandler {
           }
         });
 
-        debugPrint('[UdpHandler] Socket bound: $socketId on port ${socket.port}');
+        AppLogger.debug('UdpHandler', 'Socket bound: $socketId on port ${socket.port}');
 
         return {
           'id': socketId,
@@ -83,7 +93,7 @@ class UdpHandler extends BaseHandler {
           'status': 'bound',
         };
       } catch (e) {
-        debugPrint('[UdpHandler] Bind failed: $e');
+        AppLogger.error('UdpHandler', 'Bind failed', e);
         throw Exception('Failed to bind UDP socket: $e');
       }
     });
@@ -92,6 +102,8 @@ class UdpHandler extends BaseHandler {
   /// Send a UDP message to a specific address and port
   void _registerSend() {
     addHandler('Ondes.UDP.send', (args) async {
+      await requirePermission('network');
+
       if (args.isEmpty) {
         throw Exception('Socket ID is required');
       }
@@ -121,7 +133,7 @@ class UdpHandler extends BaseHandler {
           port,
         );
 
-        debugPrint('[UdpHandler] Sent $bytesSent bytes to $address:$port');
+        AppLogger.debug('UdpHandler', 'Sent $bytesSent bytes to $address:$port');
 
         return {
           'success': true,
@@ -130,7 +142,7 @@ class UdpHandler extends BaseHandler {
           'port': port,
         };
       } catch (e) {
-        debugPrint('[UdpHandler] Send failed: $e');
+        AppLogger.error('UdpHandler', 'Send failed', e);
         // Return success false instead of throwing to handle network unreachable
         return {
           'success': false,
@@ -194,7 +206,7 @@ class UdpHandler extends BaseHandler {
         }
       }
 
-      debugPrint('[UdpHandler] Broadcast to ${addresses.length} addresses');
+      AppLogger.debug('UdpHandler', 'Broadcast to ${addresses.length} addresses');
 
       return {
         'socketId': socketId,
@@ -275,7 +287,7 @@ class UdpHandler extends BaseHandler {
         await _closeSocket(id);
       }
 
-      debugPrint('[UdpHandler] Closed all sockets ($count)');
+      AppLogger.debug('UdpHandler', 'Closed all sockets ($count)');
 
       return {
         'closedCount': count,
@@ -294,26 +306,22 @@ class UdpHandler extends BaseHandler {
     final senderAddress = datagram.address.address;
     final senderPort = datagram.port;
 
-    debugPrint('[UdpHandler] Received from $senderAddress:$senderPort: $message');
+    AppLogger.debug('UdpHandler', 'Received from $senderAddress:$senderPort');
 
-    // Escape message for JavaScript
-    final escapedMessage = message
-        .replaceAll('\\', '\\\\')
-        .replaceAll('"', '\\"')
-        .replaceAll('\n', '\\n')
-        .replaceAll('\r', '\\r');
+    // Sérialiser les données de manière sécurisée via JSON (anti-XSS)
+    final safeData = jsonEncode({
+      'socketId': socketId,
+      'message': message,
+      'address': senderAddress,
+      'port': senderPort,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
 
-    // Push message event to JavaScript via evaluateJavascript
+    // Push message event to JavaScript via evaluateJavascript (sécurisé)
     webViewController?.evaluateJavascript(source: '''
       (function() {
         if (window.Ondes && window.Ondes.UDP && window.Ondes.UDP._onMessage) {
-          window.Ondes.UDP._onMessage({
-            socketId: "$socketId",
-            message: "$escapedMessage",
-            address: "$senderAddress",
-            port: $senderPort,
-            timestamp: ${DateTime.now().millisecondsSinceEpoch}
-          });
+          window.Ondes.UDP._onMessage($safeData);
         }
       })();
     ''');
@@ -328,16 +336,17 @@ class UdpHandler extends BaseHandler {
     udpSocket.socket.close();
     _sockets.remove(socketId);
 
-    debugPrint('[UdpHandler] Socket closed: $socketId');
+    AppLogger.debug('UdpHandler', 'Socket closed: $socketId');
 
-    // Push close event to JavaScript via evaluateJavascript
+    // Push close event to JavaScript via evaluateJavascript (sécurisé)
+    final safeData = jsonEncode({
+      'socketId': socketId,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
     webViewController?.evaluateJavascript(source: '''
       (function() {
         if (window.Ondes && window.Ondes.UDP && window.Ondes.UDP._onClose) {
-          window.Ondes.UDP._onClose({
-            socketId: "$socketId",
-            timestamp: ${DateTime.now().millisecondsSinceEpoch}
-          });
+          window.Ondes.UDP._onClose($safeData);
         }
       })();
     ''');

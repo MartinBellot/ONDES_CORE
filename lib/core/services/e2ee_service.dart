@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'auth_service.dart';
 import 'configuration_service.dart';
+import 'secure_storage_service.dart';
+import '../utils/logger.dart';
 
 /// Service centralisé pour la gestion des clés E2EE.
 /// 
@@ -37,14 +38,14 @@ class E2EEService {
   /// 2. Enregistre la clé publique sur le serveur
   Future<void> initialize() async {
     if (!AuthService().isAuthenticated) {
-      debugPrint('[E2EEService] ⚠️ Not authenticated, skipping E2EE init');
+      AppLogger.warning('E2EEService', 'Not authenticated, skipping E2EE init');
       return;
     }
     
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final storedPrivateKey = prefs.getString('chat_private_key');
-      final storedPublicKey = prefs.getString('chat_public_key');
+      final secureStorage = SecureStorageService();
+      final storedPrivateKey = await secureStorage.getPrivateKey();
+      final storedPublicKey = await secureStorage.getPublicKey();
       
       if (storedPrivateKey != null && storedPublicKey != null) {
         // Recharger les clés existantes
@@ -55,28 +56,28 @@ class E2EEService {
           publicKey: SimplePublicKey(publicBytes, type: KeyPairType.x25519),
           type: KeyPairType.x25519,
         );
-        debugPrint('[E2EEService] ✅ E2EE keys loaded from storage');
+        AppLogger.success('E2EEService', 'E2EE keys loaded from secure storage');
       } else {
         // Générer une nouvelle paire de clés
         _keyPair = await _x25519.newKeyPair();
         
-        // Sauvegarder pour les sessions futures
+        // Sauvegarder dans le stockage sécurisé
         final privateBytes = await _keyPair!.extractPrivateKeyBytes();
         final publicKey = await _keyPair!.extractPublicKey();
         
-        await prefs.setString('chat_private_key', base64Encode(privateBytes));
-        await prefs.setString('chat_public_key', base64Encode(publicKey.bytes));
+        await secureStorage.setPrivateKey(base64Encode(privateBytes));
+        await secureStorage.setPublicKey(base64Encode(publicKey.bytes));
         
-        debugPrint('[E2EEService] ✅ New E2EE keys generated');
+        AppLogger.success('E2EEService', 'New E2EE keys generated and stored securely');
       }
       
       // Vérifier/enregistrer la clé publique sur le serveur (seulement si nécessaire)
       await _syncPublicKeyWithServer();
       
       _isInitialized = true;
-      debugPrint('[E2EEService] ✅ E2EE initialized successfully');
+      AppLogger.success('E2EEService', 'E2EE initialized successfully');
     } catch (e) {
-      debugPrint('[E2EEService] ❌ E2EE initialization failed: $e');
+      AppLogger.error('E2EEService', 'E2EE initialization failed', e);
       // Ne pas bloquer le login si E2EE échoue
     }
   }
@@ -101,21 +102,21 @@ class E2EEService {
       
       // 2. Comparer avec la clé locale
       if (serverKeyBase64 == localKeyBase64) {
-        debugPrint('[E2EEService] ✅ Public key already registered (no change)');
+        AppLogger.success('E2EEService', 'Public key already registered (no change)');
         return;
       }
       
       // 3. Clé différente sur le serveur - mettre à jour
-      debugPrint('[E2EEService] ⚠️ Server key differs, updating...');
+      AppLogger.warning('E2EEService', 'Server key differs, updating...');
       await _registerPublicKey(localKeyBase64, options);
       
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         // Clé n'existe pas sur le serveur - l'enregistrer
-        debugPrint('[E2EEService] 📝 No key on server, registering...');
+        AppLogger.info('E2EEService', 'No key on server, registering...');
         await _registerPublicKey(localKeyBase64, options);
       } else {
-        debugPrint('[E2EEService] ⚠️ Failed to check server key: $e');
+        AppLogger.warning('E2EEService', 'Failed to check server key: $e');
       }
     }
   }
@@ -128,9 +129,9 @@ class E2EEService {
         data: {'public_key': publicKeyBase64},
         options: options,
       );
-      debugPrint('[E2EEService] ✅ Public key registered on server');
+      AppLogger.success('E2EEService', 'Public key registered on server');
     } catch (e) {
-      debugPrint('[E2EEService] ⚠️ Failed to register public key: $e');
+      AppLogger.warning('E2EEService', 'Failed to register public key: $e');
     }
   }
 
@@ -161,8 +162,8 @@ class E2EEService {
     _keyPair = null;
     _isInitialized = false;
     
-    // Optionnel: supprimer les clés du stockage
-    // (généralement on les garde pour réutilisation)
-    debugPrint('[E2EEService] 🧹 E2EE state cleared');
+    // Supprimer les clés du stockage sécurisé
+    await SecureStorageService().deleteE2EEKeys();
+    AppLogger.info('E2EEService', 'E2EE state cleared');
   }
 }

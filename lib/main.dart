@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'core/utils/logger.dart';
 import 'ui/lab/lab_screen.dart';
 import 'ui/store/store_screen.dart';
 import 'ui/my_apps/my_apps_screen.dart';
@@ -35,7 +36,7 @@ void main() async {
       // On ne bloque pas le démarrage.
     }
   } catch (e) {
-    print("⚠️ Erreur lors de l'initialisation des permissions : $e");
+    AppLogger.error('Main', 'Erreur lors de l\'initialisation des permissions', e);
   }
 
   runApp(const OndesCoreApp());

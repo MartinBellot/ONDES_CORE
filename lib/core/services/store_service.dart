@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'auth_service.dart';
 import 'configuration_service.dart';
 import '../models/mini_app.dart';
+import '../utils/logger.dart';
 
 /// Service pour interagir avec l'API Store
 class StoreService {
@@ -62,7 +63,7 @@ class StoreService {
         offset: response.data['offset'] ?? offset,
       );
     } catch (e) {
-      print("Get Apps Error: $e");
+      AppLogger.error('StoreService', 'getApps failed', e);
       return StoreAppsResponse(apps: [], total: 0, limit: limit, offset: offset);
     }
   }
@@ -76,7 +77,7 @@ class StoreService {
       );
       return MiniApp.fromDetailJson(response.data);
     } catch (e) {
-      print("Get App Detail Error: $e");
+      AppLogger.error('StoreService', 'getAppDetail failed', e);
       return null;
     }
   }
@@ -91,7 +92,7 @@ class StoreService {
       final List data = response.data;
       return data.map((json) => MiniApp.fromJson(json)).toList();
     } catch (e) {
-      print("Get Featured Apps Error: $e");
+      AppLogger.error('StoreService', 'getFeaturedApps failed', e);
       return [];
     }
   }
@@ -119,7 +120,7 @@ class StoreService {
       final List data = response.data;
       return data.map((json) => MiniApp.fromJson(json)).toList();
     } catch (e) {
-      print("Get Top Apps Error: $e");
+      AppLogger.error('StoreService', 'getTopApps failed', e);
       return [];
     }
   }
@@ -132,7 +133,7 @@ class StoreService {
         options: _authOptions,
       );
     } catch (e) {
-      print("Track Download Error: $e");
+      AppLogger.error('StoreService', 'trackDownload failed', e);
     }
   }
 
@@ -145,7 +146,7 @@ class StoreService {
       final List data = response.data;
       return data.map((json) => AppCategory.fromJson(json)).toList();
     } catch (e) {
-      print("Get Categories Error: $e");
+      AppLogger.error('StoreService', 'getCategories failed', e);
       return [];
     }
   }
@@ -172,7 +173,7 @@ class StoreService {
         total: response.data['total'] ?? 0,
       );
     } catch (e) {
-      print("Get Category Apps Error: $e");
+      AppLogger.error('StoreService', 'getCategoryApps failed', e);
       return CategoryAppsResponse(
         category: AppCategory(id: 0, slug: slug, name: slug),
         apps: [],
@@ -211,7 +212,7 @@ class StoreService {
         ratingsCount: response.data['ratings_count'] ?? 0,
       );
     } catch (e) {
-      print("Get Reviews Error: $e");
+      AppLogger.error('StoreService', 'getReviews failed', e);
       return ReviewsResponse(
         reviews: [],
         total: 0,
@@ -244,7 +245,7 @@ class StoreService {
       );
       return AppReview.fromJson(response.data);
     } catch (e) {
-      print("Submit Review Error: $e");
+      AppLogger.error('StoreService', 'submitReview failed', e);
       return null;
     }
   }
@@ -260,7 +261,7 @@ class StoreService {
       );
       return true;
     } catch (e) {
-      print("Delete Review Error: $e");
+      AppLogger.error('StoreService', 'deleteReview failed', e);
       return false;
     }
   }
@@ -274,7 +275,7 @@ class StoreService {
       );
       return response.data['helpful_count'];
     } catch (e) {
-      print("Mark Helpful Error: $e");
+      AppLogger.error('StoreService', 'markHelpful failed', e);
       return null;
     }
   }
@@ -291,7 +292,7 @@ class StoreService {
       );
       return true;
     } catch (e) {
-      print("Respond Review Error: $e");
+      AppLogger.error('StoreService', 'respondReview failed', e);
       return false;
     }
   }

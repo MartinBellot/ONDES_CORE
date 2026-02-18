@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/chat_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/e2ee_service.dart';
+import '../../core/services/secure_storage_service.dart';
+import '../../core/utils/logger.dart';
 import 'base_handler.dart';
 
 /// Handler for Ondes.Chat namespace
@@ -110,7 +111,7 @@ class ChatHandler extends BaseHandler {
       final decrypted = await _aesGcm.decrypt(secretBox, secretKey: key);
       return utf8.decode(decrypted);
     } catch (e) {
-      debugPrint('[ChatHandler] Decryption error: $e');
+      AppLogger.error('ChatHandler', 'Decryption failed', e);
       return '[Erreur de déchiffrement]';
     }
   }
@@ -123,10 +124,9 @@ class ChatHandler extends BaseHandler {
       return _conversationKeys[conversationId]!;
     }
     
-    // Cache persistant
-    final prefs = await SharedPreferences.getInstance();
-    final storageKey = 'chat_conv_key_$conversationId';
-    final storedKey = prefs.getString(storageKey);
+    // Cache persistant (stockage sécurisé)
+    final secureStorage = SecureStorageService();
+    final storedKey = await secureStorage.getConversationKey(conversationId);
     
     if (storedKey != null) {
       final keyBytes = base64Decode(storedKey);
@@ -156,12 +156,12 @@ class ChatHandler extends BaseHandler {
     // Dériver le secret partagé X25519 (identique des deux côtés!)
     final sharedSecret = await _e2eeService.deriveSharedSecret(otherMember.publicKey!);
     
-    // Mettre en cache et persister
+    // Mettre en cache et persister dans le stockage sécurisé
     _conversationKeys[conversationId] = sharedSecret;
     final keyBytes = await sharedSecret.extractBytes();
-    await prefs.setString(storageKey, base64Encode(keyBytes));
+    await secureStorage.setConversationKey(conversationId, base64Encode(keyBytes));
     
-    debugPrint('[ChatHandler] ✅ Derived X25519 key for conversation $conversationId');
+    AppLogger.success('ChatHandler', 'Derived X25519 key for conversation $conversationId');
     return sharedSecret;
   }
 
@@ -218,7 +218,7 @@ class ChatHandler extends BaseHandler {
 
     // Écouter les changements de connexion
     _connectionSubscription = _chatService.onConnectionChange.listen((status) {
-      debugPrint('[ChatHandler] Connection status: $status');
+      AppLogger.debug('ChatHandler', 'Connection status: $status');
     });
   }
 
@@ -235,7 +235,7 @@ class ChatHandler extends BaseHandler {
       
       // Vérifier que E2EE est initialisé
       if (!_e2eeService.isInitialized) {
-        debugPrint('[ChatHandler] ⚠️ E2EE not yet initialized, initializing now...');
+        AppLogger.warning('ChatHandler', 'E2EE not yet initialized, initializing now...');
         await _e2eeService.initialize();
       }
       
@@ -471,7 +471,7 @@ class ChatHandler extends BaseHandler {
 
   void _registerSendMessage() {
     addHandler('Ondes.Chat.send', (args) async {
-      debugPrint('[ChatHandler] send called with args: $args');
+      AppLogger.debug('ChatHandler', 'send called');
       
       if (!_chatService.isConnected) {
         throw Exception('Chat not connected. Call Ondes.Chat.init() first.');
@@ -485,13 +485,11 @@ class ChatHandler extends BaseHandler {
       final messageType = options['type'] as String? ?? 'text';
       final replyTo = options['replyTo'] as String?;
       
-      debugPrint('[ChatHandler] Sending to $conversationId: $message');
-      
       // Obtenir la clé et chiffrer automatiquement
       final key = await _getConversationKey(conversationId);
       final encryptedContent = await _encrypt(message, key);
       
-      debugPrint('[ChatHandler] Encrypted content length: ${encryptedContent.length}');
+      AppLogger.debug('ChatHandler', 'Encrypted content length: ${encryptedContent.length}');
       
       _chatService.sendMessage(
         conversationUuid: conversationId,
@@ -500,7 +498,7 @@ class ChatHandler extends BaseHandler {
         replyToUuid: replyTo,
       );
       
-      debugPrint('[ChatHandler] Message sent via WebSocket');
+      AppLogger.debug('ChatHandler', 'Message sent via WebSocket');
       
       return {'success': true};
     });
@@ -512,20 +510,17 @@ class ChatHandler extends BaseHandler {
         throw Exception('Chat not connected');
       }
       
-      if (args.length < 2) {
-        throw Exception('messageId and newContent required');
+      if (args.length < 3) {
+        throw Exception('messageId, newContent, and conversationId required');
       }
       
       final messageId = args[0] as String;
       final newContent = args[1] as String;
-      final conversationId = args.length > 2 ? args[2] as String : null;
+      final conversationId = args[2] as String;
       
-      // Chiffrer le nouveau contenu si on a le conversationId
-      String contentToSend = newContent;
-      if (conversationId != null && _encryptionEnabled) {
-        final key = await _getConversationKey(conversationId);
-        contentToSend = await _encrypt(newContent, key);
-      }
+      // Toujours chiffrer le contenu édité
+      final key = await _getConversationKey(conversationId);
+      final contentToSend = await _encrypt(newContent, key);
       
       _chatService.editMessage(messageId, contentToSend);
       

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'auth_service.dart';
 import 'configuration_service.dart';
 import '../models/mini_app.dart';
+import '../utils/logger.dart';
 
 class DevStudioService {
   static final DevStudioService _instance = DevStudioService._internal();
@@ -22,7 +23,7 @@ class DevStudioService {
       final List data = response.data;
       return data.map((json) => AppCategory.fromJson(json)).toList();
     } catch (e) {
-      print("Get Categories Error: $e");
+      AppLogger.error('DevStudio', 'getCategories failed', e);
       return [];
     }
   }
@@ -37,7 +38,7 @@ class DevStudioService {
       final List data = response.data;
       return data.map((json) => MiniApp.fromJson(json)).toList();
     } catch (e) {
-      print("Get My Apps Error: $e");
+      AppLogger.error('DevStudio', 'getMyApps failed', e);
       return [];
     }
   }
@@ -93,7 +94,7 @@ class DevStudioService {
       // Ensure backend Serializer includes 'id'.
       return MiniApp.fromJson(response.data);
     } catch (e) {
-      print("Create App Error: $e");
+      AppLogger.error('DevStudio', 'createApp failed', e);
       return null;
     }
   }
@@ -119,7 +120,7 @@ class DevStudioService {
       );
       return true;
     } catch (e) {
-      print("Upload Version Error: $e");
+      AppLogger.error('DevStudio', 'uploadVersion failed', e);
       return false;
     }
   }
@@ -179,7 +180,7 @@ class DevStudioService {
       
       return MiniApp.fromJson(response.data);
     } catch (e) {
-      print("Update App Error: $e");
+      AppLogger.error('DevStudio', 'updateApp failed', e);
       return null;
     }
   }
@@ -208,7 +209,7 @@ class DevStudioService {
       );
       return true;
     } catch (e) {
-      print("Upload Screenshot Error: $e");
+      AppLogger.error('DevStudio', 'uploadScreenshot failed', e);
       return false;
     }
   }
@@ -223,7 +224,7 @@ class DevStudioService {
       );
       return true;
     } catch (e) {
-      print("Delete Screenshot Error: $e");
+      AppLogger.error('DevStudio', 'deleteScreenshot failed', e);
       return false;
     }
   }
@@ -250,7 +251,7 @@ class DevStudioService {
       );
       return true;
     } catch (e) {
-      print("Update Screenshot Error: $e");
+      AppLogger.error('DevStudio', 'updateScreenshot failed', e);
       return false;
     }
   }
@@ -269,7 +270,7 @@ class DevStudioService {
       );
       return true;
     } catch (e) {
-      print("Reorder Screenshots Error: $e");
+      AppLogger.error('DevStudio', 'reorderScreenshots failed', e);
       return false;
     }
   }
@@ -284,7 +285,7 @@ class DevStudioService {
       );
       return MiniApp.fromDetailJson(response.data);
     } catch (e) {
-      print("Get App Detail Error: $e");
+      AppLogger.error('DevStudio', 'getAppDetail failed', e);
       return null;
     }
   }
@@ -298,7 +299,7 @@ class DevStudioService {
       );
       return true;
     } catch (e) {
-      print("Delete App Error: $e");
+      AppLogger.error('DevStudio', 'deleteApp failed', e);
       return false;
     }
   }

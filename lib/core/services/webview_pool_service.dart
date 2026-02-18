@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../../bridge/ondes_js_injection.dart';
+import '../utils/logger.dart';
 
 class WebViewPoolService {
   static final WebViewPoolService _instance = WebViewPoolService._internal();
@@ -33,7 +35,7 @@ class WebViewPoolService {
 
   /// Crée une WebView Headless "chaude" prête à être utilisée
   Future<void> _createHeadlessWarmer(String id) async {
-    print("🔥 [WebViewPool] Warming up $id...");
+    AppLogger.debug('WebViewPool', 'Warming up $id...');
 
     // Create a new KeepAlive object for this slot
     final keepAlive = InAppWebViewKeepAlive();
@@ -44,13 +46,13 @@ class WebViewPoolService {
       initialUrlRequest: URLRequest(url: WebUri("about:blank")),
       keepAlive: keepAlive, // Moved to constructor
       initialSettings: InAppWebViewSettings(
-        isInspectable: true,
+        isInspectable: kDebugMode, // Uniquement en mode debug
         // Performance settings
         mediaPlaybackRequiresUserGesture: false,
         allowsInlineMediaPlayback: true,
         iframeAllow: "camera; microphone",
         transparentBackground: true,
-        allowUniversalAccessFromFileURLs: true,
+        allowUniversalAccessFromFileURLs: false,
       ),
       onWebViewCreated: (controller) async {
         // Pre-injection context if needed
@@ -59,7 +61,7 @@ class WebViewPoolService {
         await controller.evaluateJavascript(source: ondesBridgeJs);
         if (!_availableIds.contains(id)) {
             _availableIds.add(id);
-            print("✅ [WebViewPool] $id is ready and available.");
+            AppLogger.success('WebViewPool', '$id is ready and available.');
         }
       },
     );
@@ -86,7 +88,7 @@ class WebViewPoolService {
       // Remove reference so we don't return it again as 'available'
       _keepAliveObjects.remove(id);
 
-      print("🚀 [WebViewPool] Using warm view from slot: $id");
+      AppLogger.info('WebViewPool', 'Using warm view from slot: $id');
       return keepAlive;
     }
     return null;

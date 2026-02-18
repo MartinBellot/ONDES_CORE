@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../../core/utils/logger.dart';
 import 'base_handler.dart';
 
 /// Handler for Ondes.Websocket namespace
@@ -14,6 +16,9 @@ class WebsocketHandler extends BaseHandler {
 
   /// Counter for generating unique connection IDs
   int _connectionCounter = 0;
+
+  /// Maximum concurrent WebSocket connections per mini-app
+  static const int _maxConnections = 10;
 
   /// Message queues for each connection (polling-based approach for macOS compatibility)
   final Map<String, List<Map<String, dynamic>>> _messageQueues = {};
@@ -42,8 +47,14 @@ class WebsocketHandler extends BaseHandler {
   /// Connect to a WebSocket server
   void _registerConnect() {
     addHandler('Ondes.Websocket.connect', (args) async {
+      await requirePermission('network');
+
       if (args.isEmpty) {
         throw Exception('URL is required');
+      }
+
+      if (_connections.length >= _maxConnections) {
+        throw Exception('Maximum WebSocket connections reached ($_maxConnections). Disconnect existing connections first.');
       }
 
       final url = args[0] as String;
@@ -51,13 +62,29 @@ class WebsocketHandler extends BaseHandler {
           ? Map<String, dynamic>.from(args[1] as Map)
           : <String, dynamic>{};
 
+      // Validation de l'URL
+      final uri = Uri.tryParse(url);
+      if (uri == null) {
+        throw Exception('Invalid URL: $url');
+      }
+
+      // En production, exiger wss://
+      if (kReleaseMode && uri.scheme != 'wss') {
+        throw Exception('Only wss:// connections are allowed in production');
+      }
+
+      // Bloquer les adresses internes sensibles
+      final blockedHosts = ['169.254.169.254', 'metadata.google.internal'];
+      if (blockedHosts.contains(uri.host)) {
+        throw Exception('Connection to this host is not allowed');
+      }
+
       final reconnect = options['reconnect'] as bool? ?? false;
       final timeout = options['timeout'] as int? ?? 10000;
 
       final connectionId = _generateConnectionId();
 
       try {
-        final uri = Uri.parse(url);
         final channel = WebSocketChannel.connect(uri);
 
         // Wait for connection with timeout
@@ -89,7 +116,7 @@ class WebsocketHandler extends BaseHandler {
         connection.status = WebsocketStatus.connected;
         connection.connectedAt = DateTime.now();
 
-        debugPrint('[WebsocketHandler] Connected: $connectionId to $url');
+        AppLogger.debug('WebsocketHandler', 'Connected: $connectionId to $url');
 
         return {
           'id': connectionId,
@@ -98,7 +125,7 @@ class WebsocketHandler extends BaseHandler {
           'connectedAt': connection.connectedAt?.millisecondsSinceEpoch,
         };
       } catch (e) {
-        debugPrint('[WebsocketHandler] Connection failed: $e');
+        AppLogger.error('WebsocketHandler', 'Connection failed', e);
         throw Exception('Failed to connect: $e');
       }
     });
@@ -142,7 +169,7 @@ class WebsocketHandler extends BaseHandler {
         final message = data is Map || data is List ? jsonEncode(data) : data.toString();
         connection.channel.sink.add(message);
 
-        debugPrint('[WebsocketHandler] Sent to $connectionId: $message');
+        AppLogger.debug('WebsocketHandler', 'Sent to $connectionId');
 
         return {'success': true, 'id': connectionId};
       } catch (e) {
@@ -251,7 +278,7 @@ class WebsocketHandler extends BaseHandler {
 
   /// Handle incoming messages
   void _handleMessage(String connectionId, dynamic message) {
-    debugPrint('[WebsocketHandler] Message from $connectionId: $message');
+    AppLogger.debug('WebsocketHandler', 'Message from $connectionId');
 
     // Queue the message for polling (macOS compatible approach)
     _messageQueues.putIfAbsent(connectionId, () => []);
@@ -263,7 +290,7 @@ class WebsocketHandler extends BaseHandler {
 
   /// Handle connection errors
   void _handleError(String connectionId, dynamic error) {
-    debugPrint('[WebsocketHandler] Error on $connectionId: $error');
+    AppLogger.error('WebsocketHandler', 'Error on $connectionId', error);
 
     final connection = _connections[connectionId];
     if (connection != null) {
@@ -279,7 +306,7 @@ class WebsocketHandler extends BaseHandler {
 
   /// Handle connection closed
   void _handleClosed(String connectionId) {
-    debugPrint('[WebsocketHandler] Connection closed: $connectionId');
+    AppLogger.debug('WebsocketHandler', 'Connection closed: $connectionId');
 
     final connection = _connections[connectionId];
     if (connection != null) {
@@ -296,7 +323,7 @@ class WebsocketHandler extends BaseHandler {
 
   /// Notify JavaScript of status changes (uses queue for macOS compatibility)
   void _notifyStatusChange(String connectionId, String status, String? error) {
-    debugPrint('[WebsocketHandler] Status change for $connectionId: $status');
+    AppLogger.debug('WebsocketHandler', 'Status change for $connectionId: $status');
     
     // Queue the status change for polling
     _statusQueues.putIfAbsent(connectionId, () => []);
@@ -323,7 +350,7 @@ class WebsocketHandler extends BaseHandler {
     if (connection.status == WebsocketStatus.connected) return;
 
     try {
-      debugPrint('[WebsocketHandler] Reconnecting: $connectionId');
+      AppLogger.debug('WebsocketHandler', 'Reconnecting: $connectionId');
 
       final uri = Uri.parse(connection.url);
       final channel = WebSocketChannel.connect(uri);
@@ -348,9 +375,9 @@ class WebsocketHandler extends BaseHandler {
       );
 
       _notifyStatusChange(connectionId, 'connected', null);
-      debugPrint('[WebsocketHandler] Reconnected: $connectionId');
+      AppLogger.success('WebsocketHandler', 'Reconnected: $connectionId');
     } catch (e) {
-      debugPrint('[WebsocketHandler] Reconnection failed: $e');
+      AppLogger.error('WebsocketHandler', 'Reconnection failed', e);
       connection.status = WebsocketStatus.error;
       _notifyStatusChange(connectionId, 'error', e.toString());
 
@@ -368,7 +395,7 @@ class WebsocketHandler extends BaseHandler {
       connection.reconnect = false; // Prevent auto-reconnection
       await connection.subscription?.cancel();
       await connection.channel.sink.close();
-      debugPrint('[WebsocketHandler] Disconnected: $connectionId');
+      AppLogger.debug('WebsocketHandler', 'Disconnected: $connectionId');
     }
   }
 

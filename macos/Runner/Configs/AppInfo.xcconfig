@@ -8,7 +8,7 @@
 PRODUCT_NAME = ondes_core
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.ondes.ondesCore
+PRODUCT_BUNDLE_IDENTIFIER = com.ondes.core
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.ondes. All rights reserved.

@@ -1,4 +1,4 @@
-package com.ondes.ondes_core
+package com.ondes.core
 
 import io.flutter.embedding.android.FlutterActivity
 

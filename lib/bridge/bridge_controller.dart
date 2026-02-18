@@ -123,4 +123,11 @@ class OndesBridgeController {
   WebsocketHandler get websocketHandler => _websocketHandler;
   ChatHandler get chatHandler => _chatHandler;
   UdpHandler get udpHandler => _udpHandler;
+
+  /// Nettoie toutes les ressources (sockets, WebSockets, chat, etc.)
+  void dispose() {
+    _websocketHandler.dispose();
+    _udpHandler.disposeHandler();
+    _chatHandler.dispose();
+  }
 }

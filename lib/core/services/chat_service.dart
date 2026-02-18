@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'auth_service.dart';
+import '../utils/logger.dart';
 
 /// Représente une clé publique utilisateur pour E2EE
 class UserPublicKey {
@@ -211,7 +212,7 @@ class ChatService {
       );
       return response.data;
     } catch (e) {
-      print('ChatService.registerPublicKey Error: $e');
+      AppLogger.error('ChatService', 'registerPublicKey failed', e);
       rethrow;
     }
   }
@@ -228,7 +229,7 @@ class ChatService {
           .map((json) => UserPublicKey.fromJson(json))
           .toList();
     } catch (e) {
-      print('ChatService.getPublicKeys Error: $e');
+      AppLogger.error('ChatService', 'getPublicKeys failed', e);
       rethrow;
     }
   }
@@ -246,7 +247,7 @@ class ChatService {
           .map((json) => Conversation.fromJson(json))
           .toList();
     } catch (e) {
-      print('ChatService.getConversations Error: $e');
+      AppLogger.error('ChatService', 'getConversations failed', e);
       rethrow;
     }
   }
@@ -260,7 +261,7 @@ class ChatService {
       );
       return Conversation.fromJson(response.data);
     } catch (e) {
-      print('ChatService.getConversation Error: $e');
+      AppLogger.error('ChatService', 'getConversation failed', e);
       rethrow;
     }
   }
@@ -286,7 +287,7 @@ class ChatService {
         'conversation': Conversation.fromJson(response.data['conversation']),
       };
     } catch (e) {
-      print('ChatService.startPrivateConversation Error: $e');
+      AppLogger.error('ChatService', 'startPrivateConversation failed', e);
       rethrow;
     }
   }
@@ -310,7 +311,7 @@ class ChatService {
       );
       return Conversation.fromJson(response.data);
     } catch (e) {
-      print('ChatService.createGroup Error: $e');
+      AppLogger.error('ChatService', 'createGroup failed', e);
       rethrow;
     }
   }
@@ -333,7 +334,7 @@ class ChatService {
           .map((json) => ChatMessage.fromJson(json))
           .toList();
     } catch (e) {
-      print('ChatService.getMessages Error: $e');
+      AppLogger.error('ChatService', 'getMessages failed', e);
       rethrow;
     }
   }
@@ -350,10 +351,18 @@ class ChatService {
         throw Exception('Not authenticated');
       }
 
-      final wsUri = Uri.parse('$_wsUrl/ws/chat/?token=$token');
+      // Sécurisation : ne pas envoyer le token dans l'URL
+      // On se connecte d'abord, puis on s'authentifie dans le premier message
+      final wsUri = Uri.parse('$_wsUrl/ws/chat/');
       _wsChannel = WebSocketChannel.connect(wsUri);
       
       await _wsChannel!.ready;
+      
+      // Authentification via le premier message WebSocket (pas dans l'URL)
+      _wsChannel!.sink.add(jsonEncode({
+        'action': 'authenticate',
+        'data': {'token': token},
+      }));
       
       _wsChannel!.stream.listen(
         _handleWebSocketMessage,
@@ -363,11 +372,11 @@ class ChatService {
 
       _isConnected = true;
       _connectionController.add('connected');
-      print('[ChatService] WebSocket connected');
+      AppLogger.success('ChatService', 'WebSocket connected');
       
       return true;
     } catch (e) {
-      print('[ChatService] WebSocket connection failed: $e');
+      AppLogger.error('ChatService', 'WebSocket connection failed', e);
       _isConnected = false;
       _connectionController.add('error');
       return false;
@@ -384,14 +393,14 @@ class ChatService {
 
   void _handleWebSocketMessage(dynamic data) {
     try {
-      print('[ChatService] WebSocket received: $data');
+      AppLogger.debug('ChatService', 'WebSocket received message');
       final message = jsonDecode(data.toString()) as Map<String, dynamic>;
       final type = message['type'];
-      print('[ChatService] Message type: $type');
+      AppLogger.debug('ChatService', 'Message type: $type');
 
       switch (type) {
         case 'new_message':
-          print('[ChatService] New message received!');
+          AppLogger.debug('ChatService', 'New message received');
           final msg = ChatMessage.fromJson(message['message']);
           _messageController.add(msg);
           break;
@@ -425,25 +434,25 @@ class ChatService {
           ));
           break;
         case 'connection_established':
-          print('[ChatService] Connected as ${message['username']}');
+          AppLogger.success('ChatService', 'Connected as ${message['username']}');
           break;
         case 'error':
-          print('[ChatService] Error: ${message['message']}');
+          AppLogger.error('ChatService', 'Server error: ${message['message']}');
           break;
       }
     } catch (e) {
-      print('[ChatService] Error parsing message: $e');
+      AppLogger.error('ChatService', 'Error parsing message', e);
     }
   }
 
   void _handleWebSocketError(error) {
-    print('[ChatService] WebSocket error: $error');
+    AppLogger.error('ChatService', 'WebSocket error', error);
     _isConnected = false;
     _connectionController.add('error');
   }
 
   void _handleWebSocketClosed() {
-    print('[ChatService] WebSocket closed');
+    AppLogger.info('ChatService', 'WebSocket closed');
     _isConnected = false;
     _connectionController.add('disconnected');
   }

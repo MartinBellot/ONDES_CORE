@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -5,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../bridge/bridge_controller.dart';
 import '../bridge/ondes_js_injection.dart';
 import '../core/services/webview_pool_service.dart';
+import '../core/utils/logger.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String url;
@@ -63,6 +66,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   void dispose() {
+    // Nettoyer toutes les ressources du bridge (sockets, WebSockets, chat)
+    _bridge.dispose();
     // On signale au pool qu'on a fini, pour qu'il en prépare une nouvelle fraîche
     WebViewPoolService().releaseAndRefill();
     super.dispose();
@@ -131,8 +136,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   void _onDrawerItemTap(String value) {
     Navigator.of(context).pop();
+    final safeValue = jsonEncode(value);
     _webController?.evaluateJavascript(
-      source: "window.dispatchEvent(new CustomEvent('ondes:drawer:select', { detail: { value: '$value' } }));",
+      source: "window.dispatchEvent(new CustomEvent('ondes:drawer:select', { detail: { value: $safeValue } }));",
     );
   }
 
@@ -397,8 +403,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 : _appBarTextColor,
           ),
           onPressed: () {
+            final safeVal = jsonEncode(action['value']);
             _webController?.evaluateJavascript(
-              source: "window.dispatchEvent(new CustomEvent('ondes:appbar:action', { detail: { value: '${action['value']}' } }));",
+              source: "window.dispatchEvent(new CustomEvent('ondes:appbar:action', { detail: { value: $safeVal } }));",
             );
           },
           tooltip: action['tooltip'],
@@ -406,8 +413,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
       } else if (action['type'] == 'text') {
         return TextButton(
           onPressed: () {
+            final safeVal = jsonEncode(action['value']);
             _webController?.evaluateJavascript(
-              source: "window.dispatchEvent(new CustomEvent('ondes:appbar:action', { detail: { value: '${action['value']}' } }));",
+              source: "window.dispatchEvent(new CustomEvent('ondes:appbar:action', { detail: { value: $safeVal } }));",
             );
           },
           child: Text(
@@ -430,8 +438,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 color: _appBarTextColor,
               ),
               onPressed: () {
+                final safeVal = jsonEncode(action['value']);
                 _webController?.evaluateJavascript(
-                  source: "window.dispatchEvent(new CustomEvent('ondes:appbar:action', { detail: { value: '${action['value']}' } }));",
+                  source: "window.dispatchEvent(new CustomEvent('ondes:appbar:action', { detail: { value: $safeVal } }));",
                 );
               },
             ),
@@ -595,14 +604,14 @@ class _WebViewScreenState extends State<WebViewScreen> {
             keepAlive: _keepAlive,
             initialUrlRequest: URLRequest(url: WebUri(widget.url)),
             initialSettings: InAppWebViewSettings(
-              isInspectable: true, // Specific for debugging/Lab
+              isInspectable: kDebugMode, // Uniquement en mode debug
               mediaPlaybackRequiresUserGesture: false,
               allowsInlineMediaPlayback: true,
               iframeAllow: "camera; microphone",
               transparentBackground: true,
               
-              // Allow Local Server (HTTP)
-              allowUniversalAccessFromFileURLs: true,
+              // Le serveur local sert via HTTP, pas besoin d'accès file://
+              allowUniversalAccessFromFileURLs: false,
             ),
             onWebViewCreated: (controller) {
               _webController = controller;
@@ -622,13 +631,56 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 await controller.evaluateJavascript(source: ondesBridgeJs);
             },
             onPermissionRequest: (controller, request) async {
+              // Vérifier les ressources demandées et ne pas auto-accorder
+              // les permissions sensibles sans consentement
+              final sensitiveResources = [
+                PermissionResourceType.CAMERA,
+                PermissionResourceType.MICROPHONE,
+                PermissionResourceType.CAMERA_AND_MICROPHONE,
+              ];
+              
+              final hasSensitive = request.resources.any(
+                (r) => sensitiveResources.contains(r),
+              );
+              
+              if (hasSensitive) {
+                // Demander confirmation à l'utilisateur
+                final granted = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Permission demandée'),
+                    content: Text(
+                      'Cette application demande l\'accès \u00e0 : '
+                      '${request.resources.map((r) => r.toString().split(".").last).join(", ")}',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Refuser'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Autoriser'),
+                      ),
+                    ],
+                  ),
+                );
+                
+                return PermissionResponse(
+                  resources: request.resources,
+                  action: granted == true
+                      ? PermissionResponseAction.GRANT
+                      : PermissionResponseAction.DENY,
+                );
+              }
+              
               return PermissionResponse(
                 resources: request.resources,
                 action: PermissionResponseAction.GRANT,
               );
             },
             onConsoleMessage: (controller, msg) {
-              print("JS Console: ${msg.message}");
+              AppLogger.debug('WebView JS', msg.message);
             },
           ),
           // Fallback Back Button (only if no native AppBar is visible)

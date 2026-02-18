@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../models/mini_app.dart';
+import '../utils/logger.dart';
 
 class AppLibraryService {
   
@@ -63,7 +64,7 @@ class AppLibraryService {
               permissions: (json['permissions'] as List?)?.map((e) => e.toString()).toList() ?? [],
             ));
           } catch (e) {
-            print("Error parsing manifest for ${entity.path}: $e");
+            AppLogger.error('AppLibrary', 'Error parsing manifest for ${entity.path}', e);
           }
         }
       }

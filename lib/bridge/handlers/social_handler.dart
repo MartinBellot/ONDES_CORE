@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/services/social_service.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/utils/logger.dart';
 import 'base_handler.dart';
 
 /// Handler for Ondes.Social namespace
@@ -87,6 +88,7 @@ class SocialHandler extends BaseHandler {
   /// Ondes.Social.unfollow(options)
   void _registerUnfollow() {
     addHandler('Ondes.Social.unfollow', (args) async {
+      await requirePermission('social');
       _requireAuth();
 
       final options = args.isNotEmpty ? args[0] as Map<String, dynamic> : {};
@@ -569,7 +571,7 @@ class SocialHandler extends BaseHandler {
                 : 'image/jpeg';
             previewUrl = 'data:$mimeType;base64,$base64';
           } catch (e) {
-            print('Error creating preview: $e');
+            AppLogger.error('SocialHandler', 'Error creating preview', e);
           }
         }
 
