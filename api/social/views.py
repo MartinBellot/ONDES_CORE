@@ -1,4 +1,5 @@
 import os
+import logging
 import shutil
 import uuid
 import mimetypes
@@ -6,6 +7,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db.models import F
+
+logger = logging.getLogger('social')
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -24,6 +28,21 @@ from .serializers import (
 )
 from .feed_algorithm import LocalFeedAlgorithm
 from .media_processing import process_post_media
+
+
+MAX_PAGE_LIMIT = 100
+
+
+def safe_int(value, default, min_val=0, max_val=None):
+    """Parse int from query param with bounds."""
+    try:
+        v = int(value)
+    except (TypeError, ValueError):
+        return default
+    v = max(min_val, v)
+    if max_val is not None:
+        v = min(max_val, v)
+    return v
 
 
 # ===================== FOLLOW VIEWS =====================
@@ -226,7 +245,7 @@ class PublishPostView(APIView):
             try:
                 process_post_media(post_media)
             except Exception as e:
-                print(f"Media processing error: {e}")
+                logger.error(f"Media processing error: {e}")
         
         return Response({
             'success': True,
@@ -240,8 +259,8 @@ class GetFeedView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        limit = int(request.query_params.get('limit', 50))
-        offset = int(request.query_params.get('offset', 0))
+        limit = safe_int(request.query_params.get('limit'), 50, max_val=MAX_PAGE_LIMIT)
+        offset = safe_int(request.query_params.get('offset'), 0)
         feed_type = request.query_params.get('type', 'main')  # main, discover, video
         
         algorithm = LocalFeedAlgorithm(request.user)
@@ -319,9 +338,9 @@ class DeletePostView(APIView):
         if os.path.exists(post_folder) and os.path.isdir(post_folder):
             try:
                 shutil.rmtree(post_folder)
-                print(f"Deleted post folder: {post_folder}")
+                logger.info(f"Deleted post folder: {post_folder}")
             except Exception as e:
-                print(f"Error deleting post folder: {e}")
+                logger.error(f"Error deleting post folder: {e}")
         
         return Response({'success': True, 'message': 'Post deleted'})
 
@@ -332,8 +351,8 @@ class UserPostsView(APIView):
 
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
-        limit = int(request.query_params.get('limit', 30))
-        offset = int(request.query_params.get('offset', 0))
+        limit = safe_int(request.query_params.get('limit'), 30, max_val=MAX_PAGE_LIMIT)
+        offset = safe_int(request.query_params.get('offset'), 0)
         
         posts = Post.objects.filter(author=user, is_deleted=False)
         
@@ -371,8 +390,8 @@ class LikePostView(APIView):
         )
         
         if created:
-            post.likes_count += 1
-            post.save(update_fields=['likes_count'])
+            Post.objects.filter(pk=post.pk).update(likes_count=F('likes_count') + 1)
+            post.refresh_from_db(fields=['likes_count'])
         
         return Response({
             'success': True,
@@ -394,8 +413,8 @@ class UnlikePostView(APIView):
         ).delete()
         
         if deleted:
-            post.likes_count = max(0, post.likes_count - 1)
-            post.save(update_fields=['likes_count'])
+            Post.objects.filter(pk=post.pk, likes_count__gt=0).update(likes_count=F('likes_count') - 1)
+            post.refresh_from_db(fields=['likes_count'])
         
         return Response({
             'success': True,
@@ -447,8 +466,8 @@ class AddCommentView(APIView):
             parent=parent
         )
         
-        post.comments_count += 1
-        post.save(update_fields=['comments_count'])
+        Post.objects.filter(pk=post.pk).update(comments_count=F('comments_count') + 1)
+        post.refresh_from_db(fields=['comments_count'])
         
         return Response({
             'success': True,
@@ -462,8 +481,8 @@ class GetCommentsView(APIView):
 
     def get(self, request, post_uuid):
         post = get_object_or_404(Post, uuid=post_uuid, is_deleted=False)
-        limit = int(request.query_params.get('limit', 50))
-        offset = int(request.query_params.get('offset', 0))
+        limit = safe_int(request.query_params.get('limit'), 50, max_val=MAX_PAGE_LIMIT)
+        offset = safe_int(request.query_params.get('offset'), 0)
         
         comments = PostComment.objects.filter(
             post=post,
@@ -507,8 +526,9 @@ class DeleteCommentView(APIView):
         comment.is_deleted = True
         comment.save(update_fields=['is_deleted'])
         
-        comment.post.comments_count = max(0, comment.post.comments_count - 1)
-        comment.post.save(update_fields=['comments_count'])
+        Post.objects.filter(pk=comment.post.pk, comments_count__gt=0).update(
+            comments_count=F('comments_count') - 1
+        )
         
         return Response({'success': True})
 
@@ -526,8 +546,8 @@ class LikeCommentView(APIView):
         )
         
         if created:
-            comment.likes_count += 1
-            comment.save(update_fields=['likes_count'])
+            PostComment.objects.filter(pk=comment.pk).update(likes_count=F('likes_count') + 1)
+            comment.refresh_from_db(fields=['likes_count'])
         
         return Response({
             'success': True,
@@ -576,8 +596,8 @@ class BookmarksListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        limit = int(request.query_params.get('limit', 50))
-        offset = int(request.query_params.get('offset', 0))
+        limit = safe_int(request.query_params.get('limit'), 50, max_val=MAX_PAGE_LIMIT)
+        offset = safe_int(request.query_params.get('offset'), 0)
         
         bookmarks = Bookmark.objects.filter(
             user=request.user
@@ -670,6 +690,14 @@ class GetStoriesView(APIView):
             expires_at__gt=now
         ).select_related('author__profile').order_by('author', '-created_at')
         
+        # Prefetch viewed story IDs to avoid N+1
+        viewed_story_ids = set(
+            StoryView.objects.filter(
+                user=request.user,
+                story__in=stories
+            ).values_list('story_id', flat=True)
+        )
+        
         # Grouper par utilisateur
         user_stories = {}
         for story in stories:
@@ -681,8 +709,8 @@ class GetStoriesView(APIView):
                 }
             user_stories[story.author_id]['stories'].append(story)
             
-            # Vérifier si non vue
-            if not StoryView.objects.filter(user=request.user, story=story).exists():
+            # Vérifier si non vue (via prefetched set)
+            if story.id not in viewed_story_ids:
                 user_stories[story.author_id]['has_unviewed'] = True
         
         # Trier: non vues en premier, puis les propres stories
@@ -719,8 +747,8 @@ class ViewStoryView(APIView):
         )
         
         if created:
-            story.views_count += 1
-            story.save(update_fields=['views_count'])
+            Story.objects.filter(pk=story.pk).update(views_count=F('views_count') + 1)
+            story.refresh_from_db(fields=['views_count'])
         
         return Response({'success': True, 'views_count': story.views_count})
 
@@ -738,7 +766,7 @@ class DeleteStoryView(APIView):
                 if os.path.exists(story.media.path):
                     os.remove(story.media.path)
             except Exception as e:
-                print(f"Error deleting story media file: {e}")
+                logger.error(f"Error deleting story media file: {e}")
         
         # Delete HLS files if exists
         if story.hls_playlist:
@@ -751,7 +779,7 @@ class DeleteStoryView(APIView):
                 if os.path.exists(hls_dir) and os.path.isdir(hls_dir):
                     shutil.rmtree(hls_dir)
             except Exception as e:
-                print(f"Error deleting story HLS files: {e}")
+                logger.error(f"Error deleting story HLS files: {e}")
         
         story.delete()
         

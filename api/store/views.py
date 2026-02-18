@@ -7,6 +7,23 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework import parsers
 from django.db.models import Q, Avg, Count
 from django.utils import timezone
+import logging
+
+logger = logging.getLogger('store')
+
+MAX_PAGE_LIMIT = 100
+
+
+def safe_int(value, default, min_val=0, max_val=None):
+    """Parse int from query param with bounds."""
+    try:
+        v = int(value)
+    except (TypeError, ValueError):
+        return default
+    v = max(min_val, v)
+    if max_val is not None:
+        v = min(max_val, v)
+    return v
 from .models import MiniApp, UserProfile, AppVersion, Category, AppScreenshot, AppReview
 from .serializers import (
     MiniAppSerializer, MiniAppListSerializer, MiniAppDetailSerializer,
@@ -37,7 +54,6 @@ class CustomAuthToken(ObtainAuthToken):
         return Response({
             'token': token.key,
             'user_id': user.pk,
-            'email': user.email
         })
 
 
@@ -91,8 +107,8 @@ class CategoryDetailView(APIView):
         apps = MiniApp.objects.filter(category=category)
         
         # Pagination
-        limit = int(request.query_params.get('limit', 20))
-        offset = int(request.query_params.get('offset', 0))
+        limit = safe_int(request.query_params.get('limit'), 20, max_val=MAX_PAGE_LIMIT)
+        offset = safe_int(request.query_params.get('offset'), 0)
         
         total = apps.count()
         apps = apps[offset:offset + limit]
@@ -150,8 +166,8 @@ class AppListView(APIView):
             apps = apps.order_by('-featured', '-downloads_count', '-created_at')
         
         # Pagination
-        limit = int(request.query_params.get('limit', 50))
-        offset = int(request.query_params.get('offset', 0))
+        limit = safe_int(request.query_params.get('limit'), 50, max_val=MAX_PAGE_LIMIT)
+        offset = safe_int(request.query_params.get('offset'), 0)
         
         total = apps.count()
         apps = apps[offset:offset + limit]
@@ -194,7 +210,7 @@ class TopAppsView(APIView):
     def get(self, request):
         category = request.query_params.get('category', '')
         list_type = request.query_params.get('type', 'downloads')  # downloads, rating, new
-        limit = int(request.query_params.get('limit', 20))
+        limit = safe_int(request.query_params.get('limit'), 20, max_val=MAX_PAGE_LIMIT)
         
         apps = MiniApp.objects.all()
         
@@ -240,8 +256,8 @@ class AppReviewsView(APIView):
             reviews = reviews.order_by('-created_at')
         
         # Pagination
-        limit = int(request.query_params.get('limit', 20))
-        offset = int(request.query_params.get('offset', 0))
+        limit = safe_int(request.query_params.get('limit'), 20, max_val=MAX_PAGE_LIMIT)
+        offset = safe_int(request.query_params.get('offset'), 0)
         
         total = reviews.count()
         reviews = reviews[offset:offset + limit]
@@ -333,17 +349,25 @@ class ReviewDeveloperResponseView(APIView):
 
 
 class ReviewHelpfulView(APIView):
-    """Marquer un avis comme utile"""
+    """Marquer un avis comme utile (une seule fois par utilisateur)"""
     permission_classes = [IsAuthenticated]
     
     def post(self, request, review_id):
+        from django.db.models import F
         try:
             review = AppReview.objects.get(id=review_id)
         except AppReview.DoesNotExist:
             return Response({'error': 'Review not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        review.helpful_count += 1
-        review.save()
+        # Empêcher le vote multiple via un cache simple (champ JSON ou session)
+        cache_key = f'helpful_{request.user.id}_{review_id}'
+        from django.core.cache import cache
+        if cache.get(cache_key):
+            return Response({'error': 'Already marked as helpful'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        AppReview.objects.filter(id=review_id).update(helpful_count=F('helpful_count') + 1)
+        review.refresh_from_db()
+        cache.set(cache_key, True, timeout=None)
         return Response({'helpful_count': review.helpful_count})
 
 
@@ -427,6 +451,26 @@ class AppVersionUploadView(APIView):
 
         if not zip_file or not version_number:
              return Response({'error': 'zip_file and version_number required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate file extension
+        if not zip_file.name.lower().endswith('.zip'):
+            return Response({'error': 'Only .zip files are accepted'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate file size (100 MB max)
+        from django.conf import settings as app_settings
+        max_size = getattr(app_settings, 'MAX_ZIP_UPLOAD_SIZE', 100 * 1024 * 1024)
+        if zip_file.size > max_size:
+            return Response(
+                {'error': f'File too large. Maximum size is {max_size // (1024*1024)} MB'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate it's a real zip file (magic bytes)
+        zip_file.seek(0)
+        header = zip_file.read(4)
+        zip_file.seek(0)
+        if header[:2] != b'PK':
+            return Response({'error': 'Invalid zip file'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Calculer la taille
         app.size_bytes = zip_file.size
@@ -561,14 +605,17 @@ class ScreenshotReorderView(APIView):
         if not ordered_ids:
             return Response({'error': 'ordered_ids required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Mettre à jour l'ordre de chaque screenshot
+        # Bulk update l'ordre de chaque screenshot
+        screenshots_to_update = []
+        screenshots_map = {s.id: s for s in AppScreenshot.objects.filter(app=app)}
         for index, screenshot_id in enumerate(ordered_ids):
-            try:
-                screenshot = AppScreenshot.objects.get(id=screenshot_id, app=app)
+            screenshot = screenshots_map.get(int(screenshot_id))
+            if screenshot:
                 screenshot.order = index
-                screenshot.save()
-            except AppScreenshot.DoesNotExist:
-                continue
+                screenshots_to_update.append(screenshot)
+        
+        if screenshots_to_update:
+            AppScreenshot.objects.bulk_update(screenshots_to_update, ['order'])
         
         # Retourner les screenshots mis à jour
         screenshots = app.screenshots.all().order_by('order')
@@ -576,16 +623,18 @@ class ScreenshotReorderView(APIView):
 
 
 class TrackDownloadView(APIView):
-    """Incrémenter le compteur de téléchargements"""
+    """Incrémenter le compteur de téléchargements (authentifié, atomique)"""
+    permission_classes = [IsAuthenticated]
     
     def post(self, request, app_id):
-        try:
-            app = MiniApp.objects.get(id=app_id)
-            app.downloads_count += 1
-            app.save()
-            return Response({'downloads_count': app.downloads_count})
-        except MiniApp.DoesNotExist:
+        from django.db.models import F
+        updated = MiniApp.objects.filter(id=app_id).update(
+            downloads_count=F('downloads_count') + 1
+        )
+        if not updated:
             return Response({'error': 'App not found'}, status=status.HTTP_404_NOT_FOUND)
+        app = MiniApp.objects.get(id=app_id)
+        return Response({'downloads_count': app.downloads_count})
 
 
 class DeveloperStatsView(APIView):

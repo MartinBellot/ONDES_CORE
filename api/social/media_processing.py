@@ -13,6 +13,9 @@ from PIL import Image
 from django.conf import settings
 from django.core.files.base import ContentFile
 import io
+import logging
+
+logger = logging.getLogger('social')
 
 
 class ImageProcessor:
@@ -192,7 +195,7 @@ class VideoProcessor:
                 'codec': video_stream.get('codec_name', ''),
             }
         except Exception as e:
-            print(f"Error getting video info: {e}")
+            logger.error(f"Error getting video info: {e}")
             return {'width': 0, 'height': 0, 'duration': 0, 'bitrate': 0, 'codec': ''}
     
     @staticmethod
@@ -224,7 +227,7 @@ class VideoProcessor:
             subprocess.run(cmd, capture_output=True, check=True)
             return output_path
         except subprocess.CalledProcessError as e:
-            print(f"Error creating thumbnail: {e}")
+            logger.error(f"Error creating thumbnail: {e}")
             return None
     
     @staticmethod
@@ -338,7 +341,7 @@ class VideoProcessor:
                     'relative_path': f"{br['name']}/playlist.m3u8"
                 })
             except subprocess.CalledProcessError as e:
-                print(f"Error converting {br['name']}: {e}")
+                logger.error(f"Error converting {br['name']}: {e}")
                 continue
         
         if not variant_playlists:
@@ -480,7 +483,7 @@ def process_story_media(story_instance):
                 story.hls_ready = True
                 story.save(update_fields=['hls_playlist', 'hls_ready'])
             else:
-                print(f"Story HLS conversion failed: {result.get('error')}")
+                logger.warning(f"Story HLS conversion failed: {result.get('error')}")
                 
     except Exception as e:
-        print(f"Error processing story media: {e}")
+        logger.error(f"Error processing story media: {e}")

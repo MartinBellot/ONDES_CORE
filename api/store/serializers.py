@@ -5,11 +5,10 @@ from .models import MiniApp, AppVersion, UserProfile, Category, AppScreenshot, A
 
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
-    email = serializers.EmailField(source='user.email', read_only=True)
     
     class Meta:
         model = UserProfile
-        fields = ['username', 'email', 'avatar', 'bio']
+        fields = ['username', 'avatar', 'bio']
 
 
 class RegisterSerializer(serializers.ModelSerializer):

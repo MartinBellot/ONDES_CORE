@@ -326,6 +326,10 @@ class Story(models.Model):
         verbose_name = "Story"
         verbose_name_plural = "Stories"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['expires_at']),
+            models.Index(fields=['author', '-created_at']),
+        ]
     
     def save(self, *args, **kwargs):
         if not self.expires_at:

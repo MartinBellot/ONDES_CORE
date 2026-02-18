@@ -575,27 +575,43 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     
     @database_sync_to_async
     def mark_messages_read(self, message_uuids):
-        """Marquer des messages comme lus"""
-        receipts = []
-        for uuid_str in message_uuids:
-            try:
-                message = Message.objects.select_related('sender').get(uuid=uuid_str)
-                if message.sender and message.sender.id != self.user.id:
-                    receipt, created = MessageReceipt.objects.get_or_create(
-                        message=message,
-                        user=self.user,
-                        receipt_type='read',
-                        defaults={'timestamp': timezone.now()}
-                    )
-                    if created:
-                        receipts.append({
-                            'message_uuid': uuid_str,
-                            'sender_id': message.sender.id,
-                            'timestamp': receipt.timestamp.isoformat()
-                        })
-            except Message.DoesNotExist:
-                continue
-        return receipts
+        """Marquer des messages comme lus (batch optimisé)"""
+        messages = list(
+            Message.objects.filter(uuid__in=message_uuids)
+            .exclude(sender=self.user)
+            .select_related('sender')
+        )
+        
+        # Find messages that don't already have a read receipt
+        existing = set(
+            MessageReceipt.objects.filter(
+                message__in=messages,
+                user=self.user,
+                receipt_type='read'
+            ).values_list('message_id', flat=True)
+        )
+        
+        now = timezone.now()
+        new_receipts = []
+        result = []
+        for msg in messages:
+            if msg.id not in existing and msg.sender:
+                new_receipts.append(MessageReceipt(
+                    message=msg,
+                    user=self.user,
+                    receipt_type='read',
+                    timestamp=now
+                ))
+                result.append({
+                    'message_uuid': str(msg.uuid),
+                    'sender_id': msg.sender.id,
+                    'timestamp': now.isoformat()
+                })
+        
+        if new_receipts:
+            MessageReceipt.objects.bulk_create(new_receipts, ignore_conflicts=True)
+        
+        return result
     
     @database_sync_to_async
     def mark_messages_delivered(self, message_uuids):

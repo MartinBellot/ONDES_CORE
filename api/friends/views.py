@@ -358,7 +358,7 @@ class SearchUsersView(APIView):
             )
         
         users = User.objects.filter(
-            Q(username__icontains=query) | Q(email__icontains=query)
+            Q(username__icontains=query)
         ).exclude(id=request.user.id)[:20]
         
         # Ajouter le statut d'amitié pour chaque utilisateur
