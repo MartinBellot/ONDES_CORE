@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI ChatBot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+    <!-- ================================ -->
+    <!-- ÉCRAN DE CHARGEMENT              -->
+    <!-- ================================ -->
+    <div id="screen-loading" class="screen">
+
+        <!-- Barre de progression fixée en haut de l'écran -->
+        <div class="loading-topbar">
+            <div class="loading-topbar-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="loading-container">
+            <div class="loading-logo">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="24" r="24" fill="url(#loadGrad)"/>
+                    <path d="M14 24C14 18.5 18.5 14 24 14C29.5 14 34 18.5 34 24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="24" cy="28" r="5.5" fill="white" fill-opacity="0.9"/>
+                    <defs>
+                        <linearGradient id="loadGrad" x1="0" y1="0" x2="48" y2="48">
+                            <stop offset="0%" stop-color="#10a37f"/>
+                            <stop offset="100%" stop-color="#0e8a6b"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <h2 class="loading-title" id="loading-title">Chargement du modèle…</h2>
+            <p class="loading-model-name" id="loading-model-name"></p>
+            <div class="loading-pct" id="loading-pct"></div>
+            <p class="loading-status" id="loading-status">Initialisation…</p>
+            <p class="loading-hint">
+                La première fois, le modèle est téléchargé (~quelques minutes).<br>
+                Il sera mis en cache pour les prochaines utilisations.
+            </p>
+        </div>
+    </div>
+
+    <!-- ================================ -->
+    <!-- ÉCRAN DE CHAT                    -->
+    <!-- ================================ -->
+    <div id="screen-chat" class="screen active">
+
+        <!-- Barre de navigation -->
+        <header class="chat-header">
+            <button class="header-btn" id="btn-menu" aria-label="Menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="header-center">
+                <span class="header-model-name" id="header-model-name">ChatBot AI</span>
+                <span class="header-status" id="header-status">
+                    <span class="status-dot"></span>
+                    Local
+                </span>
+            </div>
+            <button class="header-btn" id="btn-new-chat" aria-label="Nouvelle conversation" title="Nouvelle conversation">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            </button>
+        </header>
+
+        <!-- Sidebar (conversations + modèle) -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <svg width="22" height="22" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="18" fill="url(#sbGrad)"/><path d="M10 18C10 13.6 13.6 10 18 10C22.4 10 26 13.6 26 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/><circle cx="18" cy="21" r="4" fill="white" fill-opacity="0.9"/><defs><linearGradient id="sbGrad" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#10a37f"/><stop offset="100%" stop-color="#0e8a6b"/></linearGradient></defs></svg>
+                    <span>AI ChatBot</span>
+                </div>
+                <button class="sidebar-close" id="sidebar-close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+
+            <button class="sidebar-new-chat" id="sidebar-new-chat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                Nouvelle conversation
+            </button>
+
+            <div class="sidebar-section-title">Conversations</div>
+            <div class="sidebar-conversations" id="sidebar-conversations">
+                <!-- Chargé dynamiquement -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-model-info" id="sidebar-model-info">
+                    <span class="sidebar-model-dot"></span>
+                    <span id="sidebar-model-label">—</span>
+                </div>
+                <button class="sidebar-change-model" id="btn-change-model">
+                    Changer de modèle
+                </button>
+            </div>
+        </aside>
+
+        <!-- Zone messages -->
+        <main class="chat-main" id="chat-main">
+
+            <!-- État vide / bienvenue -->
+            <div class="welcome-state" id="welcome-state">
+                <div class="welcome-logo">
+                    <svg width="52" height="52" viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="24" fill="url(#wGrad)"/>
+                        <path d="M14 24C14 18.5 18.5 14 24 14C29.5 14 34 18.5 34 24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                        <circle cx="24" cy="28" r="5.5" fill="white" fill-opacity="0.9"/>
+                        <defs>
+                            <linearGradient id="wGrad" x1="0" y1="0" x2="48" y2="48">
+                                <stop offset="0%" stop-color="#10a37f"/>
+                                <stop offset="100%" stop-color="#0e8a6b"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h2 class="welcome-title">Comment puis-je vous aider ?</h2>
+                <div class="welcome-suggestions" id="welcome-suggestions">
+                    <button class="suggestion-chip" data-msg="Explique-moi le machine learning en termes simples.">
+                        💡 Explique le machine learning
+                    </button>
+                    <button class="suggestion-chip" data-msg="Écris-moi un poème sur la mer en 4 strophes.">
+                        ✍️ Écris un poème sur la mer
+                    </button>
+                    <button class="suggestion-chip" data-msg="Donne-moi 5 recettes rapides avec des pâtes.">
+                        🍝 5 recettes rapides avec des pâtes
+                    </button>
+                    <button class="suggestion-chip" data-msg="Résume les avantages et inconvénients du télétravail.">
+                        📊 Télétravail : avantages / inconvénients
+                    </button>
+                </div>
+            </div>
+
+            <!-- Liste des messages -->
+            <div class="messages-list" id="messages-list">
+                <!-- Messages injectés dynamiquement -->
+            </div>
+
+        </main>
+
+        <!-- Barre de saisie -->
+        <div class="input-bar">
+            <div class="input-wrapper" id="input-wrapper">
+                <textarea
+                    id="message-input"
+                    class="message-input"
+                    placeholder="Envoyer un message…"
+                    rows="1"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="true"
+                ></textarea>
+                <button class="send-btn" id="send-btn" disabled aria-label="Envoyer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 4l8 16-8-3.5L4 20z"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="input-disclaimer">Les modèles IA peuvent faire des erreurs. Vérifiez les informations importantes.</p>
+        </div>
+
+    </div>
+
+    <!-- ================================ -->
+    <!-- POPUP SÉLECTION DU MODÈLE        -->
+    <!-- ================================ -->
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div id="modal-model-select" class="modal-sheet">
+        <div class="modal-handle"></div>
+
+        <div class="modal-header">
+            <div class="modal-logo">
+                <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+                    <circle cx="18" cy="18" r="18" fill="url(#mGrad)"/>
+                    <path d="M10 18C10 13.6 13.6 10 18 10C22.4 10 26 13.6 26 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                    <circle cx="18" cy="21" r="4" fill="white" fill-opacity="0.9"/>
+                    <defs>
+                        <linearGradient id="mGrad" x1="0" y1="0" x2="36" y2="36">
+                            <stop offset="0%" stop-color="#10a37f"/>
+                            <stop offset="100%" stop-color="#0e8a6b"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="modal-title-block">
+                <h2 class="modal-title">Choisissez un modèle</h2>
+                <p class="modal-sub">IA locale · 100% privé · Alimenté par WebGPU</p>
+            </div>
+            <button class="modal-close" id="modal-close" style="display:none" aria-label="Fermer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+
+        <div class="model-cards" id="model-cards">
+
+            <div class="model-card" data-model="Llama-3.2-1B-Instruct-q4f16_1-MLC">
+                <div class="model-card-badge badge-fast">Rapide</div>
+                <div class="model-card-icon">⚡</div>
+                <div class="model-card-info">
+                    <div class="model-card-name">Llama 3.2 · 1B</div>
+                    <div class="model-card-desc">Réponses ultra-rapides, idéal pour les appareils à mémoire limitée.</div>
+                    <div class="model-card-size">~750 MB</div>
+                </div>
+                <div class="model-card-check">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="2"/><path d="M7 12l3.5 3.5L17 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+            </div>
+
+            <div class="model-card selected" data-model="Llama-3.2-3B-Instruct-q4f16_1-MLC">
+                <div class="model-card-badge badge-balanced">Équilibré</div>
+                <div class="model-card-icon">🧠</div>
+                <div class="model-card-info">
+                    <div class="model-card-name">Llama 3.2 · 3B</div>
+                    <div class="model-card-desc">Bon équilibre qualité/vitesse. Recommandé pour la plupart des usages.</div>
+                    <div class="model-card-size">~1.8 GB</div>
+                </div>
+                <div class="model-card-check">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="2"/><path d="M7 12l3.5 3.5L17 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+            </div>
+
+            <div class="model-card" data-model="Phi-3.5-mini-instruct-q4f16_1-MLC">
+                <div class="model-card-badge badge-pro">Pro</div>
+                <div class="model-card-icon">🔬</div>
+                <div class="model-card-info">
+                    <div class="model-card-name">Phi 3.5 Mini · 3.8B</div>
+                    <div class="model-card-desc">Qualité supérieure pour le raisonnement, le code et l'analyse.</div>
+                    <div class="model-card-size">~2.2 GB</div>
+                </div>
+                <div class="model-card-check">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="2"/><path d="M7 12l3.5 3.5L17 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="webgpu-warning" id="webgpu-warning" style="display:none">
+            <span>⚠️</span>
+            <span>WebGPU requis. Activez-le dans les flags du navigateur pour utiliser cette app.</span>
+        </div>
+
+        <button class="btn-start" id="btn-start">
+            Charger le modèle
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <p class="disclaimer">
+            Le modèle est téléchargé et exécuté localement dans votre navigateur via WebGPU.<br>
+            Vos conversations ne quittent jamais l'appareil.
+        </p>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

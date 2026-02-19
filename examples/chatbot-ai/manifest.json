@@ -1,0 +1,9 @@
+{
+    "id": "com.ondes.chatbot-ai",
+    "name": "AI ChatBot",
+    "version": "1.0.0",
+    "icon": "icon.png",
+    "description": "Chatbot IA local avec WebLLM — parlez avec un LLM directement sur votre appareil, sans serveur ni cloud.",
+    "author": "Ondes",
+    "permissions": ["storage"]
+}

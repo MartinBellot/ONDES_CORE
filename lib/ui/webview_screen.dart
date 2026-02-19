@@ -686,7 +686,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
           // Fallback Back Button (only if no native AppBar is visible)
           if (!_appBarVisible)
             Positioned(
-              top: MediaQuery.of(context).padding.top + 10,
+              bottom: MediaQuery.of(context).padding.top + 10,
               left: 10,
               child: Container(
                 decoration: BoxDecoration(

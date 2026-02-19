@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/app_library_service.dart';
@@ -27,6 +29,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   List<MiniApp> _myApps = [];
   bool _isLoading = false;
   bool _isLoadingStats = true;
+  int _cacheSizeBytes = 0;
+  bool _isLoadingCache = false;
+  bool _isClearingCache = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -56,8 +61,153 @@ class _ProfileScreenState extends State<ProfileScreen>
       _user = AuthService().currentUser;
       _bioCtrl.text = _user?['bio'] ?? "";
     });
-    await _loadStats();
+    await Future.wait([_loadStats(), _loadCacheSize()]);
     _animationController.forward();
+  }
+
+  Future<void> _loadCacheSize() async {
+    setState(() => _isLoadingCache = true);
+    try {
+      // WKWebView (iOS/macOS) stocke TOUTES ses données dans Library/WebKit/ :
+      //   • WebsiteData/CacheStorage/ → modèles WebLLM (Cache Storage API)
+      //   • WebsiteData/IndexedDB/    → bases de données
+      //   • WebsiteData/LocalStorage/ → localStorage
+      //   • NetworkCache/             → cache HTTP WebKit
+      //
+      // Sur Android, le cache WebView est dans getCacheDir() + les données
+      // website dans getFilesDir()/app_webview/.
+      //
+      // IMPORTANT : getApplicationCacheDirectory() → Library/Caches/com.ondes.core
+      // ce répertoire est VIDE, ce n'est pas là que WKWebView écrit.
+
+      final candidates = <Directory>[];
+      final seenPaths = <String>{};
+
+      void addIfNew(Directory d) {
+        if (seenPaths.add(d.path)) candidates.add(d);
+      }
+
+      if (Platform.isMacOS || Platform.isIOS) {
+        // Répertoire principal : Library/WebKit/
+        try {
+          final lib = await getLibraryDirectory();
+          addIfNew(Directory('${lib.path}/WebKit'));
+        } catch (_) {}
+      } else if (Platform.isAndroid) {
+        // Cache HTTP Android WebView
+        try { addIfNew(await getTemporaryDirectory()); } catch (_) {}
+        // Données website (IndexedDB, CacheStorage)
+        try {
+          final support = await getApplicationSupportDirectory();
+          addIfNew(Directory('${support.path}/app_webview'));
+        } catch (_) {}
+      } else {
+        // Fallback générique (Linux, Windows, etc.)
+        try { addIfNew(await getApplicationCacheDirectory()); } catch (_) {}
+        try { addIfNew(await getTemporaryDirectory()); } catch (_) {}
+      }
+
+      int total = 0;
+      for (final dir in candidates) {
+        if (await dir.exists()) {
+          total += await _computeDirSize(dir);
+        }
+      }
+
+      if (mounted) setState(() { _cacheSizeBytes = total; _isLoadingCache = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingCache = false);
+    }
+  }
+
+  /// Calcule récursivement la taille d'un répertoire en octets.
+  Future<int> _computeDirSize(Directory dir) async {
+    int size = 0;
+    try {
+      await for (final entity in dir.list(recursive: true, followLinks: false)) {
+        if (entity is File) {
+          try {
+            size += await entity.length();
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+    return size;
+  }
+
+  Future<void> _clearWebViewCache() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Text("Vider le cache", style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: const Text(
+          "Le cache WebView sera supprimé (modèles IA mis en cache, données web).\nCette action est irréversible.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Annuler"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange.shade700,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("Vider", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isClearingCache = true);
+    try {
+      await InAppWebViewController.clearAllCache();
+
+      await _loadCacheSize();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Cache vidé avec succès"),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: Colors.green.shade700,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erreur : $e"),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isClearingCache = false);
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) return "0 B";
+    if (bytes < 1024) return "$bytes B";
+    if (bytes < 1024 * 1024) return "${(bytes / 1024).toStringAsFixed(1)} KB";
+    if (bytes < 1024 * 1024 * 1024) return "${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB";
+    return "${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB";
   }
 
   Future<void> _loadStats() async {
@@ -347,6 +497,11 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                     // === Bio ===
                     _buildBioSection(),
+
+                    const SizedBox(height: 28),
+
+                    // === Cache ===
+                    _buildCacheSection(),
 
                     const SizedBox(height: 28),
 
@@ -921,6 +1076,160 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               elevation: 0,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCacheSection() {
+    final sizeLabel = _isLoadingCache ? "Calcul…" : _formatBytes(_cacheSizeBytes);
+    // Couleur de la jauge selon la taille
+    // Les modèles WebLLM pèsent 750 MB – 2.2 GB chacun → seuils adaptés
+    Color gaugeColor;
+    if (_cacheSizeBytes > 7 * 1024 * 1024 * 1024) {
+      gaugeColor = Colors.red.shade400;
+    } else if (_cacheSizeBytes > 3 * 1024 * 1024 * 1024) {
+      gaugeColor = Colors.orange.shade400;
+    } else {
+      gaugeColor = Colors.green.shade400;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.storage_rounded, color: Colors.cyan.shade300, size: 22),
+            const SizedBox(width: 10),
+            const Text(
+              "Cache WebView",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.cyan.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(Icons.web_rounded, color: Colors.cyan.shade300, size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Données mises en cache",
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "WebView · modèles IA · ressources web",
+                          style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.45)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _isLoadingCache
+                      ? const SizedBox(
+                          width: 18, height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyan),
+                        )
+                      : Text(
+                          sizeLabel,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: gaugeColor,
+                          ),
+                        ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Barre visuelle (max représentatif : 10 GB — modèles WebLLM inclus)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: _isLoadingCache
+                      ? null
+                      : (_cacheSizeBytes / (10.0 * 1024 * 1024 * 1024)).clamp(0.0, 1.0),
+                  backgroundColor: Colors.white.withOpacity(0.08),
+                  valueColor: AlwaysStoppedAnimation<Color>(gaugeColor),
+                  minHeight: 6,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "0 B",
+                    style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.3)),
+                  ),
+                  Text(
+                    "10 GB",
+                    style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.3)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _isLoadingCache ? null : _loadCacheSize,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text("Actualiser"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: BorderSide(color: Colors.white.withOpacity(0.15)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isClearingCache ? null : _clearWebViewCache,
+                      icon: _isClearingCache
+                          ? const SizedBox(
+                              width: 16, height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.delete_sweep_rounded, size: 18),
+                      label: Text(_isClearingCache ? "Nettoyage…" : "Vider le cache"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
