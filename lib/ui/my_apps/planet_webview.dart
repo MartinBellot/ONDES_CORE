@@ -10,7 +10,7 @@ import '../../core/models/mini_app.dart';
 /// A full-screen Three.js planet rendered inside an [InAppWebView].
 ///
 /// Flutter ↔ JS communication:
-///   JS → Flutter  : callHandler('onReady' | 'onAppTap' | 'onAppDelete' | 'onHaptic', data)
+///   JS → Flutter  : callHandler('onReady' | 'onAppTap' | 'onAppDelete' | 'onAppFocus' | 'onAppClose' | 'onHaptic', data)
 ///   Flutter → JS  : evaluateJavascript("initGlobe(...)" | "refreshApps(...)")
 class PlanetWebView extends StatefulWidget {
   /// Current list of installed apps to display as pins on the planet.
@@ -19,14 +19,22 @@ class PlanetWebView extends StatefulWidget {
   /// Called when the user double-taps a pin (intent to open the app).
   final void Function(MiniApp app) onAppTap;
 
-  /// Called when the user long-presses and selects "Désinstaller".
+  /// Called when the user wants to delete an app (from the Flutter HUD panel).
   final void Function(MiniApp app) onAppDelete;
+
+  /// Called when the user taps a pin (single tap) — Flutter shows its HUD panel.
+  final void Function(MiniApp app) onAppFocus;
+
+  /// Called when the planet signals the focused pin was dismissed.
+  final void Function() onAppClose;
 
   const PlanetWebView({
     super.key,
     required this.apps,
     required this.onAppTap,
     required this.onAppDelete,
+    required this.onAppFocus,
+    required this.onAppClose,
   });
 
   @override
@@ -138,7 +146,7 @@ class PlanetWebViewState extends State<PlanetWebView> {
       },
     );
 
-    // User chose "Désinstaller" from the context menu.
+    // User chose "Désinstaller" from the Flutter HUD panel (forwarded by JS).
     ctrl.addJavaScriptHandler(
       handlerName: 'onAppDelete',
       callback: (args) {
@@ -148,6 +156,24 @@ class PlanetWebViewState extends State<PlanetWebView> {
         final app = _findApp(appId);
         if (app != null) widget.onAppDelete(app);
       },
+    );
+
+    // User tapped a pin (single tap) → Flutter shows its HUD panel.
+    ctrl.addJavaScriptHandler(
+      handlerName: 'onAppFocus',
+      callback: (args) {
+        if (args.isEmpty) return;
+        final data = _argMap(args[0]);
+        final appId = data['appId']?.toString() ?? '';
+        final app = _findApp(appId);
+        if (app != null) widget.onAppFocus(app);
+      },
+    );
+
+    // Planet signals the selected pin was dismissed.
+    ctrl.addJavaScriptHandler(
+      handlerName: 'onAppClose',
+      callback: (_) => widget.onAppClose(),
     );
 
     // JS requesting a haptic feedback pulse.
