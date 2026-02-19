@@ -6,7 +6,7 @@ import re
 import logging
 from typing import Optional
 
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 from decouple import config
 
 logger = logging.getLogger('genesis')
@@ -54,7 +54,10 @@ class GenesisAgent:
     MAX_TOKENS = 64000
 
     def __init__(self):
-        self._client = Anthropic(api_key=config('ANTHROPIC_API_KEY'))
+        # Async client — used by all views running under ASGI/Channels.
+        # Streaming is handled natively in the asyncio event loop, no thread
+        # blocking, no ThreadPoolExecutor conflicts.
+        self._client = AsyncAnthropic(api_key=config('ANTHROPIC_API_KEY'))
 
     # ------------------------------------------------------------------
     # Public helpers
@@ -70,6 +73,11 @@ class GenesisAgent:
         """
         messages = [{"role": "user", "content": user_prompt}]
         return self._call(messages)
+
+    async def create_async(self, user_prompt: str) -> tuple[str, str]:
+        """Async variant — call this from async Django views."""
+        messages = [{"role": "user", "content": user_prompt}]
+        return await self._call_async(messages)
 
     def iterate(
         self,
@@ -102,7 +110,22 @@ class GenesisAgent:
             ),
         })
         return self._call(messages)
-
+    async def iterate_async(
+        self,
+        current_html: str,
+        history: list[dict],
+        feedback: str,
+    ) -> tuple[str, str]:
+        """Async variant — call this from async Django views."""
+        messages = list(history)
+        messages.append({
+            "role": "user",
+            "content": (
+                f"Voici le code actuel de la Mini-App :\n\n```html\n{current_html}\n```\n\n"
+                f"Modification demand\u00e9e : {feedback}"
+            ),
+        })
+        return await self._call_async(messages)
     def fix_error(
         self,
         current_html: str,
@@ -132,23 +155,53 @@ class GenesisAgent:
         messages.append({"role": "user", "content": context})
         return self._call(messages)
 
+    async def fix_error_async(
+        self,
+        current_html: str,
+        history: list[dict],
+        error_message: str,
+        error_source: Optional[str] = None,
+        error_line: Optional[int] = None,
+    ) -> tuple[str, str]:
+        """Async variant — call this from async Django views."""
+        context = f"Erreur JS d\u00e9tect\u00e9e dans la Mini-App : {error_message}"
+        if error_source:
+            context += f"\nSource : {error_source}"
+        if error_line is not None:
+            context += f"\nLigne : {error_line}"
+        context += (
+            f"\n\nVoici le code actuel :\n\n```html\n{current_html}\n```\n\n"
+            "Corrige l'erreur et renvoie le fichier HTML complet et corrig\u00e9."
+        )
+        messages = list(history)
+        messages.append({"role": "user", "content": context})
+        return await self._call_async(messages)
+
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
     def _call(self, messages: list[dict]) -> tuple[str, str]:
         """
-        Send messages to Claude via streaming and return (html_code, change_description).
-        Streaming is mandatory when max_tokens is large enough to exceed the 10-minute
-        non-streaming timeout enforced by the Anthropic SDK.
+        Sync wrapper kept for backward compatibility.
+        Prefer _call_async from async views.
         """
-        with self._client.messages.stream(
+        import asyncio
+        return asyncio.run(self._call_async(messages))
+
+    async def _call_async(self, messages: list[dict]) -> tuple[str, str]:
+        """
+        Async streaming call to Claude.
+        Runs entirely in the asyncio event loop — no ThreadPoolExecutor,
+        no ASGI pool conflicts, no interpreter-shutdown races.
+        """
+        async with self._client.messages.stream(
             model=self.MODEL,
             max_tokens=self.MAX_TOKENS,
             system=GENESIS_SYSTEM_PROMPT,
             messages=messages,
         ) as stream:
-            raw = stream.get_final_text().strip()
+            raw = (await stream.get_final_text()).strip()
 
         html = self._extract_html(raw)
         description = self._extract_description(messages)

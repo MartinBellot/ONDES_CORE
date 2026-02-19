@@ -235,53 +235,56 @@ class _GeneratingContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Spinning arc
-          AnimatedBuilder(
-            animation: spinCtrl,
-            builder: (_, __) => CustomPaint(
-              size: const Size(18, 18),
-              painter: _ArcSpinnerPainter(
-                progress: spinCtrl.value,
-                color: const Color(0xFF7C3AED),
-                accentColor: const Color(0xFF06B6D4),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: ShaderMask(
-              shaderCallback: (b) => const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
-              ).createShader(b),
-              child: const Text(
-                'GENESIS',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Spinning arc
+            AnimatedBuilder(
+              animation: spinCtrl,
+              builder: (_, __) => CustomPaint(
+                size: const Size(18, 18),
+                painter: _ArcSpinnerPainter(
+                  progress: spinCtrl.value,
+                  color: const Color(0xFF7C3AED),
+                  accentColor: const Color(0xFF06B6D4),
                 ),
               ),
             ),
-          ),
-          Flexible(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Color(0xFF888BA8),
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
+            const SizedBox(width: 10),
+            Expanded(
+              child: ShaderMask(
+                shaderCallback: (b) => const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                ).createShader(b),
+                child: const Text(
+                  'GENESIS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                  ),
+                ),
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
-      ),
+            Flexible(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF888BA8),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      )
     );
   }
 }
