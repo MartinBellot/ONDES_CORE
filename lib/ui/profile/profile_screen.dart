@@ -1103,7 +1103,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             Icon(Icons.storage_rounded, color: Colors.cyan.shade300, size: 22),
             const SizedBox(width: 10),
             const Text(
-              "Cache WebView",
+              "Caches",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

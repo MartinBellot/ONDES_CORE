@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ondes Planet</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #0A0A0A; overflow: hidden; touch-action: none; }
+    #c { display: block; width: 100%; height: 100%; }
+
+    /* Hint overlay */
+    #hint {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      pointer-events: none; opacity: 0.5; transition: opacity 1s;
+    }
+    #hint.hidden { opacity: 0; }
+    #hint-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.5); }
+    #hint-text {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10px; font-weight: 600; letter-spacing: 2px;
+      color: rgba(255,255,255,0.6); text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* Reset orbit button */
+    #reset-btn {
+      position: fixed; top: 64px; right: 20px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,0.95); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4); z-index: 100;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #reset-btn:active { transform: scale(0.92); }
+    #reset-btn svg { width: 20px; height: 20px; }
+
+    /* Empty state */
+    #empty-state {
+      position: fixed; inset: 0; display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; pointer-events: none;
+    }
+    #empty-state.visible { display: flex; }
+    #empty-state svg { width: 64px; height: 64px; }
+    .empty-title {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.3); text-align: center;
+    }
+    .empty-sub {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px; color: rgba(255,255,255,0.18); text-align: center;
+    }
+
+    /* Context menu */
+    #ctx-menu {
+      position: fixed; background: rgba(28,28,30,0.94);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-radius: 16px; border: 0.5px solid rgba(255,255,255,0.12);
+      padding: 6px 0; min-width: 190px; z-index: 300; display: none;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+    }
+    #ctx-menu.visible { display: block; }
+    .ctx-item {
+      padding: 13px 16px; cursor: pointer;
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px; color: rgba(255,255,255,0.9);
+      display: flex; align-items: center; gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ctx-item:active { background: rgba(255,255,255,0.08); }
+    .ctx-item.danger { color: #FF453A; }
+    .ctx-sep { height: 0.5px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+
+    /* Focus ring */
+    .focus-label {
+      position: fixed; background: rgba(28,28,30,0.9);
+      backdrop-filter: blur(8px); border-radius: 20px;
+      padding: 4px 10px; pointer-events: none; z-index: 50;
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 12px; color: #EBEBF5; display: none;
+      border: 0.5px solid rgba(255,255,255,0.15);
+      white-space: nowrap;
+    }
+    #focus-ring {
+      position: fixed; border: 2px solid #007AFF; border-radius: 50%;
+      pointer-events: none; z-index: 49; display: none;
+      box-shadow: 0 0 12px rgba(0,122,255,0.5);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <!-- Hint overlay -->
+  <div id="hint">
+    <svg id="hint-icon" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1-4.5h-2V7h2v5z"/>
+    </svg>
+    <span id="hint-text">Explorer l'univers</span>
+  </div>
+
+  <!-- Reset orbit FAB -->
+  <button id="reset-btn" onclick="resetOrbit()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M6.05 6.05a7 7 0 1 0 9.9 0M12 1v3M12 20v3"/>
+    </svg>
+  </button>
+
+  <!-- Empty state -->
+  <div id="empty-state">
+    <svg viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="rgba(175,82,222,0.5)" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="6"  stroke="rgba(0,122,255,0.4)"  stroke-width="1.5" stroke-dasharray="3 3"/>
+      <circle cx="12" cy="12" r="2"  fill="rgba(90,200,250,0.6)"/>
+    </svg>
+    <span class="empty-title">Votre univers est vide</span>
+    <span class="empty-sub">Installez des apps depuis le Store</span>
+  </div>
+
+  <!-- Context menu -->
+  <div id="ctx-menu">
+    <div class="ctx-item" id="ctx-open">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+      </svg>
+      Ouvrir
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item danger" id="ctx-delete">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF453A">
+        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+      </svg>
+      Désinstaller
+    </div>
+  </div>
+
+  <!-- Focus label (follows selected pin) -->
+  <div class="focus-label" id="focus-label"></div>
+  <div id="focus-ring"></div>
+
+  <!-- Three.js from CDN (r160 stable) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════
+// BRIDGE  Flutter <-> JS
+// ══════════════════════════════════════════════════════════════
+var _flutterReady = false;
+
+window.addEventListener('flutterInAppWebViewPlatformReady', function() {
+  _flutterReady = true;
+  _callFlutter('onReady', {});
+});
+
+function _callFlutter(name, data) {
+  try {
+    if (_flutterReady && window.flutter_inappwebview) {
+      window.flutter_inappwebview.callHandler(name, data);
+    }
+  } catch(e) { /* silent */ }
+}
+
+// Entry point called by Flutter after passing apps data
+window.initGlobe = function(appsJson) {
+  var apps = JSON.parse(appsJson);
+  _clearPins();
+  _buildPins(apps);
+  if (apps.length === 0) {
+    document.getElementById('empty-state').classList.add('visible');
+  } else {
+    document.getElementById('empty-state').classList.remove('visible');
+    setTimeout(function() {
+      document.getElementById('hint').classList.add('hidden');
+    }, 4000);
+  }
+};
+
+window.refreshApps = function(appsJson) {
+  window.initGlobe(appsJson);
+};
+
+// ══════════════════════════════════════════════════════════════
+// SHADERS GLSL
+// ══════════════════════════════════════════════════════════════
+var VERT_BASE = [
+  'varying vec3 vNormal;',
+  'varying vec3 vPosition;',
+  'varying vec2 vUv;',
+  'void main() {',
+  '  vNormal = normalize(normalMatrix * normal);',
+  '  vPosition = (modelMatrix * vec4(position, 1.0)).xyz;',
+  '  vUv = uv;',
+  '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+  '}'
+].join('\n');
+
+
+
+var ATMOS_FRAG = [
+  'uniform float uTime;',
+  'uniform vec3 uCamPos;',
+  'varying vec3 vNormal;',
+  'varying vec3 vPosition;',
+  'void main() {',
+  '  vec3 viewDir = normalize(uCamPos - vPosition);',
+  '  float fr = pow(max(1. - dot(normalize(vNormal), viewDir), 0.), 2.5);',
+  '  float pulse = 0.5 + 0.12 * sin(uTime * 0.9);',
+  '  gl_FragColor = vec4(0.0, 0.478, 1.0, fr * 0.32 * pulse);',
+  '}'
+].join('\n');
+
+// ── Icon disc shader — animated glow rim matching brand palette ──
+var DISC_VERT = [
+  'varying vec2 vUv;',
+  'void main() {',
+  '  vUv = uv;',
+  '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+  '}'
+].join('\n');
+
+var DISC_FRAG = [
+  'uniform sampler2D uIcon;',
+  'uniform float uTime;',
+  'uniform float uHover;',
+  'varying vec2 vUv;',
+  'void main() {',
+  '  vec4 icon = texture2D(uIcon, vUv);',
+  '  float dist = length(vUv - vec2(0.5)) * 2.0;',
+  '  float rim  = smoothstep(0.68, 1.0, dist);',
+  '  float t    = sin(uTime * 1.4) * 0.5 + 0.5;',
+  '  vec3 cA = vec3(0.0, 0.478, 1.0);',
+  '  vec3 cB = vec3(0.686, 0.322, 0.871);',
+  '  float hoverBoost = 1.0 + uHover * 0.9;',
+  '  vec3 glow = mix(cA, cB, t) * hoverBoost;',
+  '  vec3 col  = icon.rgb + glow * rim * (0.65 + 0.45 * sin(uTime * 1.1));',
+  '  float alpha = icon.a * smoothstep(1.02, 0.84, dist);',
+  '  gl_FragColor = vec4(col, alpha);',
+  '}'
+].join('\n');
+
+// ══════════════════════════════════════════════════════════════
+// SCENE SETUP
+// ══════════════════════════════════════════════════════════════
+var canvas = document.getElementById('c');
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x0A0A0A, 1);
+
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.01, 100);
+camera.position.z = 3.2;
+
+// ── Lights — sun-based illumination ──
+scene.add(new THREE.AmbientLight(0x0A1828, 0.40));  // deep-sky ambient for night side
+
+// ── Sun pivot: orbits independently of globe rotation ──
+var sunPivot = new THREE.Group();
+scene.add(sunPivot);
+
+var SUN_DIST = 16;
+
+// Sun core
+var sunMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(0.55, 16, 16),
+  new THREE.MeshBasicMaterial({ color: 0xFFEA80 })
+);
+sunMesh.position.set(SUN_DIST, 0, 0);
+sunPivot.add(sunMesh);
+
+// Sun warm halo (additive glow)
+var sunHalo = new THREE.Mesh(
+  new THREE.SphereGeometry(1.15, 16, 16),
+  new THREE.MeshBasicMaterial({
+    color: 0xFF8800, transparent: true, opacity: 0.12,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  })
+);
+sunHalo.position.copy(sunMesh.position);
+sunPivot.add(sunHalo);
+
+// Sun directional light — shines from sun toward planet origin
+var sunLight = new THREE.DirectionalLight(0xFFF4CC, 2.6);
+sunLight.position.set(SUN_DIST, 0, 0);
+sunLight.target.position.set(0, 0, 0);
+sunPivot.add(sunLight);
+sunPivot.add(sunLight.target);
+
+// Soft fill / bounced light from opposite side
+var fillLight = new THREE.DirectionalLight(0x203560, 0.20);
+fillLight.position.set(-10, -3, -8);
+scene.add(fillLight);
+
+// Keep coreLight as a dim accent used by _animateOpen
+var coreLight = new THREE.PointLight(0x88DDAA, 0.45, 6);
+scene.add(coreLight);
+
+// ── Globe group (everything that rotates together) ──
+var globeGroup = new THREE.Group();
+scene.add(globeGroup);
+
+// ── Planet sphere — low-poly faceted grass (Le Petit Prince) ──
+var _rawPlanetGeo = new THREE.IcosahedronGeometry(1, 3);
+var planetGeo = _rawPlanetGeo.toNonIndexed();
+planetGeo.computeVertexNormals();
+
+var GRASS_PALETTE = [
+  new THREE.Color(0x3CB843), new THREE.Color(0x44CC4A),
+  new THREE.Color(0x29A032), new THREE.Color(0x52D45A),
+  new THREE.Color(0x228B22), new THREE.Color(0x35B53C),
+  new THREE.Color(0x68E070), new THREE.Color(0x1E9E26)
+];
+var _pCount = planetGeo.attributes.position.count;
+var _vColors = new Float32Array(_pCount * 3);
+for (var _fi = 0; _fi < _pCount; _fi += 3) {
+  var _gc = GRASS_PALETTE[Math.floor(Math.random() * GRASS_PALETTE.length)];
+  for (var _vi = 0; _vi < 3; _vi++) {
+    _vColors[(_fi + _vi) * 3]     = _gc.r;
+    _vColors[(_fi + _vi) * 3 + 1] = _gc.g;
+    _vColors[(_fi + _vi) * 3 + 2] = _gc.b;
+  }
+}
+planetGeo.setAttribute('color', new THREE.BufferAttribute(_vColors, 3));
+
+var planetMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+var planetMesh = new THREE.Mesh(planetGeo, planetMat);
+globeGroup.add(planetMesh);
+
+// ── Atmosphere ──
+var atmosGeo = new THREE.SphereGeometry(1.1, 48, 48);
+var atmosMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime:   { value: 0 },
+    uCamPos: { value: camera.position }
+  },
+  vertexShader: VERT_BASE,
+  fragmentShader: ATMOS_FRAG,
+  transparent: true,
+  side: THREE.FrontSide,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+globeGroup.add(new THREE.Mesh(atmosGeo, atmosMat));
+
+// ── Pins group (child of globeGroup so it rotates with the planet) ──
+var pinGroup = new THREE.Group();
+globeGroup.add(pinGroup);
+
+// ── Star field ── (must be declared after globeGroup)
+_buildStars();
+
+// ── Grass (Le Petit Prince style) ──
+_buildGrass();
+
+// ══════════════════════════════════════════════════════════════
+// STARS
+// ══════════════════════════════════════════════════════════════
+function _buildStars() {
+  var COUNT = 1600;
+  var pos = new Float32Array(COUNT * 3);
+  var R = 22;
+  for (var i = 0; i < COUNT; i++) {
+    var phi   = Math.acos(2 * Math.random() - 1);
+    var theta = Math.random() * Math.PI * 2;
+    pos[i*3]   = R * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = R * Math.cos(phi);
+    pos[i*3+2] = R * Math.sin(phi) * Math.sin(theta);
+  }
+  var geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+  // Circular star sprite via CanvasTexture
+  var sc = document.createElement('canvas');
+  sc.width = sc.height = 32;
+  var sctx = sc.getContext('2d');
+  var sg = sctx.createRadialGradient(16,16,0, 16,16,14);
+  sg.addColorStop(0,   'rgba(255,255,255,1)');
+  sg.addColorStop(0.25,'rgba(200,220,255,0.9)');
+  sg.addColorStop(1,   'rgba(255,255,255,0)');
+  sctx.fillStyle = sg;
+  sctx.fillRect(0,0,32,32);
+  var starTex = new THREE.CanvasTexture(sc);
+
+  var mat = new THREE.PointsMaterial({
+    map: starTex,
+    size: 0.18,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.88,
+    alphaTest: 0.01,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  globeGroup.add(new THREE.Points(geo, mat));
+}
+
+// ══════════════════════════════════════════════════════════════
+// GRASS — Le Petit Prince
+// ══════════════════════════════════════════════════════════════
+function _buildGrass() {
+  var TUFT_COUNT  = 80;
+  var BLADE_COLORS = [0x3CB843, 0x52D45A, 0x29A032, 0x68E070, 0x228B22];
+  var grassGroup = new THREE.Group();
+  var _up = new THREE.Vector3(0, 1, 0);
+
+  for (var t = 0; t < TUFT_COUNT; t++) {
+    var phi   = Math.acos(2 * Math.random() - 1);
+    var theta = Math.random() * Math.PI * 2;
+    var nx = Math.sin(phi) * Math.cos(theta);
+    var ny = Math.cos(phi);
+    var nz = Math.sin(phi) * Math.sin(theta);
+    var normal = new THREE.Vector3(nx, ny, nz).normalize();
+
+    // Pivot object: sits on sphere surface, Y axis = surface normal
+    var pivot = new THREE.Object3D();
+    pivot.position.copy(normal);
+    var qBase = new THREE.Quaternion().setFromUnitVectors(_up, normal);
+    pivot.quaternion.copy(qBase);
+
+    var bladesInTuft = 2 + Math.floor(Math.random() * 3); // 2-4 blades
+    for (var b = 0; b < bladesInTuft; b++) {
+      var h = 0.052 + Math.random() * 0.044;
+      var w = 0.010 + Math.random() * 0.006;
+
+      // Tapered blade shape (wider at base, pointed at tip)
+      var shape = new THREE.Shape();
+      shape.moveTo(-w * 0.5,  0);
+      shape.lineTo( w * 0.5,  0);
+      shape.lineTo( w * 0.12, h);
+      shape.lineTo(-w * 0.12, h);
+      shape.closePath();
+
+      var geo  = new THREE.ShapeGeometry(shape);
+      var col  = BLADE_COLORS[Math.floor(Math.random() * BLADE_COLORS.length)];
+      var mat  = new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide });
+      var blade = new THREE.Mesh(geo, mat);
+
+      // Fan blades around the pivot Y axis
+      blade.rotateY((b / bladesInTuft) * Math.PI * 0.8 + (Math.random() - 0.5) * 0.4);
+      // Gentle lean
+      blade.rotateX((Math.random() - 0.5) * 0.32);
+
+      pivot.add(blade);
+    }
+    grassGroup.add(pivot);
+  }
+  globeGroup.add(grassGroup);
+}
+
+// ══════════════════════════════════════════════════════════════
+// PINS SYSTEM
+// ══════════════════════════════════════════════════════════════
+var _apps = [];
+var _pinGroups = []; // THREE.Group per app
+var _hitMeshes = []; // for raycaster
+var _focusedId = null;
+
+// Fibonacci uniform distribution on sphere surface
+function _fibSphere(i, total) {
+  if (total === 1) return new THREE.Vector3(0, 1, 0);
+  var phi = Math.acos(1 - (2 * (i + 0.5) / total));
+  var theta = Math.PI * (3 - Math.sqrt(5)) * i; // golden angle
+  return new THREE.Vector3(
+    Math.sin(phi) * Math.cos(theta),
+    Math.cos(phi),
+    Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+// Create icon CanvasTexture
+function _iconTexture(app, cb) {
+  var sz = 128;
+  var c2 = document.createElement('canvas');
+  c2.width = sz; c2.height = sz;
+  var ctx = c2.getContext('2d');
+
+  function drawBase() {
+    ctx.clearRect(0, 0, sz, sz);
+    ctx.fillStyle = '#1C1C1E';
+    ctx.beginPath(); ctx.arc(sz/2, sz/2, sz/2 - 2, 0, Math.PI*2); ctx.fill();
+  }
+  function drawBorder(hex) {
+    ctx.strokeStyle = hex || 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = hex ? 3.5 : 2;
+    ctx.beginPath(); ctx.arc(sz/2, sz/2, sz/2 - 3, 0, Math.PI*2); ctx.stroke();
+  }
+  function drawGloss() {
+    var g = ctx.createLinearGradient(0, 0, 0, sz * 0.45);
+    g.addColorStop(0, 'rgba(255,255,255,0.28)');
+    g.addColorStop(1, 'rgba(255,255,255,0.0)');
+    ctx.fillStyle = g;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(sz/2, sz/2, sz/2 - 2, 0, Math.PI*2); ctx.clip();
+    ctx.fillRect(0, 0, sz, sz * 0.48);
+    ctx.restore();
+  }
+  function fallback() {
+    drawBase();
+    ctx.font = 'bold ' + Math.round(sz * 0.38) + 'px Inter, Helvetica, Arial, sans-serif';
+    ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText((app.name || '?')[0].toUpperCase(), sz/2, sz/2 + 2);
+    drawGloss(); drawBorder();
+    cb(new THREE.CanvasTexture(c2));
+  }
+
+  var src = app.iconBase64 || (app.iconUrl && app.iconUrl.startsWith('http') ? app.iconUrl : null);
+  if (src) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      drawBase();
+      ctx.save();
+      ctx.beginPath(); ctx.arc(sz/2, sz/2, sz/2 - 2, 0, Math.PI*2); ctx.clip();
+      ctx.drawImage(img, 2, 2, sz - 4, sz - 4);
+      ctx.restore();
+      drawGloss(); drawBorder();
+      cb(new THREE.CanvasTexture(c2));
+    };
+    img.onerror = fallback;
+    img.src = src;
+  } else {
+    fallback();
+  }
+}
+
+// Create label CanvasTexture
+function _labelTexture(name) {
+  var w = 256, h = 44;
+  var c2 = document.createElement('canvas');
+  c2.width = w; c2.height = h;
+  var ctx = c2.getContext('2d');
+  // Pill BG
+  ctx.fillStyle = 'rgba(28,28,30,0.88)';
+  var r = 14;
+  ctx.beginPath();
+  ctx.moveTo(r, 0); ctx.lineTo(w-r, 0); ctx.arcTo(w,0,w,r,r);
+  ctx.lineTo(w,h-r); ctx.arcTo(w,h,w-r,h,r);
+  ctx.lineTo(r,h); ctx.arcTo(0,h,0,h-r,r);
+  ctx.lineTo(0,r); ctx.arcTo(0,0,r,0,r);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke();
+  // Text
+  ctx.font = '500 14px Inter, Helvetica, Arial, sans-serif';
+  ctx.fillStyle = '#EBEBF5'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  var display = name;
+  while (ctx.measureText(display).width > 220 && display.length > 3) {
+    display = display.slice(0, -4) + '…';
+  }
+  ctx.fillText(display, w/2, h/2);
+  return new THREE.CanvasTexture(c2);
+}
+
+function _buildPins(apps) {
+  _apps = apps;
+  var total = apps.length;
+  apps.forEach(function(app, i) {
+    var normal = _fibSphere(i, total); // unit vector = surface normal
+    var surfPos = normal.clone().multiplyScalar(1.0);
+    var pinPos  = normal.clone().multiplyScalar(1.22);
+
+    _iconTexture(app, function(iconTex) {
+      var group = new THREE.Group();
+      group.userData = { appId: app.id, appIndex: i, isPin: true };
+
+      // ── Stem cylinder ──
+      var stemGeo = new THREE.CylinderGeometry(0.004, 0.004, 0.18, 8);
+      var stemMat = new THREE.MeshBasicMaterial({ color: 0x007AFF, transparent: true, opacity: 0.7 });
+      var stemMesh = new THREE.Mesh(stemGeo, stemMat);
+      // Orient stem along the normal direction
+      var up = new THREE.Vector3(0, 1, 0);
+      stemMesh.quaternion.setFromUnitVectors(up, normal.clone().normalize());
+      stemMesh.position.copy(surfPos.clone().add(normal.clone().multiplyScalar(0.09)));
+      group.add(stemMesh);
+
+      // ── Icon disc (raycaster target) — with animated brand glow ──
+      var discGeo = new THREE.CircleGeometry(0.1, 32);
+      var discMat = new THREE.ShaderMaterial({
+        uniforms: {
+          uIcon:  { value: iconTex },
+          uTime:  { value: 0 },
+          uHover: { value: 0 }
+        },
+        vertexShader: DISC_VERT,
+        fragmentShader: DISC_FRAG,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthTest: true
+      });
+      var discMesh = new THREE.Mesh(discGeo, discMat);
+      discMesh.position.copy(pinPos);
+      discMesh.userData = { appId: app.id, appIndex: i };
+      group.add(discMesh);
+
+      // ── Label sprite (billboard, starts invisible) ──
+      var labelTex = _labelTexture(app.name);
+      var labelMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0 });
+      var labelSprite = new THREE.Sprite(labelMat);
+      labelSprite.scale.set(0.52, 0.1, 1);
+      labelSprite.position.copy(normal.clone().multiplyScalar(1.38));
+      group.add(labelSprite);
+
+      // Store refs for animations
+      group._stem      = stemMesh;
+      group._stemMat   = stemMat;
+      group._disc      = discMesh;
+      group._discMat   = discMat;
+      group._label     = labelSprite;
+      group._labelMat  = labelMat;
+      group._normal    = normal.clone();
+      group._iconTex   = iconTex;
+
+      pinGroup.add(group);
+      _pinGroups.push(group);
+      _hitMeshes.push(discMesh);
+    });
+  });
+}
+
+function _clearPins() {
+  _hitMeshes = [];
+  _pinGroups = [];
+  _focusedId = null;
+  while (pinGroup.children.length > 0) {
+    var ch = pinGroup.children[0];
+    pinGroup.remove(ch);
+  }
+}
+
+function _getPinGroup(appId) {
+  for (var k = 0; k < _pinGroups.length; k++) {
+    if (_pinGroups[k].userData.appId === appId) return _pinGroups[k];
+  }
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════════
+// FOCUS / UNFOCUS
+// ══════════════════════════════════════════════════════════════
+function _focusPin(appId) {
+  _unfocusAll();
+  _focusedId = appId;
+  var g = _getPinGroup(appId);
+  if (!g) return;
+  g._disc.scale.setScalar(1.35);
+  if (g._discMat.uniforms) g._discMat.uniforms.uHover.value = 1.0;
+  g._labelMat.opacity = 1;
+  g._stemMat.color.setHex(0x5AC8FA);
+  g._stemMat.opacity = 1;
+  // Border glow via a ring mesh
+  if (!g._ring) {
+    var ringGeo = new THREE.RingGeometry(0.105, 0.128, 32);
+    var ringMat = new THREE.MeshBasicMaterial({ color: 0x007AFF, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+    var ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.position.copy(g._disc.position.clone().add(g._normal.clone().multiplyScalar(0.001)));
+    g._ring = ringMesh;
+    g._ringMat = ringMat;
+    group_addRing(g);
+  }
+  g._ring.visible = true;
+}
+
+function group_addRing(g) {
+  g.add(g._ring);
+}
+
+function _unfocusAll() {
+  _pinGroups.forEach(function(g) {
+    g._disc.scale.setScalar(1.0);
+    if (g._discMat.uniforms) g._discMat.uniforms.uHover.value = 0.0;
+    g._labelMat.opacity = 0;
+    g._stemMat.color.setHex(0x007AFF);
+    g._stemMat.opacity = 0.7;
+    if (g._ring) g._ring.visible = false;
+  });
+  _focusedId = null;
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONTROLS — inertia physics
+// ══════════════════════════════════════════════════════════════
+var _isDragging    = false;
+var _isDown        = false;
+var _lastX = 0, _lastY = 0;
+var _downX = 0, _downY = 0;
+var _velX = 0, _velY = 0;
+var FRICTION = 0.91;
+var ROT_SPEED = 0.006;
+var DRAG_THRESH = 8;
+var _zoom = 3.2, _targetZoom = 3.2;
+var _pinchDist = 0;
+var _longTimer = null;
+var LONG_MS = 520;
+
+// ── Touch ──
+canvas.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    var t = e.touches[0];
+    _isDown = true; _isDragging = false;
+    _lastX = t.clientX; _lastY = t.clientY;
+    _downX = t.clientX; _downY = t.clientY;
+    _velX = 0; _velY = 0;
+    _longTimer = setTimeout(function() {
+      _longTimer = null;
+      var ud = _hitAt(t.clientX, t.clientY);
+      if (ud) {
+        _callFlutter('onHaptic', { type: 'medium' });
+        _focusPin(ud.appId);
+        _showCtxMenu(ud.appId, t.clientX, t.clientY);
+      }
+    }, LONG_MS);
+  } else if (e.touches.length === 2) {
+    _clearLong();
+    var dx = e.touches[0].clientX - e.touches[1].clientX;
+    var dy = e.touches[0].clientY - e.touches[1].clientY;
+    _pinchDist = Math.sqrt(dx*dx + dy*dy);
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  if (e.touches.length === 1 && _isDown) {
+    var t = e.touches[0];
+    var dx = t.clientX - _lastX, dy = t.clientY - _lastY;
+    var dist = Math.sqrt(Math.pow(t.clientX - _downX, 2) + Math.pow(t.clientY - _downY, 2));
+    if (dist > DRAG_THRESH) { _isDragging = true; _clearLong(); }
+    if (_isDragging) {
+      _velX = dx * ROT_SPEED; _velY = dy * ROT_SPEED;
+      globeGroup.rotation.y += _velX;
+      globeGroup.rotation.x = Math.max(-1.5, Math.min(1.5, globeGroup.rotation.x + _velY));
+    }
+    _lastX = t.clientX; _lastY = t.clientY;
+  } else if (e.touches.length === 2) {
+    var dx = e.touches[0].clientX - e.touches[1].clientX;
+    var dy = e.touches[0].clientY - e.touches[1].clientY;
+    var d = Math.sqrt(dx*dx + dy*dy);
+    _targetZoom = Math.max(1.9, Math.min(5.2, _targetZoom + (_pinchDist - d) * 0.004));
+    _pinchDist = d;
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', function(e) {
+  e.preventDefault();
+  _clearLong();
+  if (!_isDragging && e.changedTouches.length > 0) {
+    var t = e.changedTouches[0];
+    _handleTap(t.clientX, t.clientY);
+  }
+  _isDown = false;
+}, { passive: false });
+
+// ── Mouse (desktop) ──
+canvas.addEventListener('mousedown', function(e) {
+  _isDown = true; _isDragging = false;
+  _lastX = e.clientX; _lastY = e.clientY;
+  _downX = e.clientX; _downY = e.clientY;
+  _velX = 0; _velY = 0;
+});
+canvas.addEventListener('mousemove', function(e) {
+  if (!_isDown) return;
+  var dx = e.clientX - _lastX, dy = e.clientY - _lastY;
+  var dist = Math.sqrt(Math.pow(e.clientX - _downX, 2) + Math.pow(e.clientY - _downY, 2));
+  if (dist > DRAG_THRESH) _isDragging = true;
+  if (_isDragging) {
+    _velX = dx * ROT_SPEED; _velY = dy * ROT_SPEED;
+    globeGroup.rotation.y += _velX;
+    globeGroup.rotation.x = Math.max(-1.5, Math.min(1.5, globeGroup.rotation.x + _velY));
+  }
+  _lastX = e.clientX; _lastY = e.clientY;
+});
+canvas.addEventListener('mouseup', function(e) {
+  if (!_isDragging) _handleTap(e.clientX, e.clientY);
+  _isDown = false;
+});
+canvas.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  _targetZoom = Math.max(1.9, Math.min(5.2, _targetZoom + e.deltaY * 0.005));
+}, { passive: false });
+
+function _clearLong() {
+  if (_longTimer) { clearTimeout(_longTimer); _longTimer = null; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// RAYCASTER
+// ══════════════════════════════════════════════════════════════
+var _raycaster = new THREE.Raycaster();
+
+function _ndc(cx, cy) {
+  return new THREE.Vector2(
+    (cx / window.innerWidth) * 2 - 1,
+    -(cy / window.innerHeight) * 2 + 1
+  );
+}
+
+function _hitAt(cx, cy) {
+  if (_hitMeshes.length === 0) return null;
+  _raycaster.setFromCamera(_ndc(cx, cy), camera);
+  var hits = _raycaster.intersectObjects(_hitMeshes, false);
+  return hits.length > 0 ? hits[0].object.userData : null;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAP HANDLING
+// ══════════════════════════════════════════════════════════════
+function _handleTap(cx, cy) {
+  _hideCtxMenu();
+  var ud = _hitAt(cx, cy);
+  if (ud) {
+    _callFlutter('onHaptic', { type: 'light' });
+    if (_focusedId === ud.appId) {
+      // Double tap → open app
+      _callFlutter('onAppTap', { appId: ud.appId, action: 'open' });
+      _animateOpen(ud.appId);
+    } else {
+      _focusPin(ud.appId);
+    }
+  } else if (_focusedId) {
+    _unfocusAll();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONTEXT MENU
+// ══════════════════════════════════════════════════════════════
+var _ctxAppId = null;
+
+function _showCtxMenu(appId, cx, cy) {
+  _ctxAppId = appId;
+  var menu = document.getElementById('ctx-menu');
+  menu.classList.add('visible');
+  var mw = 200, mh = 110;
+  var left = Math.min(cx + 10, window.innerWidth - mw - 16);
+  var top  = cy - mh - 12;
+  if (top < 80) top = cy + 12;
+  menu.style.left = left + 'px';
+  menu.style.top  = top  + 'px';
+}
+
+function _hideCtxMenu() {
+  document.getElementById('ctx-menu').classList.remove('visible');
+}
+
+document.getElementById('ctx-open').addEventListener('click', function() {
+  _hideCtxMenu();
+  if (_ctxAppId) {
+    _callFlutter('onAppTap', { appId: _ctxAppId, action: 'open' });
+    _animateOpen(_ctxAppId);
+  }
+});
+document.getElementById('ctx-delete').addEventListener('click', function() {
+  _hideCtxMenu();
+  if (_ctxAppId) {
+    _callFlutter('onAppDelete', { appId: _ctxAppId });
+    _ctxAppId = null; _focusedId = null;
+  }
+});
+
+// Dismiss menu on outside touch
+document.addEventListener('touchstart', function(e) {
+  var menu = document.getElementById('ctx-menu');
+  if (!menu.contains(e.target) && menu.classList.contains('visible')) {
+    _hideCtxMenu();
+  }
+}, { passive: true });
+
+// ══════════════════════════════════════════════════════════════
+// ANIMATIONS
+// ══════════════════════════════════════════════════════════════
+var _isTransitioning = false;
+
+function _animateOpen(appId) {
+  _isTransitioning = true;
+  var startScale = globeGroup.scale.x;
+  var t0 = performance.now();
+  var dur = 650;
+
+  // Wave ring from pin
+  var g = _getPinGroup(appId);
+  if (g) _spawnWaveRing(g._disc.position.clone());
+
+  function step(now) {
+    var p = Math.min((now - t0) / dur, 1);
+    var e = 1 - Math.pow(1 - p, 3); // ease-out-cubic
+    globeGroup.scale.setScalar(startScale * (1 - e * 0.3));
+    sunLight.intensity = 2.6 + e * 2.0;
+    if (p < 1) { requestAnimationFrame(step); return; }
+    setTimeout(function() {
+      globeGroup.scale.setScalar(1);
+      sunLight.intensity = 2.6;
+      _isTransitioning = false;
+    }, 350);
+  }
+  requestAnimationFrame(step);
+}
+
+// Expanding ring effect on pin tap
+var _waveRings = [];
+function _spawnWaveRing(localPos) {
+  var ringGeo = new THREE.RingGeometry(0.01, 0.04, 32);
+  var ringMat = new THREE.MeshBasicMaterial({ color: 0x007AFF, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+  var ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.copy(localPos);
+  ring.lookAt(new THREE.Vector3(0,0,0));
+  pinGroup.add(ring);
+  _waveRings.push({ mesh: ring, mat: ringMat, born: performance.now() });
+}
+
+function _updateWaveRings() {
+  var now = performance.now();
+  _waveRings = _waveRings.filter(function(w) {
+    var age = (now - w.born) / 600;
+    if (age >= 1) { pinGroup.remove(w.mesh); return false; }
+    var e = age;
+    w.mesh.scale.setScalar(1 + e * 8);
+    w.mat.opacity = 0.9 * (1 - e);
+    return true;
+  });
+}
+
+// Reset orbit to front view
+window.resetOrbit = function() {
+  var rx0 = globeGroup.rotation.x, ry0 = globeGroup.rotation.y;
+  var z0 = _targetZoom;
+  var t0 = performance.now();
+  var dur = 750;
+  _velX = 0; _velY = 0;
+  function step(now) {
+    var p = Math.min((now - t0) / dur, 1);
+    var e = 1 - Math.pow(1 - p, 3);
+    globeGroup.rotation.x = rx0 * (1 - e);
+    globeGroup.rotation.y = ry0 * (1 - e);
+    _targetZoom = z0 + (3.2 - z0) * e;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+  _callFlutter('onHaptic', { type: 'light' });
+};
+
+// ══════════════════════════════════════════════════════════════
+// RENDER LOOP
+// ══════════════════════════════════════════════════════════════
+var _lastT = 0;
+function _animate(t) {
+  requestAnimationFrame(_animate);
+  var dt = (t - _lastT) / 1000;
+  _lastT = t;
+
+  var sec = t * 0.001;
+
+  // Shader uniforms (atmosphere only — planet is MeshLambertMaterial)
+  atmosMat.uniforms.uTime.value = sec;
+  atmosMat.uniforms.uCamPos.value.copy(camera.position);
+
+  // Sun orbit — slow graceful arc around the planet
+  sunPivot.rotation.y = sec * 0.06;
+  sunPivot.rotation.z = Math.sin(sec * 0.022) * 0.38;
+
+  // Inertia — no auto-rotation, pure user-driven
+  if (!_isDown && !_isTransitioning) {
+    globeGroup.rotation.y += _velX;
+    globeGroup.rotation.x = Math.max(-1.5, Math.min(1.5, globeGroup.rotation.x + _velY));
+    _velX *= FRICTION;
+    _velY *= FRICTION;
+  }
+
+  // Zoom lerp
+  _zoom += (_targetZoom - _zoom) * 0.09;
+  camera.position.z = _zoom;
+
+  // Billboard: disc + ring face camera; update disc shader time
+  var camWorld = new THREE.Vector3();
+  camera.getWorldPosition(camWorld);
+  _pinGroups.forEach(function(pg) {
+    if (pg._disc) pg._disc.lookAt(camWorld);
+    if (pg._ring) pg._ring.lookAt(camWorld);
+    if (pg._discMat && pg._discMat.uniforms && pg._discMat.uniforms.uTime) {
+      pg._discMat.uniforms.uTime.value = sec;
+    }
+  });
+
+  // Wave rings
+  _updateWaveRings();
+
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(_animate);
+
+// ── Resize ──
+window.addEventListener('resize', function() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Bootstrap: if Flutter bridge is already ready when this script runs ──
+setTimeout(function() {
+  if (_flutterReady) _callFlutter('onReady', {});
+}, 50);
+  </script>
+</body>
+</html>

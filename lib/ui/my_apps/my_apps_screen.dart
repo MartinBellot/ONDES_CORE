@@ -1,16 +1,14 @@
 // ignore_for_file: unused_field, unused_element
 
-import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/models/mini_app.dart';
 import '../../core/services/app_library_service.dart';
 import '../../core/services/local_server_service.dart';
 import '../../core/services/permission_manager_service.dart';
 import '../common/permission_request_screen.dart';
 import '../webview_screen.dart';
+import 'planet_webview.dart';
 
 class MyAppsScreen extends StatefulWidget {
   const MyAppsScreen({super.key});
@@ -19,59 +17,37 @@ class MyAppsScreen extends StatefulWidget {
   State<MyAppsScreen> createState() => _MyAppsScreenState();
 }
 
-class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderStateMixin {
+class _MyAppsScreenState extends State<MyAppsScreen> {
   final AppLibraryService _library = AppLibraryService();
   final LocalServerService _server = LocalServerService();
-  final TransformationController _transformController = TransformationController();
-  
+
+  /// Key used to push refreshed app lists to the Three.js planet.
+  final GlobalKey<PlanetWebViewState> _planetKey =
+      GlobalKey<PlanetWebViewState>();
+
   List<MiniApp> _apps = [];
   bool _isLoading = true;
-  bool _hasCentered = false;
-  String? _focusedAppId; // Track which app is long-pressed
-  
-  // Animation for the 'breathing' effect of the universe
-  late AnimationController _breathingController;
 
   @override
   void initState() {
     super.initState();
     _loadApps();
-    
-    _breathingController = AnimationController(
-        vsync: this, 
-        duration: const Duration(seconds: 4)
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _breathingController.dispose();
-    _transformController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadApps() async {
     setState(() => _isLoading = true);
-    final installedApps = await _library.getInstalledApps();
-    
-    if (mounted) {
-      setState(() {
-        _apps = installedApps;
-        _isLoading = false;
-      });
-    }
+    final installed = await _library.getInstalledApps();
+    if (!mounted) return;
+    setState(() {
+      _apps = installed;
+      _isLoading = false;
+    });
+    // Push the updated list to the planet. No-op if the WebView is not ready
+    // yet — the planet's own onReady callback will call initGlobe().
+    _planetKey.currentState?.refreshApps(_apps);
   }
 
   Future<void> _openApp(MiniApp app) async {
-    if (_focusedAppId != null) {
-      if (_focusedAppId == app.id) {
-         setState(() => _focusedAppId = null);
-         return;
-      }
-      setState(() => _focusedAppId = null);
-      return; 
-    }
-
     // Permission Check Phase (Modern UX)
     final permissions = app.permissions;
     final bool hasGranted = PermissionManagerService().hasAcceptedManifest(app.id);
@@ -115,7 +91,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
           MaterialPageRoute(
             builder: (context) => WebViewScreen(
               url: url,
-              appId: app.id, // Pass AppID for Sandboxing
+              appId: app.id,
             ),
           ),
         );
@@ -129,154 +105,76 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
     }
   }
 
-  void _centerGalaxy() {
-    const double universeSize = 3000;
-    const Offset center = Offset(universeSize / 2, universeSize / 2);
-    final size = MediaQuery.of(context).size;
-    final double initialScale = 1.0; 
-    
-    final x = (size.width / 2) - (center.dx * initialScale);
-    final y = (size.height / 2) - (center.dy * initialScale);
-    
-    final Matrix4 endMatrix = Matrix4.identity()
-      ..translate(x, y)
-      ..scale(initialScale);
-    
-    // Animate to center
-    // For simplicity we just set it, or we could animate _transformController value.
-    // Let's just set it directly for the button action to be instant/snappy or use a simple animation loop.
-    // Since _breathingController is user for stars, let's just set value for now to keep it simple and robust.
-    _transformController.value = endMatrix;
-  }
 
   Future<void> _uninstallApp(MiniApp app) async {
     final confirm = await showDialog<bool>(
-      context: context, 
+      context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Supprimer ${app.name} ?'),
         content: const Text('Cette action est irréversible.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true), 
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Supprimer'),
           ),
         ],
-      )
+      ),
     );
-
     if (confirm == true) {
-      // Also remove permissions
       await PermissionManagerService().revokePermissions(app.id);
-      
       await _library.uninstallApp(app.id);
-      setState(() {
-        _focusedAppId = null;
-      });
-      _loadApps();
+      _loadApps(); // also refreshes the planet
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_apps.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.bubble_chart_outlined, size: 64, color: Theme.of(context).colorScheme.tertiary),
-            const SizedBox(height: 16),
-            Text(
-              'Votre univers est vide',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text('Installez des apps pour créer votre galaxie')
-          ],
-        ),
-      );
-    }
-
-    // Canvas size for our universe
-    const double universeSize = 3000;
-    const Offset center = Offset(universeSize / 2, universeSize / 2);
-
-    // Center on arrival
-    if (!_hasCentered) {
-       WidgetsBinding.instance.addPostFrameCallback((_) {
-          _centerGalaxy();
-       });
-      _hasCentered = true;
-    }
-
     return Stack(
       children: [
-        // Background Color
+        // ── 3-D planet (handles its own empty/loading states in JS) ──
         Positioned.fill(
-          child: Container(
-            color: const Color(0xFF1E1E1E),
+          child: PlanetWebView(
+            key: _planetKey,
+            apps: _apps,
+            onAppTap: _openApp,
+            onAppDelete: _uninstallApp,
           ),
         ),
 
-        // Universe of Bubbles
-        InteractiveViewer(
-          transformationController: _transformController,
-          boundaryMargin: const EdgeInsets.all(universeSize), 
-          minScale: 0.1,
-          maxScale: 4.0,
-          constrained: false, 
-          child: GestureDetector(
-            onTap: () {
-               if (_focusedAppId != null) {
-                 setState(() => _focusedAppId = null);
-               }
-            },
-            behavior: HitTestBehavior.translucent, // Catch taps on empty space
-            child: SizedBox(
-                width: universeSize,
-                height: universeSize,
-                child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                    // Grid that moves with the content
-                    Positioned.fill(
-                        child: CustomPaint(
-                            painter: GridBackgroundPainter(),
-                        ),
-                    ),
-                    ..._buildBubbleGalaxy(center, universeSize),
-                ],
-                ),
-            ),
-          ),
-        ),
-        
-        // Navigation / Hint overlay
-        Positioned(
-          bottom: 120,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: 0.5,
-                duration: const Duration(milliseconds: 500),
+        // ── Loading overlay — only shown on the very first data fetch ──
+        if (_isLoading)
+          Positioned.fill(
+            child: ColoredBox(
+              color: const Color(0xFF0A0A0A),
+              child: Center(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.touch_app, color: Colors.white.withOpacity(0.3), size: 20),
-                    const SizedBox(height: 4),
-                    Text(
-                      'EXPLORER L\'UNIVERS',
-                      style: GoogleFonts.inter(
-                        color: Colors.white.withOpacity(0.5),
-                        fontSize: 10,
-                        letterSpacing: 2,
-                        fontWeight: FontWeight.w600
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.4, end: 1.0),
+                      duration: const Duration(milliseconds: 900),
+                      curve: Curves.easeInOut,
+                      builder: (context, v, _) => Opacity(
+                        opacity: v,
+                        child: const Icon(
+                          Icons.bubble_chart_outlined,
+                          size: 48,
+                          color: Color(0xFF007AFF),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: 120,
+                      child: LinearProgressIndicator(
+                        backgroundColor: const Color(0xFF1C1C1E),
+                        color: const Color(0xFF007AFF),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ],
@@ -284,326 +182,7 @@ class _MyAppsScreenState extends State<MyAppsScreen> with SingleTickerProviderSt
               ),
             ),
           ),
-        ),
-        
-        // Re-center Button
-        Positioned(
-            top: 64, // Below standard status bar/pill area
-            right: 20,
-            child: FloatingActionButton(
-                mini: true,
-                heroTag: 'center_galaxy',
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
-                elevation: 3,
-                onPressed: _centerGalaxy,
-                child: const Icon(Icons.center_focus_strong_outlined, size: 20),
-            ),
-        ),
       ],
     );
   }
-
-  List<Widget> _buildBubbleGalaxy(Offset center, double universeSize) {
-    List<Widget> backgroundBubbles = [];
-    Widget? foregroundBubble;
-    Widget? deleteButton;
-    
-    // Hexagonal Packing / Honeycomb-like spiral
-    double bubbleSize = 88.0; 
-    double gap = 12.0; 
-    double unit = bubbleSize + gap;
-    
-    // Positions (q, r) in axial coordinates
-    // Spiral generator
-    List<Offset> hexPositions = [const Offset(0, 0)];
-    int count = _apps.length;
-    
-    // If more than 1, generate rings
-    if (count > 1) {
-        int radius = 1;
-        while (hexPositions.length < count) {
-            int itemsInThisRing = radius * 6;
-            for (int i = 0; i < itemsInThisRing; i++) {
-                double angle = (2 * pi / itemsInThisRing) * i;
-                double r = radius * unit;
-                hexPositions.add(Offset(r * cos(angle), r * sin(angle)));
-                
-                if (hexPositions.length >= count) break;
-            }
-            radius++;
-        }
-    }
-
-    for (int i = 0; i < _apps.length; i++) {
-        Offset pos = hexPositions[i];
-        // Convert local relative pos to universe center
-        double left = center.dx + pos.dx - (bubbleSize / 2);
-        double top = center.dy + pos.dy - (bubbleSize / 2);
-        
-        final bubble = Positioned(
-                left: left,
-                top: top,
-                child: BubbleAppNode(
-                    app: _apps[i],
-                    size: bubbleSize,
-                    isFocused: _apps[i].id == _focusedAppId,
-                    onTap: () => _openApp(_apps[i]),
-                    onFocus: () {
-                        HapticFeedback.heavyImpact();
-                        setState(() => _focusedAppId = _apps[i].id);
-                    },
-                    onDelete: () => _uninstallApp(_apps[i]),
-                ),
-            );
-
-        if (_apps[i].id == _focusedAppId) {
-            foregroundBubble = bubble;
-            deleteButton = Positioned(
-              left: left + bubbleSize - 26, 
-              top: top - 10,
-              child: GestureDetector(
-                  onTap: () => _uninstallApp(_apps[i]),
-                  child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black26, 
-                                  blurRadius: 4, 
-                                  offset: Offset(0, 2)
-                              )
-                          ]
-                      ),
-                      child: const Icon(
-                          Icons.delete_forever, 
-                          color: Colors.white, 
-                          size: 20
-                      ),
-                  ),
-              ),
-            );
-        } else {
-            backgroundBubbles.add(bubble);
-        }
-    }
-    
-    // Return list with focused bubble AND delete button LAST (on top)
-    List<Widget> layers = [...backgroundBubbles];
-    if (foregroundBubble != null) layers.add(foregroundBubble);
-    if (deleteButton != null) layers.add(deleteButton);
-    
-    return layers;
-  }
-}
-
-class BubbleAppNode extends StatefulWidget {
-  final MiniApp app;
-  final double size;
-  final VoidCallback onTap;
-  final VoidCallback onFocus; // Long press trigger
-  final VoidCallback onDelete;
-  final bool isFocused;
-
-  const BubbleAppNode({
-    super.key,
-    required this.app,
-    required this.size,
-    required this.onTap,
-    required this.onFocus,
-    required this.onDelete,
-    this.isFocused = false,
-  });
-
-  @override
-  State<BubbleAppNode> createState() => _BubbleAppNodeState();
-}
-
-class _BubbleAppNodeState extends State<BubbleAppNode> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnim;
-  
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 150));
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.85).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad)
-    );
-  }
-  
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  ImageProvider _getImageProvider(String url) {
-    if (url.isEmpty) return const AssetImage('assets/placeholder.png'); 
-    
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return NetworkImage(url);
-    }
-    
-    // Everything else is treated as file
-    String path = url;
-    if (url.startsWith('file://')) {
-      try {
-        path = Uri.parse(url).toFilePath();
-      } catch (e) {
-        path = url.replaceFirst('file://', '');
-      }
-    }
-    
-    // Decode URI if needed
-    path = Uri.decodeFull(path);
-    return FileImage(File(path));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Basic scale animation for tap
-    final double tapScale = _scaleAnim.value;
-    // Focus scale (pop out)
-    final double focusScale = widget.isFocused ? 1.3 : 1.0;
-    final double totalScale = tapScale * focusScale;
-
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) => _controller.reverse(),
-      onTapCancel: () => _controller.reverse(),
-      onLongPress: widget.onFocus,
-      onTap: () {
-        HapticFeedback.lightImpact();
-        widget.onTap();
-      },
-      child: AnimatedBuilder(
-        animation: Listenable.merge([_scaleAnim]),
-        builder: (context, child) => Transform.scale(
-            scale: totalScale,
-            alignment: Alignment.center,
-            child: child,
-        ),
-        child: SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: Stack(
-             clipBehavior: Clip.none,
-             children: [
-                // The Bubble
-                Container(
-                    width: widget.size,
-                    height: widget.size,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black, // Base
-                        boxShadow: [
-                        BoxShadow(
-                            color: widget.isFocused 
-                                ? Colors.red.withOpacity(0.4) 
-                                : Colors.white.withOpacity(0.1),
-                            blurRadius: widget.isFocused ? 20 : 10,
-                            spreadRadius: widget.isFocused ? 5 : 1,
-                        )
-                        ]
-                    ),
-                    child: ClipOval(
-                        child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                                // Icon
-                                widget.app.iconUrl.isNotEmpty 
-                                ? Image(
-                                    image: _getImageProvider(widget.app.iconUrl),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                        return _buildFallbackIcon();
-                                    },
-                                )
-                                : _buildFallbackIcon(),
-                                
-                                // Glass Gloss (Apple Watch bubble style shine)
-                                Positioned(
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    height: widget.size * 0.4,
-                                    child: Container(
-                                        decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                                begin: Alignment.topCenter,
-                                                end: Alignment.bottomCenter,
-                                                colors: [
-                                                    Colors.white.withOpacity(0.3),
-                                                    Colors.transparent
-                                                ]
-                                            )
-                                        ),
-                                    ),
-                                ),
-                                
-                                // Border Ring
-                                Container(
-                                    decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: widget.isFocused 
-                                                ? Colors.red.withOpacity(0.8)
-                                                : Colors.white.withOpacity(0.15),
-                                            width: widget.isFocused ? 3.0 : 1.5,
-                                        )
-                                    ),
-                                )
-                            ],
-                        ),
-                    ),
-                ),
-             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFallbackIcon() {
-    return Container(
-        color: const Color(0xFF1C1C1E),
-        child: Center(
-            child: Text(
-                widget.app.name.isNotEmpty ? widget.app.name[0].toUpperCase() : '?',
-                style: GoogleFonts.inter(
-                    fontSize: 32, 
-                    fontWeight: FontWeight.w700, 
-                    color: Colors.white
-                ),
-            ),
-        ),
-    );
-  }
-}
-
-class GridBackgroundPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
-      ..strokeWidth = 1.0;
-
-    const double step = 40.0;
-
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
