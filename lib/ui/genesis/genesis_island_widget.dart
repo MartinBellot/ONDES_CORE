@@ -306,7 +306,10 @@ class _DoneContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Material(
+      color: Colors.transparent,
+      child:
+    Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -389,6 +392,7 @@ class _DoneContent extends StatelessWidget {
           ),
         ],
       ),
+    )
     );
   }
 }
@@ -403,47 +407,50 @@ class _ErrorContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFEF4444).withAlpha(30),
-            ),
-            child: const Icon(
-              Icons.error_outline_rounded,
-              size: 15,
-              color: Color(0xFFEF4444),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Text(
-              'La génération a échoué',
-              style: TextStyle(
-                color: Color(0xFFFCA5A5),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFEF4444).withAlpha(30),
               ),
-              overflow: TextOverflow.ellipsis,
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 15,
+                color: Color(0xFFEF4444),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: onDismiss,
-            child: const Icon(
-              Icons.close_rounded,
-              size: 14,
-              color: Color(0xFF4B5563),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'La génération a échoué',
+                style: TextStyle(
+                  color: Color(0xFFFCA5A5),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onDismiss,
+              child: const Icon(
+                Icons.close_rounded,
+                size: 14,
+                color: Color(0xFF4B5563),
+              ),
+            ),
+          ],
+        ),
+      )
     );
   }
 }

@@ -1,6 +1,6 @@
 import logging
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -19,56 +19,12 @@ logger = logging.getLogger('genesis')
 
 
 # ---------------------------------------------------------------------------
-# Async ORM helpers
-# All Django ORM access must be wrapped with sync_to_async when called from
-# an async view to avoid SynchronousOnlyOperation errors, and to ensure the
-# long-running LLM awaits do not block the ASGI thread pool.
+# Helpers
 # ---------------------------------------------------------------------------
 
-@sync_to_async
-def _get_project(project_id, user):
-    return GenesisProject.objects.get(id=project_id, user=user)
-
-
-@sync_to_async
-def _create_project(user, title):
-    return GenesisProject.objects.create(user=user, title=title)
-
-
-@sync_to_async
-def _delete_project(project):
-    project.delete()
-
-
-@sync_to_async
-def _create_turn(project, role, content):
-    return ConversationTurn.objects.create(project=project, role=role, content=content)
-
-
-@sync_to_async
-def _create_version(project, version_number, html_code, description):
-    return ProjectVersion.objects.create(
-        project=project,
-        version_number=version_number,
-        html_code=html_code,
-        change_description=description,
-    )
-
-
-@sync_to_async
 def _build_history(project) -> list:
     turns = project.conversation.exclude(role='system').order_by('timestamp')
     return [{'role': t.role, 'content': t.content} for t in turns]
-
-
-@sync_to_async
-def _get_current_version(project):
-    return project.current_version
-
-
-@sync_to_async
-def _serialize_project_detail(project):
-    return GenesisProjectDetailSerializer(project).data
 
 
 # ---------------------------------------------------------------------------
@@ -91,36 +47,43 @@ class GenesisCreateView(APIView):
     """
     POST /api/genesis/create/
     Body: { "prompt": "une app météo avec animation de pluie", "title": "Météo" (opt) }
-
-    Async: the LLM streaming call runs entirely in the asyncio event loop.
-    No ThreadPoolExecutor is involved, so the ASGI thread pool stays free
-    for other requests during the (potentially multi-minute) generation.
     """
     permission_classes = [IsAuthenticated]
 
-    async def post(self, request):
+    def post(self, request):
         prompt = request.data.get('prompt', '').strip()
         if not prompt:
             return Response({'error': 'prompt is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         title = request.data.get('title') or prompt[:60]
 
-        project = await _create_project(user=request.user, title=title)
-        await _create_turn(project, 'user', prompt)
+        project = GenesisProject.objects.create(user=request.user, title=title)
+        ConversationTurn.objects.create(project=project, role='user', content=prompt)
 
         try:
             agent = GenesisAgent()
-            html_code, description = await agent.create_async(prompt)
+            # async_to_sync runs the coroutine in a fresh thread with its own
+            # event loop — safe from both sync and ASGI contexts, no asyncio.run()
+            html_code, description = async_to_sync(agent.create_async)(prompt)
         except Exception as exc:
             logger.exception("GenesisAgent.create_async failed: %s", exc)
-            await _delete_project(project)
+            project.delete()
             return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
-        await _create_version(project, 1, html_code, description)
-        await _create_turn(project, 'assistant', f"[Version 1] {description}")
+        ProjectVersion.objects.create(
+            project=project,
+            version_number=1,
+            html_code=html_code,
+            change_description=description,
+        )
+        ConversationTurn.objects.create(
+            project=project,
+            role='assistant',
+            content=f"[Version 1] {description}",
+        )
 
-        data = await _serialize_project_detail(project)
-        return Response(data, status=status.HTTP_201_CREATED)
+        serializer = GenesisProjectDetailSerializer(project)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class GenesisIterateView(APIView):
@@ -130,9 +93,9 @@ class GenesisIterateView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    async def post(self, request, project_id):
+    def post(self, request, project_id):
         try:
-            project = await _get_project(project_id, request.user)
+            project = GenesisProject.objects.get(id=project_id, user=request.user)
         except GenesisProject.DoesNotExist:
             return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -140,19 +103,19 @@ class GenesisIterateView(APIView):
         if not feedback:
             return Response({'error': 'feedback is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        current_version = await _get_current_version(project)
+        current_version = project.current_version
         if not current_version:
             return Response(
                 {'error': 'No code to iterate on. Call /create/ first.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        await _create_turn(project, 'user', feedback)
-        history = await _build_history(project)
+        ConversationTurn.objects.create(project=project, role='user', content=feedback)
+        history = _build_history(project)
 
         try:
             agent = GenesisAgent()
-            html_code, description = await agent.iterate_async(
+            html_code, description = async_to_sync(agent.iterate_async)(
                 current_html=current_version.html_code,
                 history=history[:-1],
                 feedback=feedback,
@@ -162,11 +125,20 @@ class GenesisIterateView(APIView):
             return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
         next_number = current_version.version_number + 1
-        await _create_version(project, next_number, html_code, description)
-        await _create_turn(project, 'assistant', f"[Version {next_number}] {description}")
+        ProjectVersion.objects.create(
+            project=project,
+            version_number=next_number,
+            html_code=html_code,
+            change_description=description,
+        )
+        ConversationTurn.objects.create(
+            project=project,
+            role='assistant',
+            content=f"[Version {next_number}] {description}",
+        )
 
-        data = await _serialize_project_detail(project)
-        return Response(data)
+        serializer = GenesisProjectDetailSerializer(project)
+        return Response(serializer.data)
 
 
 class GenesisReportErrorView(APIView):
@@ -182,9 +154,9 @@ class GenesisReportErrorView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    async def post(self, request, project_id):
+    def post(self, request, project_id):
         try:
-            project = await _get_project(project_id, request.user)
+            project = GenesisProject.objects.get(id=project_id, user=request.user)
         except GenesisProject.DoesNotExist:
             return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -195,7 +167,7 @@ class GenesisReportErrorView(APIView):
         error_source = request.data.get('source', None)
         error_line = request.data.get('lineno', None)
 
-        current_version = await _get_current_version(project)
+        current_version = project.current_version
         if not current_version:
             return Response({'error': 'No code yet.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -205,13 +177,13 @@ class GenesisReportErrorView(APIView):
             error_content += f" | source: {error_source}"
         if error_line:
             error_content += f" | line: {error_line}"
-        await _create_turn(project, 'system', error_content)
+        ConversationTurn.objects.create(project=project, role='system', content=error_content)
 
-        history = await _build_history(project)
+        history = _build_history(project)
 
         try:
             agent = GenesisAgent()
-            html_code, description = await agent.fix_error_async(
+            html_code, description = async_to_sync(agent.fix_error_async)(
                 current_html=current_version.html_code,
                 history=history,
                 error_message=error_message,
@@ -223,17 +195,20 @@ class GenesisReportErrorView(APIView):
             return Response({'error': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
         next_number = current_version.version_number + 1
-        await _create_version(
-            project, next_number, html_code,
-            f"[Auto-fix v{next_number}] {description}",
+        ProjectVersion.objects.create(
+            project=project,
+            version_number=next_number,
+            html_code=html_code,
+            change_description=f"[Auto-fix v{next_number}] {description}",
         )
-        await _create_turn(
-            project, 'assistant',
-            f"[Auto-fix v{next_number}] Corrected: {error_message[:100]}",
+        ConversationTurn.objects.create(
+            project=project,
+            role='assistant',
+            content=f"[Auto-fix v{next_number}] Corrected: {error_message[:100]}",
         )
 
-        data = await _serialize_project_detail(project)
-        return Response(data)
+        serializer = GenesisProjectDetailSerializer(project)
+        return Response(serializer.data)
 
 
 class GenesisDeployView(APIView):
