@@ -11,7 +11,7 @@ class ConfigurationService {
   ConfigurationService._internal();
 
   /// URL de production — à remplacer par votre vrai domaine HTTPS
-  static const String _productionUrl = 'https://api.ondes.app/api';
+  static const String _productionUrl = 'http://192.168.1.153:8000/api';
 
   String get apiBaseUrl {
     // En mode release, toujours utiliser HTTPS
