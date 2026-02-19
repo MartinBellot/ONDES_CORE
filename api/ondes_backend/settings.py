@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'friends',
     'social',
     'chat',  # Chat E2EE module
+    'genesis',  # GENESIS — AI Mini-App creator
 ]
 
 REST_FRAMEWORK = {
@@ -213,8 +214,18 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
+        'genesis': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
     },
 }
+
+# ==================== GENESIS / LLM ====================
+# The anthropic SDK reads ANTHROPIC_API_KEY from the environment automatically.
+# You may also set it explicitly here if needed:
+# ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 
 # ==================== FILE UPLOAD LIMITS ====================
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB

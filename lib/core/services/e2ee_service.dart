@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:dio/dio.dart';
 import 'auth_service.dart';

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'core/utils/logger.dart';
+import 'core/utils/app_navigator.dart';
+import 'ui/genesis/genesis_island_widget.dart';
 import 'ui/lab/lab_screen.dart';
 import 'ui/store/store_screen.dart';
 import 'ui/my_apps/my_apps_screen.dart';
@@ -394,7 +396,17 @@ class _OndesCoreAppState extends State<OndesCoreApp> {
       title: 'Ondes Core',
       debugShowCheckedModeBanner: false,
       theme: ultraDarkTheme,
+      navigatorKey: appNavigatorKey,
       home: AuthWrapper(key: authWrapperKey),
+      // Inject the GENESIS Dynamic Island on top of every screen.
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child!,
+            const GenesisIslandWidget(),
+          ],
+        );
+      },
     );
   }
 }

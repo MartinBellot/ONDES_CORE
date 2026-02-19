@@ -64,6 +64,7 @@ nav:
     - Créer une Mini-App: mini_app_guide.md
     - 🧪 Ondes Lab: lab.md
     - Exemples: examples.md
+    - 🤖 GENESIS (IA Creator): GENESIS.md
   - Référence SDK:
     - Introduction SDK: sdk/index.md
     - Permissions & Sécurité: sdk/permissions.md

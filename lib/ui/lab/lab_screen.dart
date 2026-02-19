@@ -8,6 +8,7 @@ import '../../core/utils/logger.dart';
 import 'dev_studio_screen.dart';
 import '../webview_screen.dart';
 import '../common/scanner_screen.dart';
+import '../genesis/genesis_screen.dart';
 
 class LabScreen extends StatefulWidget {
   const LabScreen({Key? key}) : super(key: key);
@@ -197,6 +198,68 @@ class _LabScreenState extends State<LabScreen> {
                           ],
                         ),
                          
+                        const Divider(height: 40, color: Colors.white24),
+                        
+                        // GENESIS Section
+                        Row(
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (b) => const LinearGradient(
+                                colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                              ).createShader(b),
+                              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'GENESIS',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Génère, itère et déploie des Mini-Apps complètes en conversant avec une IA. Le code HTML/JS est produit en temps réel et injecté directement dans la WebView.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF7C3AED).withOpacity(0.35),
+                                  blurRadius: 16,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.rocket_launch_rounded),
+                              label: const Text('Ouvrir GENESIS'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.all(16),
+                              ),
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const GenesisScreen()),
+                              ),
+                            ),
+                          ),
+                        ),
+
                         const Divider(height: 40, color: Colors.white24),
                         
                         // Dev Studio Section

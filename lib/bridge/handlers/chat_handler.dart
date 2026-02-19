@@ -20,13 +20,13 @@ import 'base_handler.dart';
 class ChatHandler extends BaseHandler {
   final ChatService _chatService = ChatService();
   final E2EEService _e2eeService = E2EEService();
-  
+
   // Chiffrement E2EE toujours activé
   static const bool _encryptionEnabled = true;
-  
+
   // AES-256-GCM pour le chiffrement des messages
   final _aesGcm = AesGcm.with256bits();
-  
+
   // Cache des clés de conversation (dérivées via X25519)
   final Map<String, SecretKey> _conversationKeys = {};
   

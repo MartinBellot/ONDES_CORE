@@ -44,13 +44,13 @@ dependencies:
   shelf: ^1.4.1
   shelf_static: ^1.1.2
   provider: ^6.1.2
-  google_fonts: ^6.2.1
+  google_fonts: ^8.0.2
   mobile_scanner: ^7.1.4
   uuid: ^4.5.1
   mime: ^2.0.0
   geolocator: ^14.0.2
   shared_preferences: ^2.5.3
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^10.0.0
   image_picker: ^1.2.1
   file_picker: ^10.3.8
   intl: ^0.20.2

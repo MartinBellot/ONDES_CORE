@@ -1,8 +1,10 @@
+import json
 import os
 import logging
 import shutil
 import uuid
 import mimetypes
+from threading import Thread
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -26,8 +28,9 @@ from .serializers import (
     PostCommentSerializer, StorySerializer, UserStoriesSerializer,
     FeedPostSerializer, UserProfileSerializer, PostMediaSerializer
 )
+from friends.models import Friendship
 from .feed_algorithm import LocalFeedAlgorithm
-from .media_processing import process_post_media
+from .media_processing import process_post_media, process_story_media
 
 
 MAX_PAGE_LIMIT = 100
@@ -193,7 +196,6 @@ class PublishPostView(APIView):
         
         # Parser les tags si c'est une string JSON
         if isinstance(tags, str):
-            import json
             try:
                 tags = json.loads(tags)
             except:
@@ -621,13 +623,13 @@ class CreateStoryView(APIView):
     def post(self, request):
         media_file = request.FILES.get('media')
         duration = float(request.data.get('duration', 5.0))
-        
+
         if not media_file:
             return Response(
                 {'error': 'Media file required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         mime_type, _ = mimetypes.guess_type(media_file.name)
         if mime_type and mime_type.startswith('image'):
             media_type = 'image'
@@ -638,18 +640,16 @@ class CreateStoryView(APIView):
                 {'error': 'Invalid media type'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         story = Story.objects.create(
             author=request.user,
             media=media_file,
             media_type=media_type,
             duration=min(duration, 60.0)  # Max 60 secondes
         )
-        
+
         # Traitement HLS pour les vidéos en arrière-plan
         if media_type == 'video':
-            from threading import Thread
-            from .media_processing import process_story_media
             Thread(target=process_story_media, args=(story,), daemon=True).start()
         
         return Response({
@@ -666,8 +666,6 @@ class GetStoriesView(APIView):
         now = timezone.now()
         
         # Récupérer les IDs des utilisateurs suivis + amis
-        from friends.models import Friendship
-        
         following_ids = set(
             Follow.objects.filter(follower=request.user)
             .values_list('following_id', flat=True)
