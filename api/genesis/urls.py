@@ -8,6 +8,10 @@ from .views import (
     GenesisProjectDetailView,
     GenesisVersionDetailView,
     GenesisSaveEditView,
+    GenesisQuotaView,
+    GenesisCheckoutView,
+    GenesisPortalView,
+    GenesisStripeWebhookView,
 )
 
 urlpatterns = [
@@ -15,6 +19,12 @@ urlpatterns = [
     path('', GenesisProjectListView.as_view(), name='genesis-list'),
     # Create new project from prompt
     path('create/', GenesisCreateView.as_view(), name='genesis-create'),
+    # Quota info
+    path('quota/', GenesisQuotaView.as_view(), name='genesis-quota'),
+    # Stripe
+    path('checkout/', GenesisCheckoutView.as_view(), name='genesis-checkout'),
+    path('portal/', GenesisPortalView.as_view(), name='genesis-portal'),
+    path('stripe/webhook/', GenesisStripeWebhookView.as_view(), name='genesis-stripe-webhook'),
     # Project-level operations
     path('<uuid:project_id>/', GenesisProjectDetailView.as_view(), name='genesis-detail'),
     path('<uuid:project_id>/iterate/', GenesisIterateView.as_view(), name='genesis-iterate'),

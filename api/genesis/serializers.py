@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import GenesisProject, ProjectVersion, ConversationTurn
+from .models import GenesisProject, ProjectVersion, ConversationTurn, GenesisQuota
 
 
 class ConversationTurnSerializer(serializers.ModelSerializer):
@@ -43,3 +43,16 @@ class GenesisProjectDetailSerializer(serializers.ModelSerializer):
         model = GenesisProject
         fields = ['id', 'title', 'is_deployed', 'created_at', 'updated_at',
                   'current_version', 'versions', 'conversation']
+
+
+class GenesisQuotaSerializer(serializers.ModelSerializer):
+    monthly_limit = serializers.IntegerField(read_only=True)
+    remaining_creations = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = GenesisQuota
+        fields = [
+            'plan', 'creations_this_month', 'monthly_limit',
+            'extra_credits', 'remaining_creations', 'month_reset_date',
+            'subscription_period', 'subscription_end_date',
+        ]

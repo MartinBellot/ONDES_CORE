@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:dio/dio.dart';
 import '../../bridge/bridge_controller.dart';
 import '../../bridge/ondes_js_injection.dart';
 import '../../core/services/genesis_service.dart';
 import '../../core/services/genesis_island_service.dart';
 import '../../core/services/permission_manager_service.dart';
 import '../../core/utils/logger.dart';
+import 'genesis_quota_widget.dart';
 
 // ---------------------------------------------------------------------------
 // Error-capture JS snippet injected alongside the Bridge.
@@ -56,6 +58,7 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
   GenesisProject? _project;
   bool _loading = false;
   String? _errorMessage;
+  GenesisQuota? _quota;
 
   // When non-null the WebView shows this historical version instead of current.
   ProjectVersion? _viewingVersion;
@@ -107,6 +110,8 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
       context,
       appBundleId: 'genesis.preview',
     );
+
+    _loadQuota();
 
     // ── Re-sync with a possible in-flight generation ──────────────────────
     // The user may have navigated away while the LLM was running (the island
@@ -218,6 +223,15 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
     });
   }
 
+  // ── Quota ─────────────────────────────────────────────────────────────────
+
+  Future<void> _loadQuota() async {
+    try {
+      final quota = await GenesisService().getQuota();
+      if (mounted) setState(() => _quota = quota);
+    } catch (_) {}
+  }
+
   // ── API calls ─────────────────────────────────────────────────────────────
 
   Future<void> _handleSend() async {
@@ -258,6 +272,9 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
 
       if (!mounted) return;
 
+      if (updated.quota != null) {
+        _quota = updated.quota;
+      }
       setState(() {
         _project = updated;
         _viewingVersion = null;
@@ -276,7 +293,21 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
       AppLogger.error('GenesisWorkspace', 'API call failed', e);
       GenesisIslandService().fail(e.toString());
       if (!mounted) return;
-      setState(() => _errorMessage = e.toString());
+
+      String errorMsg = e.toString();
+      if (e is DioException && e.response?.statusCode == 402) {
+        final data = e.response?.data as Map<String, dynamic>?;
+        errorMsg = data?['message'] as String? ?? 'Quota de créations épuisé.';
+        if (data?['quota'] != null) {
+          _quota = GenesisQuota.fromJson(data!['quota'] as Map<String, dynamic>);
+        } else {
+          _loadQuota();
+        }
+        setState(() => _errorMessage = errorMsg);
+        GenesisQuotaBadge.openSheet(context, _quota);
+      } else {
+        setState(() => _errorMessage = errorMsg);
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -791,6 +822,11 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
         ],
       ),
       actions: [
+        if (_quota != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: GenesisQuotaBadge(quota: _quota!, isCompact: true),
+          ),
         if (_project?.currentVersion != null) ...[
           // Version history button
           IconButton(

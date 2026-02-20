@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import GenesisProject, ProjectVersion, ConversationTurn
+from .models import GenesisProject, ProjectVersion, ConversationTurn, GenesisQuota
 
 
 class ProjectVersionInline(admin.TabularInline):
@@ -14,6 +14,17 @@ class ConversationTurnInline(admin.TabularInline):
     extra = 0
     readonly_fields = ['role', 'content', 'timestamp']
     fields = ['role', 'content', 'timestamp']
+
+
+@admin.register(GenesisQuota)
+class GenesisQuotaAdmin(admin.ModelAdmin):
+    list_display = [
+        'user', 'plan', 'creations_this_month', 'monthly_limit',
+        'extra_credits', 'month_reset_date', 'stripe_customer_id', 'updated_at',
+    ]
+    list_editable = ['plan', 'extra_credits']
+    search_fields = ['user__username', 'stripe_customer_id']
+    readonly_fields = ['stripe_customer_id', 'stripe_subscription_id', 'updated_at']
 
 
 @admin.register(GenesisProject)

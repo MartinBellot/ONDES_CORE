@@ -51,7 +51,7 @@ class GenesisAgent:
     """
 
     MODEL = "claude-sonnet-4-6"
-    MAX_TOKENS = 64000
+    MAX_TOKENS = 50000
 
     def __init__(self):
         # Async client — used by all views running under ASGI/Channels.
@@ -104,10 +104,17 @@ class GenesisAgent:
         messages = list(history)
         messages.append({
             "role": "user",
-            "content": (
-                f"Voici le code actuel de la Mini-App :\n\n```html\n{current_html}\n```\n\n"
-                f"Modification demandée : {feedback}"
-            ),
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Voici le code actuel de la Mini-App :\n\n```html\n{current_html}\n```",
+                    "cache_control": {"type": "ephemeral"},
+                },
+                {
+                    "type": "text",
+                    "text": f"\nModification demandée : {feedback}",
+                },
+            ],
         })
         return self._call(messages)
     async def iterate_async(
@@ -120,10 +127,17 @@ class GenesisAgent:
         messages = list(history)
         messages.append({
             "role": "user",
-            "content": (
-                f"Voici le code actuel de la Mini-App :\n\n```html\n{current_html}\n```\n\n"
-                f"Modification demand\u00e9e : {feedback}"
-            ),
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Voici le code actuel de la Mini-App :\n\n```html\n{current_html}\n```",
+                    "cache_control": {"type": "ephemeral"},
+                },
+                {
+                    "type": "text",
+                    "text": f"\nModification demand\u00e9e : {feedback}",
+                },
+            ],
         })
         return await self._call_async(messages)
     def fix_error(
@@ -141,19 +155,30 @@ class GenesisAgent:
         -------
         (html_code, change_description)
         """
-        context = f"Erreur JS détectée dans la Mini-App : {error_message}"
+        error_context = f"Erreur JS détectée dans la Mini-App : {error_message}"
         if error_source:
-            context += f"\nSource : {error_source}"
+            error_context += f"\nSource : {error_source}"
         if error_line is not None:
-            context += f"\nLigne : {error_line}"
-        context += (
-            f"\n\nVoici le code actuel :\n\n```html\n{current_html}\n```\n\n"
-            "Corrige l'erreur et renvoie le fichier HTML complet et corrigé."
-        )
+            error_context += f"\nLigne : {error_line}"
+        error_context += "\n\nCorrige l'erreur et renvoie le fichier HTML complet et corrigé."
 
-        messages = list(history)
-        messages.append({"role": "user", "content": context})
-        return self._call(messages)
+        # Limit to last 6 turns — errors are always in recent code.
+        recent_history = list(history)[-6:]
+        recent_history.append({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Voici le code actuel :\n\n```html\n{current_html}\n```",
+                    "cache_control": {"type": "ephemeral"},
+                },
+                {
+                    "type": "text",
+                    "text": f"\n{error_context}",
+                },
+            ],
+        })
+        return self._call(recent_history)
 
     async def fix_error_async(
         self,
@@ -164,18 +189,30 @@ class GenesisAgent:
         error_line: Optional[int] = None,
     ) -> tuple[str, str]:
         """Async variant — call this from async Django views."""
-        context = f"Erreur JS d\u00e9tect\u00e9e dans la Mini-App : {error_message}"
+        error_context = f"Erreur JS d\u00e9tect\u00e9e dans la Mini-App : {error_message}"
         if error_source:
-            context += f"\nSource : {error_source}"
+            error_context += f"\nSource : {error_source}"
         if error_line is not None:
-            context += f"\nLigne : {error_line}"
-        context += (
-            f"\n\nVoici le code actuel :\n\n```html\n{current_html}\n```\n\n"
-            "Corrige l'erreur et renvoie le fichier HTML complet et corrig\u00e9."
-        )
-        messages = list(history)
-        messages.append({"role": "user", "content": context})
-        return await self._call_async(messages)
+            error_context += f"\nLigne : {error_line}"
+        error_context += "\n\nCorrige l'erreur et renvoie le fichier HTML complet et corrig\u00e9."
+
+        # Limit to last 6 turns — errors are always in recent code.
+        recent_history = list(history)[-6:]
+        recent_history.append({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"Voici le code actuel :\n\n```html\n{current_html}\n```",
+                    "cache_control": {"type": "ephemeral"},
+                },
+                {
+                    "type": "text",
+                    "text": f"\n{error_context}",
+                },
+            ],
+        })
+        return await self._call_async(recent_history)
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -198,7 +235,13 @@ class GenesisAgent:
         async with self._client.messages.stream(
             model=self.MODEL,
             max_tokens=self.MAX_TOKENS,
-            system=GENESIS_SYSTEM_PROMPT,
+            system=[
+                {
+                    "type": "text",
+                    "text": GENESIS_SYSTEM_PROMPT,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
             messages=messages,
         ) as stream:
             raw = (await stream.get_final_text()).strip()
@@ -223,10 +266,18 @@ class GenesisAgent:
     def _extract_description(messages: list[dict]) -> str:
         """
         Build a short change description from the last user message.
+        Handles both plain-string content and multi-block content lists.
         """
         for msg in reversed(messages):
             if msg.get("role") == "user":
                 content = msg["content"]
-                # Keep first 120 chars as summary
-                return content[:120].replace("\n", " ").strip()
+                if isinstance(content, list):
+                    # Multi-block format: use the last text block (non-cached feedback).
+                    text = next(
+                        (b["text"] for b in reversed(content) if b.get("type") == "text"),
+                        "Generated by GENESIS",
+                    )
+                else:
+                    text = content
+                return text[:120].replace("\n", " ").strip()
         return "Generated by GENESIS"

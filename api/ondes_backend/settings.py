@@ -227,6 +227,13 @@ LOGGING = {
 # You may also set it explicitly here if needed:
 # ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 
+# ==================== STRIPE ====================
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+STRIPE_PRO_MONTHLY_PRICE_ID = config('STRIPE_PRO_MONTHLY_PRICE_ID', default='')
+STRIPE_PRO_YEARLY_PRICE_ID = config('STRIPE_PRO_YEARLY_PRICE_ID', default='')
+STRIPE_CREDIT_PACK_PRICE_ID = config('STRIPE_CREDIT_PACK_PRICE_ID', default='')
+
 # ==================== FILE UPLOAD LIMITS ====================
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB

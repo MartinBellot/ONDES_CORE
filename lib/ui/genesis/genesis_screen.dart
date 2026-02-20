@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/genesis_service.dart';
 import '../../core/utils/logger.dart';
 import 'genesis_workspace.dart';
+import 'genesis_quota_widget.dart';
 
 /// Lists all Genesis projects for the current user and allows creating a new one.
 class GenesisScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class GenesisScreen extends StatefulWidget {
 class _GenesisScreenState extends State<GenesisScreen> {
   List<GenesisProject> _projects = [];
   bool _loading = true;
+  GenesisQuota? _quota;
 
   @override
   void initState() {
@@ -24,9 +26,14 @@ class _GenesisScreenState extends State<GenesisScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      _projects = await GenesisService().listProjects();
+      final results = await Future.wait([
+        GenesisService().listProjects(),
+        GenesisService().getQuota(),
+      ]);
+      _projects = results[0] as List<GenesisProject>;
+      _quota = results[1] as GenesisQuota;
     } catch (e) {
-      AppLogger.error('GenesisScreen', 'listProjects failed', e);
+      AppLogger.error('GenesisScreen', 'load failed', e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -112,10 +119,11 @@ class _GenesisScreenState extends State<GenesisScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF888BA8)),
-            onPressed: _load,
-          ),
+          if (_quota != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GenesisQuotaBadge(quota: _quota!),
+            ),
         ],
       ),
       body: _loading

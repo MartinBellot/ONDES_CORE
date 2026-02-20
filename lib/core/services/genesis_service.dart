@@ -4,6 +4,56 @@ import 'configuration_service.dart';
 import 'auth_service.dart';
 import '../utils/logger.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GenesisQuota
+// ─────────────────────────────────────────────────────────────────────────────
+
+class GenesisQuota {
+  final String plan;
+  final int creationsThisMonth;
+  final int monthlyLimit;
+  final int extraCredits;
+  final int remainingCreations;
+  final DateTime monthResetDate;
+  final String subscriptionPeriod; // 'monthly' | 'yearly' | ''
+  final DateTime? subscriptionEndDate;
+
+  GenesisQuota({
+    required this.plan,
+    required this.creationsThisMonth,
+    required this.monthlyLimit,
+    required this.extraCredits,
+    required this.remainingCreations,
+    required this.monthResetDate,
+    this.subscriptionPeriod = '',
+    this.subscriptionEndDate,
+  });
+
+  factory GenesisQuota.fromJson(Map<String, dynamic> json) {
+    return GenesisQuota(
+      plan: json['plan'] as String,
+      creationsThisMonth: json['creations_this_month'] as int,
+      monthlyLimit: json['monthly_limit'] as int,
+      extraCredits: json['extra_credits'] as int,
+      remainingCreations: json['remaining_creations'] as int,
+      monthResetDate: DateTime.parse(json['month_reset_date'] as String),
+      subscriptionPeriod: json['subscription_period'] as String? ?? '',
+      subscriptionEndDate: json['subscription_end_date'] != null
+          ? DateTime.parse(json['subscription_end_date'] as String)
+          : null,
+    );
+  }
+
+  bool get isPro => plan == 'pro';
+  bool get canCreate => remainingCreations > 0;
+  double get usagePercent =>
+      monthlyLimit == 0 ? 1.0 : (creationsThisMonth / monthlyLimit).clamp(0.0, 1.0);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GenesisProject
+// ─────────────────────────────────────────────────────────────────────────────
+
 /// Data model for a Genesis project.
 class GenesisProject {
   final String id;
@@ -14,6 +64,7 @@ class GenesisProject {
   final ProjectVersion? currentVersion;
   final List<VersionSummary> versions;
   final List<ConversationTurn> conversation;
+  final GenesisQuota? quota;
 
   GenesisProject({
     required this.id,
@@ -24,6 +75,7 @@ class GenesisProject {
     this.currentVersion,
     this.versions = const [],
     this.conversation = const [],
+    this.quota,
   });
 
   factory GenesisProject.fromJson(Map<String, dynamic> json) {
@@ -42,6 +94,9 @@ class GenesisProject {
       conversation: (json['conversation'] as List<dynamic>? ?? [])
           .map((t) => ConversationTurn.fromJson(t as Map<String, dynamic>))
           .toList(),
+      quota: json['quota'] != null
+          ? GenesisQuota.fromJson(json['quota'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -331,6 +386,69 @@ class GenesisService {
       return GenesisProject.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       AppLogger.error('GenesisService', 'saveEdit failed', e);
+      rethrow;
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Quota
+  // -----------------------------------------------------------------------
+
+  Future<GenesisQuota> getQuota() async {
+    try {
+      final response = await _dio.get(
+        '$_base/quota/',
+        options: Options(headers: _headers),
+      );
+      return GenesisQuota.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      AppLogger.error('GenesisService', 'getQuota failed', e);
+      rethrow;
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Stripe Checkout
+  // -----------------------------------------------------------------------
+
+  /// Returns Stripe Checkout URL for the given price.
+  Future<String> getCheckoutUrl({
+    required String priceId,
+    required String successUrl,
+    required String cancelUrl,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_base/checkout/',
+        data: jsonEncode({
+          'price_id': priceId,
+          'success_url': successUrl,
+          'cancel_url': cancelUrl,
+        }),
+        options: Options(headers: _headers),
+      );
+      return response.data['checkout_url'] as String;
+    } catch (e) {
+      AppLogger.error('GenesisService', 'getCheckoutUrl failed', e);
+      rethrow;
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Stripe Customer Portal
+  // -----------------------------------------------------------------------
+
+  /// Returns Stripe Customer Portal URL.
+  Future<String> getPortalUrl({required String returnUrl}) async {
+    try {
+      final response = await _dio.post(
+        '$_base/portal/',
+        data: jsonEncode({'return_url': returnUrl}),
+        options: Options(headers: _headers),
+      );
+      return response.data['portal_url'] as String;
+    } catch (e) {
+      AppLogger.error('GenesisService', 'getPortalUrl failed', e);
       rethrow;
     }
   }
