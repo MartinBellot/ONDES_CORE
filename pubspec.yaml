@@ -57,6 +57,7 @@ dependencies:
   url_launcher: ^6.3.2
   web_socket_channel: ^3.0.3
   cryptography: ^2.7.0  # E2EE: X25519 + AES-256-GCM
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +82,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/
     - assets/planet/
 
   # To add assets to your application, add an assets section, like this:
