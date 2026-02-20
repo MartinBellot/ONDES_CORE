@@ -1,0 +1,53 @@
+:root {
+  /* Force Apple System Fonts for that "Classic Apple" feel on macOS, falling back to Inter on others */
+  --md-text-font: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --md-code-font: "SF Mono", "Monaco", "Menlo", "JetBrains Mono", "Consolas", "Ubuntu Mono", monospace;
+}
+
+/* Glassmorphism header */
+[data-md-color-scheme="slate"] .md-header {
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Typography Tweaks */
+.md-typeset h1, 
+.md-typeset h2, 
+.md-typeset h3, 
+.md-typeset h4 {
+    font-weight: 700;
+    letter-spacing: -0.025em; /* Tight tracking like Apple marketing pages */
+}
+
+.md-typeset {
+    font-size: 0.85rem; /* Slightly smaller, denser text */
+}
+
+/* Rounded corners for everything */
+.md-typeset pre > code {
+    border-radius: 12px;
+}
+
+.admonition, .md-typeset table {
+    border-radius: 12px;
+}
+
+.md-search__input {
+    border-radius: 12px;
+}
+
+/* Accent color gradients */
+[data-md-color-scheme="slate"] .md-typeset a {
+    color: #4facfe;
+    background: -webkit-linear-gradient(45deg, #4facfe, #00f2fe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 600;
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:hover {
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+}

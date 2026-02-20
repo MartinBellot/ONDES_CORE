@@ -1,0 +1,2438 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation officielle de la plateforme Ondes Core">
+      
+      
+        <meta name="author" content="Martin Bellot">
+      
+      
+      
+        <link rel="prev" href="../backend/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>🤖 GENESIS (IA Creator) - Ondes Core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#genesis-ai-mini-app-creator" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href=".." title="Ondes Core" class="md-header__button md-logo" aria-label="Ondes Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ondes Core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🤖 GENESIS (IA Creator)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue"  aria-label="Passer en mode clair"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Passer en mode clair" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="blue"  aria-label="Passer en mode sombre"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Passer en mode sombre" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MartinBellot/ONDES_CORE" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MartinBellot/ONDES_CORE
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Ondes Core" class="md-nav__button md-logo" aria-label="Ondes Core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Ondes Core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MartinBellot/ONDES_CORE" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MartinBellot/ONDES_CORE
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Présentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide Développeur
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guide Développeur
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mini_app_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Créer une Mini-App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧪 Ondes Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exemples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Référence SDK
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Référence SDK
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction SDK
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/permissions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions & Sécurité
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/flutter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SDK Flutter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interface (UI)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/user/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilisateur (User)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/device/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Matériel (Device)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stockage (Storage)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application (App)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/friends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Amis (Friends)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/social/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Social & Médias
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Communication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/chat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💬 Chat E2EE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/websocket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔌 WebSocket
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sdk/udp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📡 UDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 GENESIS (IA Creator)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 GENESIS (IA Creator)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quota-business-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quota business rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monetisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monetisation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesiscreate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/create/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisiditerate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/{id}/iterate/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisidsave_edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/{id}/save_edit/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apigenesisquota" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/genesis/quota/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesischeckout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/checkout/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisportal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/portal/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisstripewebhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/stripe/webhook/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version History
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version History">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flutter-ux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flutter UX
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#html-code-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTML Code Editor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monetisation-flutter-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monetisation — Flutter UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monetisation — Flutter UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#genesisquotabadge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GenesisQuotaBadge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genesispricingscreen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GenesisPricingScreen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#402-error-handling-in-genesisworkspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        402 error handling in GenesisWorkspace
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conversation-flow-llm-context-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversation Flow (LLM context window)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-prompt-exact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Prompt (exact)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flutter-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flutter Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flutter Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#webview-html-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WebView HTML loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-auto-fix-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error auto-fix loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flutter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flutter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quota-business-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quota business rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monetisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monetisation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesiscreate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/create/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisiditerate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/{id}/iterate/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisidsave_edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/{id}/save_edit/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-apigenesisquota" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET /api/genesis/quota/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesischeckout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/checkout/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisportal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/portal/
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apigenesisstripewebhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        POST /api/genesis/stripe/webhook/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version History
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version History">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flutter-ux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flutter UX
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#html-code-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTML Code Editor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monetisation-flutter-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monetisation — Flutter UI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monetisation — Flutter UI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#genesisquotabadge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GenesisQuotaBadge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genesispricingscreen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GenesisPricingScreen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#402-error-handling-in-genesisworkspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        402 error handling in GenesisWorkspace
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conversation-flow-llm-context-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversation Flow (LLM context window)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-prompt-exact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Prompt (exact)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flutter-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flutter Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flutter Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#webview-html-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WebView HTML loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-auto-fix-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error auto-fix loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flutter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flutter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="genesis-ai-mini-app-creator">GENESIS — AI Mini-App Creator</h1>
+<h2 id="overview">Overview</h2>
+<p><strong>GENESIS</strong> is the AI-powered creation subsystem of ONDES CORE. It allows any user to describe a Mini-App in natural language and receive a fully functional, single-file HTML/JS/CSS application that runs natively inside the ONDES WebView — with complete access to the SDK v3.0 Bridge.</p>
+<p>GENESIS is <strong>monetised</strong>: every user has a monthly creation quota enforced server-side before any LLM call. Upgrades and credit packs are handled through Stripe Checkout, with subscriptions managed via the Stripe Customer Portal.</p>
+<hr />
+<h2 id="architecture-overview">Architecture Overview</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>User (Flutter UI)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        │  &quot;Crée une app météo avec animation de pluie&quot;
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        ▼
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>┌─────────────────────────┐
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  GenesisWorkspace        │  Flutter screen
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  (Chat + WebView)        │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  + GenesisQuotaBadge     │  AppBar badge — remaining creations
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>└────────────┬────────────┘
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>             │  POST /api/genesis/create/
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>             │  POST /api/genesis/{id}/iterate/
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>             │  POST /api/genesis/{id}/report_error/
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>             ▼
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>┌─────────────────────────┐
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  Django API              │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  genesis.views           │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└────────────┬────────────┘
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>             │
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>             ▼  ① quota check (GenesisQuota.can_create())
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>┌─────────────────────────┐
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  GenesisQuota            │  models.py — per-user plan + counter
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  FREE: 5/mo  PRO: 50/mo  │  → HTTP 402 if quota exceeded
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>└────────────┬────────────┘
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>             │  ② LLM call (only if quota OK)
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>             ▼
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>┌─────────────────────────┐
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│  GenesisAgent            │  services.py
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│  (Anthropic Claude)      │
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>└────────────┬────────────┘
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>             │  System Prompt + conversation history
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>             ▼
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>┌─────────────────────────┐
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│  Claude claude-sonnet-4-5│
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│  (LLM)                   │
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>└────────────┬────────────┘
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>             │  raw HTML string
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>             ▼
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>┌─────────────────────────┐   ③ quota.consume_creation()
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│  ProjectVersion          │  ← called AFTER html_code is persisted
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│  html_code (TextField)   │
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>└────────────┬────────────┘
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>             │  response includes project + quota snapshot
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>             ▼
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>┌─────────────────────────┐
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│  InAppWebView (Flutter)  │
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│  loadData(html)          │
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│  + Bridge injection      │
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│  + Error capture JS      │
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>└─────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="data-model">Data Model</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>GenesisProject          (one per AI-created app)
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  ├── id                UUID primary key
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  ├── user              FK → auth.User
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  ├── title             str
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  ├── is_deployed       bool  (toggled by /deploy/)
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  ├── created_at
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  └── updated_at
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>ProjectVersion          (immutable snapshot per iteration)
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  ├── project           FK → GenesisProject
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  ├── version_number    int   (1, 2, 3 …)
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  ├── html_code         TextField
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  └── change_description str
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>ConversationTurn        (full history for context window)
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>  ├── project           FK → GenesisProject
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>  ├── role              &#39;user&#39; | &#39;assistant&#39; | &#39;system&#39;
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>  ├── content           str
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>  └── timestamp
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>GenesisQuota            (one per user — created on first access)
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>  ├── user              OneToOneField → auth.User
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>  ├── plan              &#39;free&#39; | &#39;pro&#39;
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>  ├── creations_this_month  PositiveIntegerField (reset every 1st UTC)
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>  ├── month_reset_date  DateField
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>  ├── extra_credits     PositiveIntegerField  (pay-as-you-go)
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>  ├── stripe_customer_id     str (blank until first Checkout)
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>  ├── stripe_subscription_id str
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>  ├── subscription_period    &#39;monthly&#39; | &#39;yearly&#39; | &#39;&#39;
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>  ├── subscription_end_date  DateTimeField (nullable)
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>  └── updated_at
+</code></pre></div>
+<h3 id="quota-business-rules">Quota business rules</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th style="text-align: center;">Creations / month</th>
+<th style="text-align: center;">Iterations</th>
+<th>Price</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FREE</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">∞</td>
+<td>0 €</td>
+</tr>
+<tr>
+<td>PRO</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">∞</td>
+<td>7,99 €/mo · 59,99 €/yr</td>
+</tr>
+<tr>
+<td>Pay-as-you-go</td>
+<td style="text-align: center;">+1 per credit</td>
+<td style="text-align: center;">—</td>
+<td>1,99 € / pack of 10</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Counter resets on the <strong>1st of each month UTC</strong> (lazy — checked on next request).</li>
+<li><strong>Iterations</strong> (<code>/iterate/</code>) and <strong>auto-fixes</strong> (<code>/report_error/</code>) are <strong>always free</strong> — they never touch the quota.</li>
+<li>Quota is <strong>checked before</strong> the LLM call and <strong>consumed after</strong> the HTML is saved — so a failed generation never costs a credit.</li>
+<li>If a user has exhausted their monthly quota but owns extra credits, credits are deducted first.</li>
+</ul>
+<hr />
+<h2 id="api-endpoints">API Endpoints</h2>
+<h3 id="core">Core</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/genesis/</code></td>
+<td>List current user's projects</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/create/</code></td>
+<td>Create project from first prompt</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/genesis/{id}/</code></td>
+<td>Fetch project detail (incl. version history)</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/api/genesis/{id}/</code></td>
+<td>Delete project</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/{id}/iterate/</code></td>
+<td>Request a code change</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/{id}/report_error/</code></td>
+<td>Auto-fix a JS error</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/{id}/deploy/</code></td>
+<td>Mark version as production</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/genesis/{id}/versions/{version_id}/</code></td>
+<td>Fetch one version's full HTML</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/{id}/save_edit/</code></td>
+<td>Save a manually-edited HTML as new version</td>
+</tr>
+</tbody>
+</table>
+<h3 id="monetisation">Monetisation</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>URL</th>
+<th>Auth</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/genesis/quota/</code></td>
+<td>Token</td>
+<td>Current user's quota snapshot</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/checkout/</code></td>
+<td>Token</td>
+<td>Create Stripe Checkout session</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/portal/</code></td>
+<td>Token</td>
+<td>Open Stripe Customer Portal</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/genesis/stripe/webhook/</code></td>
+<td>— (CSRF-exempt)</td>
+<td>Stripe webhook handler</td>
+</tr>
+</tbody>
+</table>
+<h3 id="post-apigenesiscreate"><code>POST /api/genesis/create/</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;prompt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Une app météo avec animation de pluie et dégradé de couleur selon la météo&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Météo App&quot;</span><span class="w">   </span><span class="c1">// optional</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Response (201)</strong> — <code>GenesisProject</code> with <code>current_version.html_code</code>, <code>conversation</code>, and a <code>quota</code> field reflecting the updated state.</p>
+<p><strong>Response (402)</strong> — quota exceeded:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;quota_exceeded&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Tu as atteint ta limite de 5 créations ce mois-ci.&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;free&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;monthly_limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">&quot;remaining_creations&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">&quot;quota&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="post-apigenesisiditerate"><code>POST /api/genesis/{id}/iterate/</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;feedback&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Change le fond en violet néon, ajoute un bouton pour partager sur le feed&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<p>Response includes a <code>quota</code> field. Iterations never consume quota.</p>
+<h3 id="post-apigenesisidsave_edit"><code>POST /api/genesis/{id}/save_edit/</code></h3>
+<p>Persists a hand-edited HTML as a new version. Intended for developer power-users.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;html_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;!DOCTYPE html&gt;...&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Correction manuelle du layout&quot;</span><span class="w"> </span><span class="c1">// optional</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Response</strong> — updated <code>GenesisProject</code> (same shape as other write endpoints).</p>
+<h3 id="get-apigenesisquota"><code>GET /api/genesis/quota/</code></h3>
+<p>Returns the current user's quota without making any change.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;free&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">&quot;creations_this_month&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">&quot;monthly_limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">&quot;extra_credits&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nt">&quot;remaining_creations&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="nt">&quot;month_reset_date&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-02-01&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="nt">&quot;subscription_period&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="nt">&quot;subscription_end_date&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="post-apigenesischeckout"><code>POST /api/genesis/checkout/</code></h3>
+<p>Creates a Stripe Checkout session. Pass one of the three price IDs configured in <code>.env</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;price_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;price_xxx&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">&quot;success_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://ondes.app/genesis/success?session_id={CHECKOUT_SESSION_ID}&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">&quot;cancel_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://ondes.app/genesis/cancel&quot;</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;checkout_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://checkout.stripe.com/pay/cs_test_...&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<p>Mode is automatically set to <code>subscription</code> for PRO plans and <code>payment</code> for credit packs.</p>
+<h3 id="post-apigenesisportal"><code>POST /api/genesis/portal/</code></h3>
+<p>Opens the Stripe Customer Portal for the authenticated user.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;return_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://ondes.app/genesis&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p">{</span><span class="w"> </span><span class="nt">&quot;portal_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://billing.stripe.com/p/session/...&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<h3 id="post-apigenesisstripewebhook"><code>POST /api/genesis/stripe/webhook/</code></h3>
+<p>CSRF-exempt. Verified against <code>STRIPE_WEBHOOK_SECRET</code>. Handles:</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>checkout.session.completed</code></td>
+<td>Sets <code>plan = pro</code> or adds 10 extra credits</td>
+</tr>
+<tr>
+<td><code>customer.subscription.deleted</code></td>
+<td>Downgrades to <code>free</code></td>
+</tr>
+<tr>
+<td><code>invoice.payment_failed</code></td>
+<td>Downgrades to <code>free</code></td>
+</tr>
+<tr>
+<td><code>customer.subscription.updated</code></td>
+<td>Records <code>subscription_end_date</code> if cancelled at period end</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="version-history">Version History</h2>
+<p>Every AI-generated (or manually edited) snapshot is stored as a <code>ProjectVersion</code> row. Versions are numbered sequentially starting from 1. The <code>current_version</code> field of a project always points to the highest version number.</p>
+<p>The <code>GenesisProjectDetail</code> response now includes a <code>versions</code> array (lightweight — no <code>html_code</code>) alongside <code>current_version</code> (full, with <code>html_code</code>). Fetching the HTML of an arbitrary historical version requires a separate call to <code>GET /api/genesis/{id}/versions/{version_id}/</code>.</p>
+<h3 id="flutter-ux">Flutter UX</h3>
+<p>A <strong>history icon button</strong> (🕐) appears in the <code>GenesisWorkspace</code> AppBar whenever the project has at least one version. Tapping it opens a bottom sheet listing all versions in descending order:</p>
+<ul>
+<li>The <strong>current version</strong> is highlighted with a gradient badge and an <code>actuelle</code> chip.</li>
+<li>Tapping any <strong>past version</strong> fetches its HTML and loads it in the WebView.</li>
+<li>A <strong>purple banner</strong> overlays the top of the preview pane to signal that a historical snapshot is being displayed. It shows the version number, description, and two actions:</li>
+<li><strong>Restaurer</strong> — saves the viewed HTML as a new version and returns to live state.</li>
+<li><strong>✕</strong> — dismisses the preview and reloads the current version.</li>
+</ul>
+<hr />
+<h2 id="html-code-editor">HTML Code Editor</h2>
+<p>A subtle developer feature — accessible via the <strong><code>&lt;/&gt;</code></strong> icon button in the AppBar (visible when a project has generated code).</p>
+<p>Opens a full-height <code>DraggableScrollableSheet</code> containing:</p>
+<ul>
+<li>An optional <strong>description field</strong> (e.g. "Fix layout du header").</li>
+<li>A <strong>monospace code editor</strong> (<code>TextField</code>) pre-filled with the HTML currently displayed in the WebView (live version <em>or</em> historical preview).</li>
+<li>A <strong>Sauvegarder</strong> button that calls <code>POST /api/genesis/{id}/save_edit/</code>, creates a new version, and reloads the WebView.</li>
+</ul>
+<p>This allows developers to:
+- Make precise one-line corrections without going through the LLM.
+- Inject custom scripts or styles.
+- Restore and tweak a historical version in a single workflow.</p>
+<hr />
+<h2 id="monetisation-flutter-ui">Monetisation — Flutter UI</h2>
+<h3 id="genesisquotabadge">GenesisQuotaBadge</h3>
+<p>A compact widget displayed in the AppBar of both <code>GenesisScreen</code> and <code>GenesisWorkspace</code>. It shows the number of remaining creations for the current month with colour-coded urgency:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Remaining</th>
+<th>Colour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">&gt; 3</td>
+<td>Green <code>#00E676</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">1–3</td>
+<td>Orange <code>#FF9500</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">0</td>
+<td>Red <code>#FF2D55</code></td>
+</tr>
+</tbody>
+</table>
+<p>A bolt icon turns purple for PRO users. Tapping the badge opens <code>GenesisPricingScreen</code> as a bottom sheet.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// Opened programmatically (e.g. from a 402 error):</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">GenesisQuotaBadge</span><span class="p">.</span><span class="n">openSheet</span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">_quota</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="genesispricingscreen">GenesisPricingScreen</h3>
+<p>A full dark-themed modal screen with a galactic animated header. Sections:</p>
+<ol>
+<li><strong>Plan toggle</strong> — switch between monthly and yearly pricing.</li>
+<li><strong>FREE card</strong> — 5 créations/mois, disabled CTA if already on free.</li>
+<li><strong>PRO card</strong> — animated rainbow-glow border, gradient CTA button, adapts price to toggle state.</li>
+<li><strong>Credits card</strong> — pay-as-you-go pack of 10 at 1,99 €.</li>
+<li><strong>Why PRO?</strong> — 2×2 feature grid.</li>
+<li><strong>FAQ</strong> — 3 glassmorphism <code>ExpansionTile</code> entries.</li>
+<li><strong>Footer</strong> — "Gérer mon abonnement" opens the Stripe Customer Portal (only visible for PRO users).</li>
+</ol>
+<p>All purchase buttons show a <code>CircularProgressIndicator</code> while the Stripe Checkout URL is being fetched, then open the URL in the system browser via <code>url_launcher</code>.</p>
+<h3 id="402-error-handling-in-genesisworkspace">402 error handling in GenesisWorkspace</h3>
+<p>When <code>/create/</code> returns HTTP 402 the workspace:
+1. Parses the <code>quota</code> field from the error body and updates <code>_quota</code> state.
+2. Displays the error message in the chat bubble.
+3. Automatically opens <code>GenesisPricingScreen</code> as a bottom sheet.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>User sends prompt
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>      │
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>      ▼  POST /api/genesis/create/
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>      │
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>      ├─ 201 OK → update project + quota badge
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>      │
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>      └─ 402 Quota exceeded
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>             │
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>             ▼  parse &#39;quota&#39; from response body
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>             GenesisQuotaBadge.openSheet(context, _quota)
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>             → GenesisPricingScreen shown automatically
+</code></pre></div>
+<hr />
+<h2 id="conversation-flow-llm-context-window">Conversation Flow (LLM context window)</h2>
+<p>Every call to the LLM includes:</p>
+<ol>
+<li><strong>System Prompt</strong> — <code>GENESIS_SYSTEM_PROMPT</code> (immutable, defined in <code>services.py</code>).</li>
+<li><strong>Message history</strong> — all past <code>ConversationTurn</code> rows (role <code>user</code> / <code>assistant</code>) for the project, ordered by timestamp.</li>
+<li><strong>New user message</strong> — either the initial prompt, a feedback request, or an error report with the current HTML embedded.</li>
+</ol>
+<p>This gives GENESIS full context of every past iteration when generating new code.</p>
+<hr />
+<h2 id="system-prompt-exact">System Prompt (exact)</h2>
+<blockquote>
+<p>Tu es GENESIS, l'Architecte IA d'ONDES CORE.<br />
+Ta tâche : Générer une Mini-App (HTML/JS/CSS) autonome en un seul fichier.</p>
+<p><strong>RÈGLES TECHNIQUES STRICTES :</strong>
+1. <strong>Format :</strong> Un seul fichier HTML. CSS dans <code>&lt;style&gt;</code>, JS dans <code>&lt;script&gt;</code>. Pas de CDN externes sauf si indispensable (préférer le CSS pur).
+2. <strong>Initialisation :</strong> Attends l'événement <code>document.addEventListener('OndesReady', ...)</code> avant d'utiliser le SDK.
+3. <strong>SDK ONDES v3.0 (OBLIGATOIRE) :</strong> Utilise <code>window.Ondes</code>. Modules disponibles : UI, Device, Storage, Social, Chat, Websocket, UDP.
+4. <strong>Design :</strong> Style 'Cyberpunk / Glassmorphism'. Fond sombre (#121212), textes néons, éléments translucides.
+5. <strong>Gestion d'Erreur :</strong> <code>try...catch</code> global → <code>Ondes.UI.showToast</code> en cas d'erreur.</p>
+<p><strong>SORTIE :</strong> Renvoie UNIQUEMENT le code HTML brut. Pas de markdown.</p>
+</blockquote>
+<hr />
+<h2 id="flutter-integration">Flutter Integration</h2>
+<h3 id="webview-html-loading">WebView HTML loading</h3>
+<p>Generated HTML is loaded via <code>InAppWebView.loadData()</code> (data URI) to isolate the app from any origin. Two JS scripts are injected on <code>onLoadStop</code>:</p>
+<ol>
+<li><strong><code>ondesBridgeJs</code></strong> — the full Ondes SDK Bridge (<code>window.Ondes</code>).  </li>
+<li><strong><code>_errorCaptureJs</code></strong> — installs <code>window.onerror</code> + <code>unhandledrejection</code> listeners that forward errors to Flutter via a named JS handler (<code>Genesis.reportError</code>).</li>
+</ol>
+<h3 id="error-auto-fix-loop">Error auto-fix loop</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>JS runtime error
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>      │
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>      ▼  (via window.onerror → JS handler)
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>Flutter: GenesisWorkspace._handleError()
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>      │
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>      ▼  POST /api/genesis/{id}/report_error/
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>Django: GenesisReportErrorView
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>      │
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>      ▼  GenesisAgent.fix_error(current_html, history, error_msg)
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>Claude: returns corrected HTML
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>      │
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>      ▼  new ProjectVersion saved
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>Flutter: WebView reloaded with fixed HTML
+</code></pre></div>
+<hr />
+<h2 id="setup">Setup</h2>
+<h3 id="backend">Backend</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># 1. Install dependencies</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>pip<span class="w"> </span>install<span class="w"> </span>anthropic<span class="w"> </span>stripe
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># 2. Add to .env</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="nv">ANTHROPIC_API_KEY</span><span class="o">=</span>sk-ant-...
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="nv">STRIPE_SECRET_KEY</span><span class="o">=</span>sk_test_...
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="nv">STRIPE_WEBHOOK_SECRET</span><span class="o">=</span>whsec_...
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="nv">STRIPE_PRO_MONTHLY_PRICE_ID</span><span class="o">=</span>price_...
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="nv">STRIPE_PRO_YEARLY_PRICE_ID</span><span class="o">=</span>price_...
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="nv">STRIPE_CREDIT_PACK_PRICE_ID</span><span class="o">=</span>price_...
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="c1"># 3. Migrate</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>python<span class="w"> </span>manage.py<span class="w"> </span>migrate<span class="w"> </span>genesis
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="c1"># 4. Run</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>python<span class="w"> </span>manage.py<span class="w"> </span>runserver
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="c1"># 5. (dev) Forward Stripe webhooks to localhost</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>stripe<span class="w"> </span>listen<span class="w"> </span>--forward-to<span class="w"> </span>localhost:8000/api/genesis/stripe/webhook/
+</code></pre></div>
+<blockquote>
+<p><strong>Stripe Products to create in the dashboard:</strong>
+- PRO Monthly — recurring, 7,99 €/mo
+- PRO Yearly — recurring, 59,99 €/yr
+- Credit Pack — one-time payment, 1,99 € (10 credits per purchase)</p>
+<p>Copy each <code>price_xxx</code> ID into <code>.env</code>.</p>
+</blockquote>
+<h3 id="flutter">Flutter</h3>
+<p>No additional packages required — uses existing <code>dio</code>, <code>flutter_inappwebview</code>, and <code>url_launcher</code> dependencies.</p>
+<p>The <code>url_launcher</code> package is used by <code>GenesisPricingScreen</code> to open Stripe Checkout and the Customer Portal in the system browser.</p>
+<p>Navigate to GENESIS from anywhere in the app:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">Navigator</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">MaterialPageRoute</span><span class="p">(</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nl">builder:</span><span class="w"> </span><span class="p">(</span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">GenesisScreen</span><span class="p">(),</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="p">));</span>
+</code></pre></div>
+<p>Or open directly in creation mode:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">Navigator</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="w"> </span><span class="n">MaterialPageRoute</span><span class="p">(</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nl">builder:</span><span class="w"> </span><span class="p">(</span><span class="n">_</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">GenesisWorkspace</span><span class="p">(),</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="nl">fullscreenDialog:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="p">));</span>
+</code></pre></div>
+<hr />
+<h2 id="file-structure">File Structure</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>api/genesis/
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>├── __init__.py
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>├── apps.py
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>├── admin.py           ← registers GenesisProject, GenesisQuota
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>├── models.py          ← GenesisProject, ProjectVersion, ConversationTurn, GenesisQuota
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>├── serializers.py     ← ProjectVersionListSerializer + GenesisQuotaSerializer
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>├── services.py        ← GenesisAgent (LLM wrapper — do not modify)
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>├── views.py           ← all REST endpoints + Stripe views + webhook
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>├── urls.py
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>└── migrations/
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>    ├── 0001_initial.py
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>    └── 0002_genesisquota.py
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>lib/
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>├── core/services/
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>│   └── genesis_service.dart    ← Dart HTTP client, all models incl. GenesisQuota
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a>└── ui/genesis/
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>    ├── genesis_screen.dart         ← Project list + quota badge
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a>    ├── genesis_workspace.dart      ← WebView + Chat + Version history + Code editor
+<a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a>    ├── genesis_quota_widget.dart   ← GenesisQuotaBadge (AppBar widget)
+<a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a>    └── genesis_pricing_screen.dart ← Pricing modal (plans + credits + FAQ)
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
