@@ -131,6 +131,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Media Configuration for Apps Zips and Icons
 MEDIA_URL = '/media/'
@@ -160,6 +161,10 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ==================== LOGGING ====================
+# Créer le dossier logs/ si absent (dev local + Docker)
+LOGS_DIR = BASE_DIR / 'logs'
+os.makedirs(LOGS_DIR, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -179,8 +184,10 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'file': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'ondes.log',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'ondes.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB par fichier
+            'backupCount': 5,
             'formatter': 'verbose',
         },
     },

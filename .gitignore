@@ -49,5 +49,8 @@ venv/
 *.pyc
 __pycache__/
 api/.env
+api/.env.prod
 api/db.sqlite3
 api/media/
+api/staticfiles/
+api/ondes.log
