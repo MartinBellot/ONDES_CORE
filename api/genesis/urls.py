@@ -5,6 +5,7 @@ from .views import (
     GenesisIterateView,
     GenesisReportErrorView,
     GenesisDeployView,
+    GenesisPublishToStoreView,
     GenesisProjectDetailView,
     GenesisVersionDetailView,
     GenesisSaveEditView,
@@ -30,6 +31,7 @@ urlpatterns = [
     path('<uuid:project_id>/iterate/', GenesisIterateView.as_view(), name='genesis-iterate'),
     path('<uuid:project_id>/report_error/', GenesisReportErrorView.as_view(), name='genesis-report-error'),
     path('<uuid:project_id>/deploy/', GenesisDeployView.as_view(), name='genesis-deploy'),
+    path('<uuid:project_id>/publish_to_store/', GenesisPublishToStoreView.as_view(), name='genesis-publish-to-store'),
     # Version history
     path('<uuid:project_id>/versions/<int:version_id>/', GenesisVersionDetailView.as_view(), name='genesis-version-detail'),
     # Manual HTML edit

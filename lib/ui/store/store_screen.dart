@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/models/mini_app.dart';
@@ -13,7 +12,7 @@ import '../common/permission_request_screen.dart';
 import 'app_detail_screen.dart';
 
 class StoreScreen extends StatefulWidget {
-  const StoreScreen({Key? key}) : super(key: key);
+  const StoreScreen({super.key});
 
   @override
   State<StoreScreen> createState() => _StoreScreenState();
@@ -50,8 +49,6 @@ class _StoreScreenState extends State<StoreScreen>
   String? _selectedCategory;
   String _sortBy = 'featured';
   String? _error;
-  bool _showTrendingPopup = false;
-  bool _showNewReleasesPopup = false;
   int _hoveredAppIndex = -1;
 
   // Design constants - matching ultraDarkTheme from main.dart
@@ -97,15 +94,6 @@ class _StoreScreenState extends State<StoreScreen>
     )..repeat();
 
     _loadData();
-    _scrollController.addListener(_onScroll);
-
-    // Show popups after a delay
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted && _featuredApps.isNotEmpty) {
-        setState(() => _showNewReleasesPopup = true);
-        _popupController.forward();
-      }
-    });
   }
 
   @override
@@ -118,16 +106,6 @@ class _StoreScreenState extends State<StoreScreen>
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    // Hide popups when scrolling
-    if (_showTrendingPopup || _showNewReleasesPopup) {
-      setState(() {
-        _showTrendingPopup = false;
-        _showNewReleasesPopup = false;
-      });
-    }
   }
 
   Future<void> _loadData() async {
@@ -150,14 +128,6 @@ class _StoreScreenState extends State<StoreScreen>
         _categories = results[2] as List<AppCategory>;
         _installedApps = results[3] as List<MiniApp>;
         _isLoading = false;
-      });
-
-      // Trigger popup after load
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted && _allApps.isNotEmpty) {
-          setState(() => _showNewReleasesPopup = true);
-          _popupController.forward();
-        }
       });
     } catch (e) {
       setState(() {
@@ -494,10 +464,6 @@ class _StoreScreenState extends State<StoreScreen>
               
 
           ),
-
-          // Floating popups
-          if (_showNewReleasesPopup) _buildNewReleasesPopup(),
-          if (_showTrendingPopup) _buildTrendingPopup(),
         ],
       ),
     );
@@ -548,73 +514,9 @@ class _StoreScreenState extends State<StoreScreen>
               ],
             ),
           ),
-          // Notification bell with animation
-          _buildNotificationButton(),
           const SizedBox(width: 8),
           _buildRefreshButton(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationButton() {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        setState(() => _showTrendingPopup = !_showTrendingPopup);
-      },
-      child: AnimatedBuilder(
-        animation: _pulseController,
-        builder: (context, child) {
-          return Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: _bgSecondary,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _showTrendingPopup
-                    ? _highlightColor
-                    : _accentMuted.withOpacity(0.2),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Icon(
-                    Icons.local_fire_department_rounded,
-                    color: _showTrendingPopup
-                        ? _accentOrange
-                        : _accentSecondary,
-                    size: 22,
-                  ),
-                ),
-                // Notification dot
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Transform.scale(
-                    scale: 0.8 + _pulseController.value * 0.4,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _accentOrange,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _accentOrange.withOpacity(0.6),
-                            blurRadius: 6,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }
@@ -686,98 +588,6 @@ class _StoreScreenState extends State<StoreScreen>
           ),
           onChanged: (value) => _search(value),
         ),
-    );
-  }
-
-  Widget _buildQuickActions() {
-    return Container(
-      height: 44,
-      margin: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          _buildQuickActionChip(
-            'Tendances',
-            Icons.local_fire_department_rounded,
-            _accentOrange,
-            () {
-              HapticFeedback.selectionClick();
-              setState(() => _showTrendingPopup = true);
-            },
-          ),
-          _buildQuickActionChip(
-            'Nouveautés',
-            Icons.auto_awesome_rounded,
-            _accentPurple,
-            () {
-              HapticFeedback.selectionClick();
-              setState(() => _showNewReleasesPopup = true);
-            },
-          ),
-          _buildQuickActionChip(
-            'Top Notés',
-            Icons.star_rounded,
-            _accentTeal,
-            () async {
-              HapticFeedback.selectionClick();
-              setState(() => _sortBy = 'rating');
-              final response = await _storeService.getApps(sort: 'rating');
-              if (mounted) setState(() => _allApps = response.apps);
-            },
-          ),
-          _buildQuickActionChip(
-            'Jeux',
-            Icons.sports_esports_rounded,
-            _accentPink,
-            () {
-              HapticFeedback.selectionClick();
-              _filterByCategory('games');
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActionChip(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedBuilder(
-        animation: _floatingController,
-        builder: (context, child) {
-          return Container(
-            margin: const EdgeInsets.only(right: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color.withOpacity(0.15), color.withOpacity(0.05)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withOpacity(0.3)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: color, size: 16),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
     );
   }
 
@@ -911,7 +721,6 @@ class _StoreScreenState extends State<StoreScreen>
         slivers: [
           SliverToBoxAdapter(child: _buildHeader()),
           SliverToBoxAdapter(child: _buildSearchArea()),
-          SliverToBoxAdapter(child: _buildQuickActions()),
           // Categories carousel
           SliverToBoxAdapter(child: _buildCategoriesCarousel()),
 
@@ -1275,11 +1084,6 @@ class _StoreScreenState extends State<StoreScreen>
                   decoration: BoxDecoration(
                     color: isHovered ? _bgTertiary : _bgSecondary,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isHovered
-                          ? _highlightColor.withOpacity(0.3)
-                          : _accentMuted.withOpacity(0.1),
-                    ),
                     boxShadow: isHovered
                         ? [
                             BoxShadow(
@@ -1372,6 +1176,29 @@ class _StoreScreenState extends State<StoreScreen>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (app.isGenesisApp) ...[
+                        const SizedBox(height: 5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.auto_awesome, size: 8, color: Colors.white),
+                              SizedBox(width: 3),
+                              Text(
+                                'GENESIS',
+                                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       if (app.ratingsCount > 0) ...[
                         const SizedBox(height: 6),
                         Row(
@@ -1399,7 +1226,7 @@ class _StoreScreenState extends State<StoreScreen>
                       GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
-                          if (isInstalled && !hasUpdate) {
+                          if (isInstalled || hasUpdate) {
                             _openApp(app.id);
                           } else {
                             _installAndOpen(app);
@@ -1471,251 +1298,7 @@ class _StoreScreenState extends State<StoreScreen>
       ),
     );
   }
-
-  // ==================== POPUPS ====================
-
-  Widget _buildNewReleasesPopup() {
-    final newApps = _allApps.take(3).toList();
-
-    return _buildAnimatedPopup(
-      title: 'Sorties du moment',
-      icon: Icons.auto_awesome_rounded,
-      subtitle: 'Découvrez les dernières nouveautés',
-      color: _accentPurple,
-      apps: newApps,
-      onClose: () => setState(() => _showNewReleasesPopup = false),
-      position: Alignment.bottomRight,
-    );
-  }
-
-  Widget _buildTrendingPopup() {
-    final trendingApps = _allApps
-        .where((a) => a.ratingsCount > 0)
-        .take(3)
-        .toList();
-
-    return _buildAnimatedPopup(
-      title: 'Tendances',
-      icon: Icons.local_fire_department_rounded,
-      subtitle: 'Les apps les plus populaires',
-      color: _accentOrange,
-      apps: trendingApps,
-      onClose: () => setState(() => _showTrendingPopup = false),
-      position: Alignment.bottomLeft,
-    );
-  }
-
-  Widget _buildAnimatedPopup({
-    required String title,
-    required IconData icon,
-    required String subtitle,
-    required Color color,
-    required List<MiniApp> apps,
-    required VoidCallback onClose,
-    required Alignment position,
-  }) {
-    return Positioned(
-      bottom: 120,
-      left: position == Alignment.bottomLeft ? 16 : null,
-      right: position == Alignment.bottomRight ? 16 : null,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOutCubic,
-        builder: (context, value, child) {
-          return Transform.translate(
-            offset: Offset(
-              position == Alignment.bottomLeft
-                  ? -30 * (1 - value)
-                  : 30 * (1 - value),
-              20 * (1 - value),
-            ),
-            child: Opacity(
-              opacity: value.clamp(0.0, 1.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    width: 280,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: _bgSecondary.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: color.withOpacity(0.3)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: color.withOpacity(0.2),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: color.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(icon, color: color, size: 18),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: TextStyle(
-                                      color: _accentPrimary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    subtitle,
-                                    style: TextStyle(
-                                      color: _accentMuted,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: onClose,
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  color: _bgTertiary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.close_rounded,
-                                  color: _accentMuted,
-                                  size: 16,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        // Apps list
-                        ...apps.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final app = entry.value;
-                          return TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0.0, end: 1.0),
-                            duration: Duration(milliseconds: 300 + index * 100),
-                            curve: Curves.easeOutCubic,
-                            builder: (context, animValue, child) {
-                              return Transform.translate(
-                                offset: Offset(20 * (1 - animValue), 0),
-                                child: Opacity(
-                                  opacity: animValue,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      onClose();
-                                      _navigateToDetail(app);
-                                    },
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                        bottom: index < apps.length - 1
-                                            ? 10
-                                            : 0,
-                                      ),
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: _bgTertiary.withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                            child: app.iconUrl.isNotEmpty
-                                                ? Image.network(
-                                                    app.iconUrl,
-                                                    width: 40,
-                                                    height: 40,
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : Container(
-                                                    width: 40,
-                                                    height: 40,
-                                                    color: _bgTertiary,
-                                                    child: Icon(
-                                                      Icons.apps,
-                                                      color: _accentMuted,
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  app.name,
-                                                  style: TextStyle(
-                                                    color: _accentPrimary,
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                Text(
-                                                  app.categoryName,
-                                                  style: TextStyle(
-                                                    color: _accentMuted,
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            color: color,
-                                            size: 14,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
-
 // ==================== CUSTOM PAINTERS ====================
 
 class _BackgroundPainter extends CustomPainter {

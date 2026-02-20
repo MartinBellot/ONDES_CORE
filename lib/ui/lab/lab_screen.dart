@@ -190,11 +190,14 @@ class _LabScreenState extends State<LabScreen> with TickerProviderStateMixin {
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildLiveServerCard(),
+                _buildGenesisCard(),
+                
                 const SizedBox(height: 16),
                 _buildStudioCard(),
+               
+                
                 const SizedBox(height: 16),
-                _buildGenesisCard(),
+                _buildLiveServerCard(),
                 const SizedBox(height: 32),
               ]),
             ),
@@ -474,14 +477,9 @@ class _LabScreenState extends State<LabScreen> with TickerProviderStateMixin {
             icon: Icons.dashboard_customize_rounded,
             iconColor: const Color(0xFFAF52DE), // accentPurple from theme
             title: 'Ondes Studio',
-            subtitle: 'Gérez vos apps, publiez des mises à jour et suivez vos déploiements.',
+            subtitle: 'Gérez vos apps du store, publiez des mises à jour et suivez vos déploiements.',
           ),
           const SizedBox(height: 20),
-
-          // Doc link row
-          _buildDocumentationCard(),
-          const SizedBox(height: 12),
-
           SizedBox(
             width: double.infinity,
             child: _GradientButton(

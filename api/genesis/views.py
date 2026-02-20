@@ -281,6 +281,88 @@ class GenesisDeployView(APIView):
         return Response(serializer.data)
 
 
+class GenesisPublishToStoreView(APIView):
+    """
+    POST /api/genesis/<id>/publish_to_store/
+    First publish  → creates a MiniApp + AppVersion (zip of index.html + manifest.json)
+    Re-publish     → adds a new AppVersion to the existing MiniApp
+    Returns the full GenesisProject detail (with store_app_id).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, project_id):
+        import io, json as _json, zipfile as _zipfile
+        from django.core.files.base import ContentFile
+        from store.models import MiniApp, AppVersion
+
+        try:
+            project = GenesisProject.objects.get(id=project_id, user=request.user)
+        except GenesisProject.DoesNotExist:
+            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        current = project.current_version
+        if not current or not current.html_code.strip():
+            return Response({'error': 'No valid code to publish'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Build a semver-like version from the genesis version_number: 1.0.0, 1.1.0, 1.2.0 …
+        version_str = f"1.{current.version_number - 1}.0"
+
+        # Build in-memory zip: index.html + manifest.json
+        zip_buffer = io.BytesIO()
+        bundle_id = f"com.genesis.{str(project.id).replace('-', '')[:12]}"
+        manifest = {
+            "id": bundle_id,
+            "name": project.title,
+            "version": version_str,
+            "description": current.change_description or project.title,
+            "generator": "genesis",
+        }
+        with _zipfile.ZipFile(zip_buffer, 'w', _zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr('index.html', current.html_code)
+            zf.writestr('manifest.json', _json.dumps(manifest, ensure_ascii=False, indent=2))
+        zip_bytes = zip_buffer.getvalue()
+        zip_filename = f"{bundle_id}_v{version_str}.zip"
+
+        # Check if a MiniApp is already linked to this project
+        store_app = MiniApp.objects.filter(genesis_project_id=project.id).first()
+
+        if store_app is None:
+            # --- First publish: create the MiniApp ---
+            store_app = MiniApp.objects.create(
+                author=request.user,
+                bundle_id=bundle_id,
+                name=project.title,
+                description='',
+                source_type=MiniApp.SOURCE_GENESIS,
+                genesis_project_id=project.id,
+                size_bytes=len(zip_bytes),
+                is_published=False,   # draft until metadata is completed in Studio
+            )
+
+        # --- Always add a new AppVersion (first publish or update) ---
+        # Mark all previous versions inactive
+        store_app.versions.update(is_active=False)
+        app_version = AppVersion(
+            app=store_app,
+            version_number=version_str,
+            release_notes=current.change_description or '',
+            is_active=True,
+        )
+        app_version.zip_file.save(zip_filename, ContentFile(zip_bytes), save=False)
+        app_version.save()
+
+        # Update store app size
+        store_app.size_bytes = len(zip_bytes)
+        store_app.save(update_fields=['size_bytes', 'updated_at'])
+
+        # Mark genesis project as deployed + track synced version
+        project.is_deployed = True
+        project.deployed_version_number = current.version_number
+        project.save(update_fields=['is_deployed', 'deployed_version_number', 'updated_at'])
+
+        return Response(_quota_response_data(project, request.user))
+
+
 class GenesisProjectDetailView(APIView):
     """
     GET  /api/genesis/<id>/   → project details with conversation, current version & version history

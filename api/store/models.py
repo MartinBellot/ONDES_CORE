@@ -102,6 +102,16 @@ class MiniApp(models.Model):
     featured = models.BooleanField(default=False, help_text="Mise en avant dans le store")
     featured_order = models.IntegerField(default=0, help_text="Ordre d'affichage si featured")
     
+    # Source
+    SOURCE_MANUAL = 'manual'
+    SOURCE_GENESIS = 'genesis'
+    SOURCE_CHOICES = [('manual', 'Manual'), ('genesis', 'Genesis AI')]
+    source_type = models.CharField(max_length=10, choices=SOURCE_CHOICES, default=SOURCE_MANUAL)
+    genesis_project_id = models.UUIDField(null=True, blank=True, unique=True, help_text='Linked Genesis project UUID')
+
+    # Visibility — Genesis apps start as drafts until metadata is completed
+    is_published = models.BooleanField(default=True, help_text='Visible in the public Store')
+
     # Dates
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

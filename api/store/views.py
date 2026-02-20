@@ -104,7 +104,7 @@ class CategoryDetailView(APIView):
         except Category.DoesNotExist:
             return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        apps = MiniApp.objects.filter(category=category)
+        apps = MiniApp.objects.filter(category=category, is_published=True)
         
         # Pagination
         limit = safe_int(request.query_params.get('limit'), 20, max_val=MAX_PAGE_LIMIT)
@@ -130,7 +130,7 @@ class AppListView(APIView):
     """Liste des apps avec recherche et filtres"""
     
     def get(self, request):
-        apps = MiniApp.objects.all()
+        apps = MiniApp.objects.filter(is_published=True)
         
         # Recherche textuelle
         search = request.query_params.get('search', '').strip()
@@ -191,6 +191,10 @@ class AppDetailView(APIView):
         except MiniApp.DoesNotExist:
             return Response({'error': 'App not found'}, status=status.HTTP_404_NOT_FOUND)
         
+        # Draft apps are only visible to their owner
+        if not app.is_published and app.author != request.user:
+            return Response({'error': 'App not found'}, status=status.HTTP_404_NOT_FOUND)
+        
         serializer = MiniAppDetailSerializer(app, context={'request': request})
         return Response(serializer.data)
 
@@ -199,7 +203,7 @@ class FeaturedAppsView(APIView):
     """Apps mises en avant"""
     
     def get(self, request):
-        featured = MiniApp.objects.filter(featured=True).order_by('featured_order')[:10]
+        featured = MiniApp.objects.filter(featured=True, is_published=True).order_by('featured_order')[:10]
         serializer = MiniAppListSerializer(featured, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -212,7 +216,7 @@ class TopAppsView(APIView):
         list_type = request.query_params.get('type', 'downloads')  # downloads, rating, new
         limit = safe_int(request.query_params.get('limit'), 20, max_val=MAX_PAGE_LIMIT)
         
-        apps = MiniApp.objects.all()
+        apps = MiniApp.objects.filter(is_published=True)
         
         if category:
             apps = apps.filter(category__slug=category)
@@ -431,6 +435,16 @@ class MyAppsDetailView(APIView):
         app = self.get_object(pk, request.user)
         if not app:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        # If this app was linked to a Genesis project, reset its deployment status
+        if app.genesis_project_id:
+            try:
+                from genesis.models import GenesisProject
+                GenesisProject.objects.filter(id=app.genesis_project_id).update(
+                    is_deployed=False,
+                    deployed_version_number=0,
+                )
+            except Exception:
+                pass
         app.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

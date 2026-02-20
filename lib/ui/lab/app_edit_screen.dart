@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/models/mini_app.dart';
 import '../../core/services/dev_studio_service.dart';
+import '../store/app_detail_screen.dart';
 
 /// Screen for editing app details in Dev Studio
 /// Allows developers to manage category, age rating, banner, screenshots, etc.
@@ -159,8 +160,69 @@ class _AppEditScreenState extends State<AppEditScreen>
     }
   }
 
+  /// Returns true if all required fields are filled.
+  /// [forPublish] adds stricter checks needed before going live on the Store.
+  bool _validateFields({required bool forPublish}) {
+    final List<_ValidationError> errors = [];
+
+    final name = _nameCtrl.text.trim();
+    final desc = _descCtrl.text.trim();
+
+    if (name.isEmpty) {
+      errors.add(_ValidationError(
+        tab: 0,
+        field: 'Nom de l\'application',
+        hint: 'Donne un nom à ton app.',
+        icon: Icons.title,
+      ));
+    }
+
+    if (forPublish) {
+      if (desc.isEmpty) {
+        errors.add(_ValidationError(
+          tab: 0,
+          field: 'Description courte',
+          hint: 'Décris ton app en une phrase.',
+          icon: Icons.short_text,
+        ));
+      }
+      if (_selectedCategoryId == null) {
+        errors.add(_ValidationError(
+          tab: 2,
+          field: 'Catégorie',
+          hint: 'Choisis une catégorie dans l\'onglet Métadonnées.',
+          icon: Icons.category,
+        ));
+      }
+    }
+
+    if (errors.isEmpty) return true;
+
+    // Show a bottom sheet listing the missing fields
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _ValidationErrorSheet(
+        errors: errors,
+        forPublish: forPublish,
+        onGoToTab: (tabIndex) {
+          Navigator.pop(ctx);
+          _tabController.animateTo(tabIndex);
+        },
+      ),
+    );
+    return false;
+  }
+
   Future<void> _saveAll() async {
     if (_app?.dbId == null) return;
+
+    // Determine draft state early (before setState) so validation uses it
+    final MiniApp effectiveApp = _app ?? widget.app;
+    final bool isDraft = effectiveApp.isGenesisApp && effectiveApp.isPublished == false;
+
+    // Validate before doing anything async
+    if (!_validateFields(forPublish: isDraft)) return;
 
     setState(() => _isSaving = true);
     HapticFeedback.mediumImpact();
@@ -179,7 +241,7 @@ class _AppEditScreenState extends State<AppEditScreen>
           .where((l) => l.isNotEmpty)
           .toList();
 
-      // Update app info
+      // Update app info — pass is_published=true if this is an unpublished genesis draft
       final updatedApp = await _service.updateApp(
         appId: _app!.dbId!,
         name: _nameCtrl.text,
@@ -195,6 +257,7 @@ class _AppEditScreenState extends State<AppEditScreen>
         tags: tags,
         icon: _newIcon,
         banner: _newBanner,
+        isPublished: isDraft ? true : null,
       );
 
       // Upload new screenshots
@@ -217,12 +280,6 @@ class _AppEditScreenState extends State<AppEditScreen>
 
       if (updatedApp != null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Application mise à jour avec succès !'),
-              backgroundColor: Colors.green,
-            ),
-          );
           // Clear new files after successful upload
           setState(() {
             _newIcon = null;
@@ -232,6 +289,36 @@ class _AppEditScreenState extends State<AppEditScreen>
           });
           // Reload app data
           _loadData();
+
+          if (isDraft) {
+            // Show publish success sheet with "Voir sur le Store" button
+            final appId = _app!.dbId!;
+            showModalBottomSheet<void>(
+              context: context,
+              backgroundColor: Colors.transparent,
+              isDismissible: true,
+              builder: (ctx) => _PublishSuccessSheet(
+                appName: updatedApp.name,
+                onViewInStore: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AppDetailScreen(appId: appId),
+                    ),
+                  );
+                },
+              ),
+            );
+          } else {
+            debugPrint('App updated successfully');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Application mise à jour avec succès !'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
         }
       } else {
         throw Exception('Failed to update');
@@ -264,8 +351,21 @@ class _AppEditScreenState extends State<AppEditScreen>
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.save),
-              label: Text(_isSaving ? 'Sauvegarde...' : 'Enregistrer'),
+                  : Icon(
+                      (_app?.isGenesisApp == true && _app?.isPublished == false)
+                          ? Icons.rocket_launch_outlined
+                          : Icons.save,
+                    ),
+              label: Text(
+                _isSaving
+                    ? 'Sauvegarde...'
+                    : (_app?.isGenesisApp == true && _app?.isPublished == false)
+                        ? 'Publier sur le Store'
+                        : 'Enregistrer',
+              ),
+              style: (_app?.isGenesisApp == true && _app?.isPublished == false)
+                  ? TextButton.styleFrom(foregroundColor: const Color(0xFF818CF8))
+                  : null,
             ),
         ],
         bottom: TabBar(
@@ -281,13 +381,42 @@ class _AppEditScreenState extends State<AppEditScreen>
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
+          : Column(
               children: [
-                _buildGeneralTab(),
-                _buildMediaTab(),
-                _buildMetadataTab(),
-                _buildSettingsTab(),
+                // Draft banner for unpublished genesis apps
+                if (_app?.isGenesisApp == true && _app?.isPublished == false)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF4C1D95), Color(0xFF0E7490)],
+                      ),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.info_outline, color: Colors.white70, size: 16),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Cette app est en brouillon. Appuie sur "Publier sur le Store" pour la rendre visible.',
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildGeneralTab(),
+                      _buildMediaTab(),
+                      _buildMetadataTab(),
+                      _buildSettingsTab(),
+                    ],
+                  ),
+                ),
               ],
             ),
     );
@@ -1154,5 +1283,261 @@ class _AppEditScreenState extends State<AppEditScreen>
       'reference': Icons.library_books,
     };
     return iconMap[slug] ?? Icons.apps;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Validation error model
+// ---------------------------------------------------------------------------
+class _ValidationError {
+  final int tab;       // TabBar index to jump to
+  final String field;
+  final String hint;
+  final IconData icon;
+  const _ValidationError({
+    required this.tab,
+    required this.field,
+    required this.hint,
+    required this.icon,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Validation error bottom sheet
+// ---------------------------------------------------------------------------
+class _ValidationErrorSheet extends StatelessWidget {
+  final List<_ValidationError> errors;
+  final bool forPublish;
+  final void Function(int tabIndex) onGoToTab;
+
+  const _ValidationErrorSheet({
+    required this.errors,
+    required this.forPublish,
+    required this.onGoToTab,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0D0D1A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D2B55),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Warning icon
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.orange.withOpacity(0.12),
+              border: Border.all(color: Colors.orange.withOpacity(0.4), width: 1.5),
+            ),
+            child: const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            forPublish ? 'Champs requis pour publier' : 'Champ requis',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            forPublish
+                ? 'Complète les champs suivants avant de publier sur le Store :'
+                : 'Complète les champs suivants avant d\'enregistrer :',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+          ),
+          const SizedBox(height: 20),
+          // Error list
+          ...errors.map((e) => _ErrorRow(error: e, onTap: () => onGoToTab(e.tab))),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: Color(0xFF4B5563), fontSize: 15)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorRow extends StatelessWidget {
+  final _ValidationError error;
+  final VoidCallback onTap;
+  const _ErrorRow({required this.error, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.withOpacity(0.25)),
+        ),
+        child: Row(
+          children: [
+            Icon(error.icon, color: Colors.orange, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    error.field,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    error.hint,
+                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF4B5563), size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Publish success bottom sheet (shown when a genesis draft is first published)
+// ---------------------------------------------------------------------------
+class _PublishSuccessSheet extends StatelessWidget {
+  final String appName;
+  final VoidCallback onViewInStore;
+
+  const _PublishSuccessSheet({
+    required this.appName,
+    required this.onViewInStore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0D0D1A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D2B55),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Success icon
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF00E676).withOpacity(0.15),
+              border: Border.all(
+                color: const Color(0xFF00E676).withOpacity(0.4),
+                width: 1.5,
+              ),
+            ),
+            child: const Icon(
+              Icons.rocket_launch_rounded,
+              color: Color(0xFF00E676),
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'App publiée sur le Store !',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '"$appName" est maintenant visible dans le Store Ondes.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF06B6D4), Color(0xFF3B82F6)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: TextButton.icon(
+                onPressed: onViewInStore,
+                icon: const Icon(
+                  Icons.storefront_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                label: const Text(
+                  'Voir sur le Store',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Fermer',
+              style: TextStyle(color: Color(0xFF4B5563), fontSize: 15),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

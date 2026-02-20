@@ -196,6 +196,11 @@ class MiniApp {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  // Genesis AI source
+  final String sourceType; // 'manual' | 'genesis'
+  final String? genesisProjectId;
+  final bool isPublished; // false = draft (not yet visible in public store)
+
   MiniApp({
     this.dbId,
     required this.id,
@@ -233,6 +238,9 @@ class MiniApp {
     this.permissions = const [],
     this.createdAt,
     this.updatedAt,
+    this.sourceType = 'manual',
+    this.genesisProjectId,
+    this.isPublished = true,
   });
 
   /// Parse depuis JSON liste (léger)
@@ -254,6 +262,9 @@ class MiniApp {
       featured: json['featured'] ?? false,
       downloadUrl: json['download_url'] ?? '',
       permissions: (json['permissions'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      sourceType: json['source_type'] ?? 'manual',
+      genesisProjectId: json['genesis_project_id']?.toString(),
+      isPublished: json['is_published'] ?? true,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
     );
   }
@@ -344,6 +355,9 @@ class MiniApp {
       downloadUrl: json['download_url'] ?? '',
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
+      sourceType: json['source_type'] ?? 'manual',
+      genesisProjectId: json['genesis_project_id']?.toString(),
+      isPublished: json['is_published'] ?? true,
     );
   }
 
@@ -356,6 +370,8 @@ class MiniApp {
     result += '☆' * (5 - fullStars - (halfStar ? 1 : 0));
     return result;
   }
+
+  bool get isGenesisApp => sourceType == 'genesis';
 
   /// Téléchargements formatés
   String get downloadsFormatted {

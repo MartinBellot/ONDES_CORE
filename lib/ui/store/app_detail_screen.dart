@@ -581,6 +581,35 @@ class _AppDetailScreenState extends State<AppDetailScreen> with TickerProviderSt
                       ),
                     ),
                   ),
+                  // GENESIS AI badge
+                  if (_app!.isGenesisApp) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.auto_awesome, size: 11, color: Colors.white),
+                          SizedBox(width: 4),
+                          Text(
+                            'GENESIS AI',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(width: 10),
                   if (_app!.ratingsCount > 0) ...[
                     Icon(Icons.star_rounded, color: _accentOrange, size: 16),

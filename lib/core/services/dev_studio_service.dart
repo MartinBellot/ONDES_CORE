@@ -140,6 +140,7 @@ class DevStudioService {
     List<String>? tags,
     File? icon,
     File? banner,
+    bool? isPublished,   // pass true to publish a genesis draft
   }) async {
     if (_token == null) return null;
     try {
@@ -155,6 +156,7 @@ class DevStudioService {
       if (websiteUrl != null) map['website_url'] = websiteUrl;
       if (languages != null) map['languages'] = languages.join(',');
       if (tags != null) map['tags'] = tags.join(',');
+      if (isPublished != null) map['is_published'] = isPublished;
       
       FormData formData = FormData.fromMap(map);
 

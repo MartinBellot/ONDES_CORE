@@ -59,6 +59,12 @@ class GenesisProject {
   final String id;
   final String title;
   final bool isDeployed;
+  /// The genesis version_number that was last pushed to the Store (0 = never).
+  final int deployedVersionNumber;
+  /// The Store MiniApp db id linked to this project (null if not published yet).
+  final int? storeAppId;
+  /// Whether the linked store app is visible in the public store (false = draft).
+  final bool storeAppIsPublished;
   final DateTime createdAt;
   final DateTime updatedAt;
   final ProjectVersion? currentVersion;
@@ -70,6 +76,9 @@ class GenesisProject {
     required this.id,
     required this.title,
     required this.isDeployed,
+    this.deployedVersionNumber = 0,
+    this.storeAppId,
+    this.storeAppIsPublished = false,
     required this.createdAt,
     required this.updatedAt,
     this.currentVersion,
@@ -78,11 +87,22 @@ class GenesisProject {
     this.quota,
   });
 
+  /// True when the current genesis version is newer than what was last pushed.
+  bool get hasUnpublishedChanges =>
+      currentVersion != null &&
+      currentVersion!.versionNumber > deployedVersionNumber;
+
+  /// True when the app is a draft in the store (pushed but metadata not completed).
+  bool get isStoreDraft => isDeployed && storeAppId != null && !storeAppIsPublished;
+
   factory GenesisProject.fromJson(Map<String, dynamic> json) {
     return GenesisProject(
       id: json['id'] as String,
       title: json['title'] as String,
       isDeployed: json['is_deployed'] as bool,
+      deployedVersionNumber: json['deployed_version_number'] as int? ?? 0,
+      storeAppId: json['store_app_id'] as int?,
+      storeAppIsPublished: json['store_app_is_published'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       currentVersion: json['current_version'] != null
@@ -311,6 +331,25 @@ class GenesisService {
       return GenesisProject.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       AppLogger.error('GenesisService', 'reportError failed', e);
+      rethrow;
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Publish to Store (first publish + subsequent updates)
+  // -----------------------------------------------------------------------
+
+  /// Publishes or updates the current genesis version on the Ondes Store.
+  /// Returns the updated [GenesisProject] which includes [storeAppId].
+  Future<GenesisProject> publishToStore(String projectId) async {
+    try {
+      final response = await _dio.post(
+        '$_base/$projectId/publish_to_store/',
+        options: Options(headers: _headers),
+      );
+      return GenesisProject.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      AppLogger.error('GenesisService', 'publishToStore failed', e);
       rethrow;
     }
   }

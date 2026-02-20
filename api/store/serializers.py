@@ -111,7 +111,8 @@ class MiniAppListSerializer(serializers.ModelSerializer):
             'id', 'bundle_id', 'name', 'description', 'icon', 
             'author_name', 'category_name', 'category_slug',
             'age_rating', 'latest_version', 'download_url', 'average_rating', 'ratings_count',
-            'downloads_count', 'featured', 'created_at'
+            'downloads_count', 'featured', 'source_type', 'genesis_project_id',
+            'is_published', 'created_at'
         ]
 
     def get_latest_version(self, obj):
@@ -155,6 +156,7 @@ class MiniAppDetailSerializer(serializers.ModelSerializer):
             'latest_version', 'download_url',
             'average_rating', 'ratings_count', 'rating_distribution',
             'screenshots', 'reviews', 'user_review',
+            'source_type', 'genesis_project_id', 'is_published',
             'created_at', 'updated_at'
         ]
 
@@ -227,7 +229,7 @@ class MiniAppSerializer(serializers.ModelSerializer):
             'whats_new', 'icon', 'banner', 'category_id', 'category', 'category_name', 'tags',
             'age_rating', 'languages', 'privacy_url', 'support_url', 'website_url',
             'latest_version', 'download_url', 'average_rating', 'ratings_count',
-            'downloads_count', 'created_at', 'screenshots'
+            'downloads_count', 'source_type', 'genesis_project_id', 'is_published', 'created_at', 'screenshots'
         ]
         read_only_fields = ['id', 'author_name', 'latest_version', 'download_url', 'downloads_count', 'created_at', 'average_rating', 'ratings_count', 'screenshots']
 

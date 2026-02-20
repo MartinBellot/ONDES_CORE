@@ -4,10 +4,12 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:dio/dio.dart';
 import '../../bridge/bridge_controller.dart';
 import '../../bridge/ondes_js_injection.dart';
+import '../../core/models/mini_app.dart';
 import '../../core/services/genesis_service.dart';
 import '../../core/services/genesis_island_service.dart';
 import '../../core/services/permission_manager_service.dart';
 import '../../core/utils/logger.dart';
+import '../lab/app_edit_screen.dart';
 import 'genesis_quota_widget.dart';
 
 // ---------------------------------------------------------------------------
@@ -348,23 +350,82 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
     }
   }
 
-  Future<void> _handleDeploy() async {
+  Future<void> _handlePublishOrUpdate() async {
     if (_project == null || _loading) return;
+    final isUpdate = _project!.isDeployed;
+    final title = isUpdate ? 'Mettre à jour sur le Store' : 'Créer un brouillon';
+    final description = isUpdate
+        ? 'La version v${_project!.currentVersion?.versionNumber} remplacera la version précédente sur le Store Ondes.'
+        : 'Un brouillon sera créé pour "${_project!.title}". Tu pourras ensuite compléter sa fiche (icône, catégorie, description…) pour le publier sur le Store.';
+    final ctaLabel = isUpdate ? 'Mettre à jour' : 'Créer le brouillon';
+
+    // ── Confirmation bottom sheet ──────────────────────────────────────────
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _GenesisPublishSheet(
+        title: title,
+        description: description,
+        appName: _project!.title,
+        versionNumber: _project!.currentVersion?.versionNumber ?? 1,
+        ctaLabel: ctaLabel,
+        isUpdate: isUpdate,
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    // ── Call API ──────────────────────────────────────────────────────────
     setState(() => _loading = true);
     try {
-      final updated = await GenesisService().deploy(_project!.id);
+      final updated = await GenesisService().publishToStore(_project!.id);
       setState(() => _project = updated);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Mini-App déployée avec succès !'),
-          backgroundColor: Color(0xFF00E676),
+
+      // ── Success bottom sheet ──────────────────────────────────────────
+      await showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isDismissible: true,
+        builder: (ctx) => _GenesisPublishSuccessSheet(
+          appName: updated.title,
+          storeAppId: updated.storeAppId,
+          isUpdate: isUpdate,
+          onCompleteMetadata: updated.storeAppId != null
+              ? () {
+                  Navigator.pop(ctx);
+                  // Build a minimal MiniApp shell so AppEditScreen can fetch details
+                  final shell = MiniApp(
+                    dbId: updated.storeAppId,
+                    id: 'genesis.${updated.id}',
+                    name: updated.title,
+                    version: '1.0.0',
+                    description: '',
+                    iconUrl: '',
+                    downloadUrl: '',
+                    sourceType: 'genesis',
+                    genesisProjectId: updated.id,
+                    isPublished: false,
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => AppEditScreen(app: shell)),
+                  );
+                }
+              : null,
         ),
       );
     } catch (e) {
-      AppLogger.error('GenesisWorkspace', 'deploy failed', e);
+      AppLogger.error('GenesisWorkspace', 'publishToStore failed', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur : $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
   // ── Version preview ───────────────────────────────────────────────────────
@@ -857,17 +918,70 @@ class _GenesisWorkspaceState extends State<GenesisWorkspace>
               style: const TextStyle(color: Color(0xFF818CF8), fontSize: 12),
             ),
           ),
-          // Deploy button
-          IconButton(
-            icon: Icon(
-              _project!.isDeployed ? Icons.rocket_launch : Icons.rocket_launch_outlined,
-              color: _project!.isDeployed
-                  ? const Color(0xFF00E676)
-                  : const Color(0xFF888BA8),
+          // Deploy / Update / In-sync / Draft button
+          if (_project!.isDeployed && !_project!.isStoreDraft && !_project!.hasUnpublishedChanges)
+            // Already in sync — disabled green rocket
+            GestureDetector(
+              onTap: () {
+                
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Tooltip(
+                  message: 'Store à jour',
+                  child: Icon(
+                    Icons.rocket_launch,
+                    color: const Color(0xFF00E676),
+                    size: 22,
+                  ),
+                ),
+              )
+            )
+          else if (_project!.isStoreDraft)
+            // Draft: pushed but metadata not completed
+            Tooltip(
+              message: 'Compléter la fiche pour publier',
+              child: IconButton(
+                icon: const Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B)),
+                onPressed: () {
+                  final shell = MiniApp(
+                    dbId: _project!.storeAppId,
+                    id: 'genesis.${_project!.id}',
+                    name: _project!.title,
+                    version: '1.0.0',
+                    description: '',
+                    iconUrl: '',
+                    downloadUrl: '',
+                    sourceType: 'genesis',
+                    genesisProjectId: _project!.id,
+                    isPublished: false,
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => AppEditScreen(app: shell)),
+                  ).then((_) async {
+                    // Reload project to reflect new storeAppIsPublished
+                    try {
+                      final updated = await GenesisService().getProject(_project!.id);
+                      if (mounted) setState(() => _project = updated);
+                    } catch (_) {}
+                  });
+                },
+              ),
+            )
+          else
+            IconButton(
+              icon: Icon(
+                _project!.isDeployed
+                    ? Icons.system_update_alt_rounded
+                    : Icons.rocket_launch_outlined,
+                color: _project!.isDeployed
+                    ? const Color(0xFF06B6D4)   // cyan = update
+                    : const Color(0xFF888BA8),   // grey = not yet published
+              ),
+              tooltip: _project!.isDeployed ? 'Mettre à jour le Store' : 'Publier sur le Store',
+              onPressed: _handlePublishOrUpdate,
             ),
-            tooltip: _project!.isDeployed ? 'Déployée' : 'Déployer',
-            onPressed: _project!.isDeployed ? null : _handleDeploy,
-          ),
         ],
         // Toggle chat panel
         IconButton(
@@ -1343,6 +1457,236 @@ class _NeonLoaderState extends State<_NeonLoader>
           ),
         ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Publish / Update confirmation bottom sheet
+// ---------------------------------------------------------------------------
+
+class _GenesisPublishSheet extends StatelessWidget {
+  final String title;
+  final String description;
+  final String appName;
+  final int versionNumber;
+  final String ctaLabel;
+  final bool isUpdate;
+
+  const _GenesisPublishSheet({
+    required this.title,
+    required this.description,
+    required this.appName,
+    required this.versionNumber,
+    required this.ctaLabel,
+    required this.isUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0D0D1A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40, height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D2B55),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Icon + title
+          ShaderMask(
+            shaderCallback: (b) => const LinearGradient(
+              colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+            ).createShader(b),
+            child: Icon(
+              isUpdate ? Icons.system_update_alt_rounded : Icons.rocket_launch_outlined,
+              size: 44,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // App pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1B4B),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF4338CA), width: 0.8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.auto_awesome, size: 14, color: Color(0xFF818CF8)),
+                const SizedBox(width: 6),
+                Text(
+                  appName,
+                  style: const TextStyle(color: Color(0xFF818CF8), fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF312E81),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'v1.${versionNumber - 1}.0',
+                    style: const TextStyle(color: Color(0xFF818CF8), fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14, height: 1.5),
+          ),
+          const SizedBox(height: 24),
+          // CTA button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFF06B6D4)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(ctaLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler', style: TextStyle(color: Color(0xFF4B5563), fontSize: 15)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Publish / Update success bottom sheet
+// ---------------------------------------------------------------------------
+
+class _GenesisPublishSuccessSheet extends StatelessWidget {
+  final String appName;
+  final int? storeAppId;
+  final bool isUpdate;
+  final VoidCallback? onCompleteMetadata;
+
+  const _GenesisPublishSuccessSheet({
+    required this.appName,
+    required this.storeAppId,
+    required this.isUpdate,
+    this.onCompleteMetadata,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0D0D1A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40, height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D2B55),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Success icon
+          Container(
+            width: 64, height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF00E676).withOpacity(0.15),
+              border: Border.all(color: const Color(0xFF00E676).withOpacity(0.4), width: 1.5),
+            ),
+            child: const Icon(Icons.check_rounded, color: Color(0xFF00E676), size: 36),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            isUpdate ? 'Store mis à jour !' : 'Brouillon créé !',
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isUpdate
+                ? '"$appName" est maintenant mise à jour sur le Store Ondes.'
+                : 'Complète la fiche de "${appName.length > 30 ? "${appName.substring(0, 30)}..." : appName}" pour la rendre\nvisible dans le Store.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+          ),
+          const SizedBox(height: 24),
+          // Actions
+          if (!isUpdate && onCompleteMetadata != null) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFF4F46E5)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: TextButton.icon(
+                  onPressed: onCompleteMetadata,
+                  icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 18),
+                  label: const Text(
+                    'Compléter la fiche (Studio)',
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                  style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Plus tard', style: TextStyle(color: Color(0xFF4B5563), fontSize: 15)),
+          ),
+        ],
+      ),
     );
   }
 }

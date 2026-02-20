@@ -10,6 +10,8 @@ class GenesisProject(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='genesis_projects')
     title = models.CharField(max_length=255, default='Untitled App')
     is_deployed = models.BooleanField(default=False)
+    # Tracks which genesis version_number was last pushed to the Store
+    deployed_version_number = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
