@@ -443,17 +443,18 @@ class AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     final bool isAuth = AuthService().isAuthenticated;
 
+    // Si non authentifié, afficher le LoginScreen en plein écran
+    // (avant même la navigation par onglets)
+    if (!isAuth) {
+      return LoginScreen(
+        onLoginSuccess: () => setState(() {}),
+      );
+    }
+
     final List<Widget> screens = [
       const MyAppsScreen(),
       const StoreScreen(),
-      // Profile Tab Logic
-      isAuth
-          ? const ProfileScreen()
-          : LoginScreen(
-              onLoginSuccess: () {
-                setState(() {}); // Rebuild to switch to ProfileScreen
-              },
-            ),
+      const ProfileScreen(),
       const LabScreen(),
     ];
 
@@ -469,9 +470,9 @@ class AuthWrapperState extends State<AuthWrapper> {
         label: "Store",
       ),
       NavigationItem(
-        icon: isAuth ? Icons.person_outline : Icons.login,
-        activeIcon: isAuth ? Icons.person : Icons.login,
-        label: isAuth ? "Profil" : "Compte",
+        icon: Icons.person_outline,
+        activeIcon: Icons.person,
+        label: "Profil",
       ),
       NavigationItem(
         icon: Icons.science_outlined,

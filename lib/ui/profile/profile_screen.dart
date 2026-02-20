@@ -57,6 +57,11 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _loadData() async {
+    // Si le token existe mais que le profil n'a pas encore été chargé
+    // (ex: fetchProfile() a échoué au démarrage), on réessaie.
+    if (AuthService().currentUser == null && AuthService().isAuthenticated) {
+      await AuthService().fetchProfile();
+    }
     setState(() {
       _user = AuthService().currentUser;
       _bioCtrl.text = _user?['bio'] ?? "";
@@ -459,9 +464,12 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     if (_user == null) {
+      // Affiche un loader pendant que _loadData() charge le profil,
+      // plutôt qu'un message "Non connecté" trompeur.
       return const Scaffold(
+        backgroundColor: Colors.black,
         body: Center(
-          child: Text("Non connecté", style: TextStyle(color: Colors.white70)),
+          child: CircularProgressIndicator(),
         ),
       );
     }

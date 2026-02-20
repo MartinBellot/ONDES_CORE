@@ -25,8 +25,16 @@ class AuthService {
     _token = await SecureStorageService().getAuthToken();
     if (_token != null) {
       await fetchProfile();
-      // Initialiser E2EE automatiquement après récupération du profil
-      await E2EEService().initialize();
+      if (_currentUser == null) {
+        // Le token est expiré ou invalide (ex: 401) → supprimer le token local
+        // pour que l'app affiche le LoginScreen dès le démarrage.
+        AppLogger.error('AuthService', 'Token invalide ou expiré, nettoyage', null);
+        _token = null;
+        await SecureStorageService().deleteAuthToken();
+      } else {
+        // Initialiser E2EE seulement si le profil a bien été chargé
+        await E2EEService().initialize();
+      }
     }
   }
 
